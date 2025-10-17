@@ -26,7 +26,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="flex items-center justify-between px-4 md:px-8 lg:px-[141px] py-6">
         <div className="flex items-center gap-8 md:gap-16">
-          <p className="font-['Roboto_Serif:Medium',_sans-serif] text-white text-[20px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <p className="font-['Roboto_Serif'] text-white text-[20px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             Merley
           </p>
         </div>
@@ -47,7 +47,7 @@ export default function Home() {
       <section className="px-4 pt-16 md:pt-24 pb-8">
         <h1 className="max-w-[775px] mx-auto text-center text-white leading-[45px]">
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]">Create </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             Editorials
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> for your fashion brand with AI</span>
@@ -109,11 +109,11 @@ export default function Home() {
       <section className="px-4 py-16 md:py-24">
         <h2 className="max-w-[775px] mx-auto text-center text-white leading-[40px] md:leading-[60px]">
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             Taste
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> matters. </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             Quality
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> counts.</span>
@@ -142,11 +142,11 @@ export default function Home() {
       <section className="px-4 py-16 md:py-24">
         <h2 className="max-w-[825px] mx-auto text-center text-white leading-[45px]">
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             FIRE
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> your photographer. Create </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             AI Models
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> for your brand.</span>
@@ -175,9 +175,9 @@ export default function Home() {
       <section className="px-4 py-16 md:py-24">
         <h2 className="max-w-[594px] mx-auto text-center text-white leading-[45px]">
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]">What can be </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>Imagined, </span>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>Imagined, </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]"> can be </span>
-          <span className="font-['Roboto_Serif:Italic',_sans-serif] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
+          <span className="font-['Roboto_Serif'] italic text-[32px] md:text-[48px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
             Created
           </span>
           <span className="font-['Circular_Std:Medium',_sans-serif] text-[32px] md:text-[48px]">.</span>
