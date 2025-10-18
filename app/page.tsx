@@ -37,9 +37,11 @@ export default function Home() {
           <p className="font-['Roboto:Medium',_sans-serif] text-white text-[14px] hidden sm:block" style={{ fontVariationSettings: "'wdth' 100" }}>
             Sign In
           </p>
-          <button className="bg-white rounded-[25px] px-6 py-2 font-['Roboto:Medium',_sans-serif] text-black text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
-            Start Creating
-          </button>
+          <a href="/dashboard">
+            <button className="bg-white rounded-[25px] px-6 py-2 font-['Roboto:Medium',_sans-serif] text-black text-[14px] cursor-pointer hover:opacity-90 transition-opacity">
+              Start Creating
+            </button>
+          </a>
         </div>
       </nav>
 

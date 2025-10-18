@@ -1,3 +1,5 @@
-export default {
+const svgPaths =  {
   p81bc480: "M8.8065 12.375H22.5V14.625H8.8065L14.841 20.6595L13.2502 22.2502L4.5 13.5L13.2502 4.74975L14.841 6.3405L8.8065 12.375Z",
 }
+
+export default svgPaths;
