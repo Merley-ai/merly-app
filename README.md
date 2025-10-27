@@ -1,4 +1,4 @@
-# Merley Landing Page
+# Merley App
 
 A production-ready Next.js application for Merley - an AI-powered fashion editorial creation platform.
 
@@ -21,7 +21,12 @@ A production-ready Next.js application for Merley - an AI-powered fashion editor
 
 ### Installation
 
-1. Clone the repository or extract the files
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+cd merly-app
+```
 
 2. Install dependencies:
 
@@ -75,86 +80,201 @@ yarn build
 pnpm build
 ```
 
-Start the production server:
-
-```bash
-npm start
-# or
-yarn start
-# or
-pnpm start
-```
-
-## Deployment
-
-### Vercel (Recommended)
-
-The easiest way to deploy this Next.js app is with [Vercel](https://vercel.com):
-
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
-2. Import your repository to Vercel
-3. Vercel will detect Next.js and configure the build settings automatically
-4. Click "Deploy"
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
-
-### Other Platforms
-
-You can also deploy to:
-- **Netlify**: Use the Next.js plugin
-- **AWS Amplify**: Connect your repository
-- **Docker**: Use the included Node.js runtime
-- **Self-hosted**: Run `npm run build && npm start` on your server
-
 ## Project Structure
 
+The application uses Next.js 15's App Router with a well-organized, scalable structure:
+
 ```
-next-app/
-├── app/
-│   ├── layout.tsx          # Root layout with metadata
-│   ├── page.tsx            # Home page component
-│   └── globals.css         # Global styles and Tailwind configuration
-├── components/
-│   └── AnimatedImage.tsx   # Scroll-triggered animation component
-├── lib/
-│   └── svg-paths.ts        # SVG path definitions
-├── public/
-│   └── images/             # Static images (you need to add these)
-├── package.json            # Dependencies and scripts
-├── next.config.js          # Next.js configuration
-├── tsconfig.json           # TypeScript configuration
-└── postcss.config.mjs      # PostCSS configuration
+merly-app/
+├── app/                          # Next.js App Router
+│   ├── layout.tsx               # Root layout (fonts, metadata)
+│   ├── globals.css              # Global styles
+│   │
+│   ├── (website)/               # Public website route group
+│   │   ├── layout.tsx          # Website-specific layout
+│   │   ├── page.tsx            # Landing page (/)
+│   │   └── _components/        # Website-only components
+│   │       ├── Navigation.tsx
+│   │       ├── Hero.tsx
+│   │       ├── EditorialShowcase.tsx
+│   │       ├── SectionHeading.tsx
+│   │       ├── ModelGrid.tsx
+│   │       ├── ProductGrid.tsx
+│   │       ├── CreativeShowcase.tsx
+│   │       └── Footer.tsx
+│   │
+│   └── (app)/                   # Application route group
+│       ├── layout.tsx          # App-specific layout
+│       └── dashboard/
+│           ├── page.tsx        # Dashboard page (/dashboard)
+│           └── _components/    # Dashboard-only components
+│               ├── Sidebar.tsx
+│               ├── TimelineWithInput.tsx
+│               ├── ThinkingAnimation.tsx
+│               ├── InputArea.tsx
+│               ├── Gallery.tsx
+│               ├── RenderingImageTile.tsx
+│               └── ImageViewer.tsx
+│
+├── components/                  # Shared components
+│   └── ui/
+│       └── AnimatedImage.tsx   # Scroll-triggered animation
+│
+├── lib/                         # Utilities and constants
+│   ├── utils/                  # Utility functions
+│   │   ├── cn.ts              # Classname utility
+│   │   ├── date.ts            # Date formatters
+│   │   ├── image.ts           # Image utilities
+│   │   └── index.ts           # Exports
+│   │
+│   └── constants/              # Constants
+│       ├── website-svg-paths.ts
+│       ├── dashboard-svg-paths.ts
+│       └── index.ts
+│
+├── types/                       # TypeScript type definitions
+│   ├── album.ts
+│   ├── timeline.ts
+│   ├── gallery.ts
+│   ├── dashboard.ts
+│   └── index.ts                # Centralized exports
+│
+└── public/                      # Static assets
+    ├── images/                 # Image files
+    └── robots.txt
+```
+
+## Architecture
+
+### Route Groups
+
+The app uses Next.js route groups for organization:
+
+- **(website)** - Public marketing pages (landing, pricing, etc.)
+- **(app)** - Authenticated application pages (dashboard, settings, etc.)
+
+Route groups don't affect URLs:
+- `app/(website)/page.tsx` → `/`
+- `app/(app)/dashboard/page.tsx` → `/dashboard`
+
+### Layout Hierarchy
+
+```
+app/layout.tsx (Root)
+├── Fonts, metadata, global styles
+│
+├── app/(website)/layout.tsx
+│   └── Marketing-specific features
+│
+└── app/(app)/layout.tsx
+    └── App-specific features (auth, providers)
+```
+
+### Component Organization
+
+- **Private folders (`_components/`)** - Components specific to a route
+- **Shared components (`components/ui/`)** - Reusable across the app
+- **Route colocation** - Components live near where they're used
+
+### Type System
+
+All types are centralized in `types/` with JSDoc documentation:
+
+```typescript
+import type { Album, TimelineEntry, GalleryImage } from "@/types";
+```
+
+### Utilities
+
+Reusable utility functions in `lib/utils/`:
+
+```typescript
+import { cn, downloadImage, formatShortDate } from "@/lib/utils";
 ```
 
 ## Technologies
 
-- **Next.js 15** - React framework
+- **Next.js 15** - React framework with App Router
 - **React 18** - UI library
 - **TypeScript** - Type safety
 - **Tailwind CSS 4** - Styling
 - **Motion (Framer Motion)** - Animations
 - **Lucide React** - Icons
 
+## Development Guidelines
+
+### Adding New Features
+
+**Website Features:**
+```bash
+# Add to app/(website)/_components/
+# Import in app/(website)/page.tsx
+```
+
+**Dashboard Features:**
+```bash
+# Add to app/(app)/dashboard/_components/
+# Import in app/(app)/dashboard/page.tsx
+```
+
+### Creating Shared Components
+
+```bash
+# Add to components/ui/
+# Import using @/components/ui/ComponentName
+```
+
+### Adding Utilities
+
+```bash
+# Add to lib/utils/
+# Export from lib/utils/index.ts
+# Import using @/lib/utils
+```
+
+### Defining Types
+
+```bash
+# Add to types/
+# Export from types/index.ts
+# Import using @/types
+```
+
 ## Customization
 
 ### Fonts
 
-The project uses Google Fonts (Roboto Serif and Roboto). These are loaded in `app/layout.tsx`. If you need to add the Circular Std font:
+Fonts are loaded in `app/layout.tsx`. To add custom fonts:
 
-1. Add the font files to `public/fonts/`
+1. Add font files to `public/fonts/`
 2. Update `app/globals.css` with @font-face declarations
 
 ### Colors
 
-Update the color scheme in `app/globals.css` by modifying the CSS variables in the `:root` selector.
+Update `app/globals.css` to modify the color scheme.
 
 ### Content
 
-Edit `app/page.tsx` to modify:
-- Navigation links
-- Hero text
-- Section content
-- Footer information
+**Landing Page:** Edit components in `app/(website)/_components/`  
+**Dashboard:** Edit components in `app/(app)/dashboard/_components/`
+
+## Deployment
+
+### Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+1. Push code to Git repository
+2. Import to Vercel
+3. Vercel auto-detects Next.js
+4. Deploy
+
+### Other Platforms
+
+- **Netlify** - Use Next.js plugin
+- **AWS Amplify** - Connect repository
+- **Docker** - Use Node.js runtime
+- **Self-hosted** - Run `npm run build && npm start`
 
 ## Browser Support
 
