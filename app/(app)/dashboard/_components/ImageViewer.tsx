@@ -3,14 +3,7 @@
 import { useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
-
-interface GalleryImage {
-    id: string;
-    url: string;
-    description: string;
-    status: 'rendering' | 'complete';
-    addedAt: Date;
-}
+import type { GalleryImage } from "@/types";
 
 interface ImageViewerProps {
     image: GalleryImage;

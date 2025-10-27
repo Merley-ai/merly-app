@@ -1,12 +1,5 @@
 import { RenderingImageTile } from "./RenderingImageTile";
-
-interface GalleryImage {
-  id: string;
-  url: string;
-  description: string;
-  status: 'rendering' | 'complete';
-  addedAt: Date;
-}
+import type { GalleryImage } from "@/types";
 
 interface GalleryProps {
   images: GalleryImage[];

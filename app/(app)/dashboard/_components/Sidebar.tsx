@@ -2,12 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
-
-interface Album {
-    id: string;
-    name: string;
-    thumbnail: string;
-}
+import type { Album } from "@/types";
 
 interface SidebarProps {
     isCollapsed: boolean;

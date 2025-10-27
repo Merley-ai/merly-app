@@ -1,16 +1,5 @@
 import { ThinkingAnimation } from "./ThinkingAnimation";
-
-interface TimelineEntry {
-    id: string;
-    date: string;
-    inputImages: string[];
-    prompt: string;
-    status: 'thinking' | 'complete';
-    thinkingText?: string;
-    outputImages?: Array<{ url: string; description: string }>;
-    outputLabel?: string;
-    timestamp: Date;
-}
+import type { TimelineEntry } from "@/types";
 
 interface TimelineProps {
     albumName: string;

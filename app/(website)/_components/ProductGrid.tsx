@@ -1,4 +1,4 @@
-import { AnimatedImage } from "@/components/AnimatedImage";
+import { AnimatedImage } from "@/components/ui/AnimatedImage";
 
 export function ProductGrid() {
     return (

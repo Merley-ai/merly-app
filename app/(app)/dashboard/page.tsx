@@ -6,32 +6,8 @@ import { Sidebar } from "./_components/Sidebar";
 import { TimelineWithInput } from "./_components/TimelineWithInput";
 import { Gallery } from "./_components/Gallery";
 import { ImageViewer } from "./_components/ImageViewer";
-
-interface Album {
-  id: string;
-  name: string;
-  thumbnail: string;
-}
-
-interface TimelineEntry {
-  id: string;
-  date: string;
-  inputImages: string[];
-  prompt: string;
-  status: 'thinking' | 'complete';
-  thinkingText?: string;
-  outputImages?: Array<{ url: string; description: string }>;
-  outputLabel?: string;
-  timestamp: Date;
-}
-
-interface GalleryImage {
-  id: string;
-  url: string;
-  description: string;
-  status: 'rendering' | 'complete';
-  addedAt: Date;
-}
+import type { Album, TimelineEntry, GalleryImage } from "@/types";
+import { downloadImage, formatShortDate } from "@/lib/utils";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -94,12 +70,7 @@ export default function DashboardPage() {
   };
 
   const handleDownloadImage = (url: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `merley-image-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadImage(url);
   };
 
   const handleNavigateImage = (direction: 'prev' | 'next') => {
@@ -122,7 +93,7 @@ export default function DashboardPage() {
     if (!inputValue.trim() && uploadedFiles.length === 0) return;
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const dateStr = formatShortDate(now);
 
     // Create new timeline entry with thinking status
     const newEntry: TimelineEntry = {
@@ -190,7 +161,7 @@ export default function DashboardPage() {
   };
 
   const completeImages = galleryImages.filter(img => img.status === 'complete');
-  const currentIndexInComplete = selectedImageIndex !== null 
+  const currentIndexInComplete = selectedImageIndex !== null
     ? completeImages.findIndex((_, i) => galleryImages.indexOf(completeImages[i]) === selectedImageIndex)
     : -1;
 
@@ -205,7 +176,7 @@ export default function DashboardPage() {
         onCreateAlbum={handleCreateAlbum}
         onBackToHome={() => router.push('/')}
       />
-      
+
       <TimelineWithInput
         albumName={selectedAlbum.name}
         entries={timelineEntries}
@@ -215,7 +186,7 @@ export default function DashboardPage() {
         onFileChange={handleFileChange}
         onSubmit={handleSubmit}
       />
-      
+
       <Gallery
         images={galleryImages}
         onImageClick={setSelectedImageIndex}
