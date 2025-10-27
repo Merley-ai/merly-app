@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Menu, ArrowUp, ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
-import dashboardSvgPaths from "@/lib/dashboard-svg-paths";
+import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 
 interface Album {
   id: string;
@@ -17,7 +17,7 @@ interface TimelineEntry {
   prompt: string;
   status: 'thinking' | 'complete';
   thinkingText?: string;
-  outputImages?: Array<{url: string; description: string}>;
+  outputImages?: Array<{ url: string; description: string }>;
   outputLabel?: string;
   timestamp: Date;
 }
@@ -48,7 +48,7 @@ function ThinkingAnimation({ text }: { text: string }) {
     <div className="flex items-start gap-3 py-4">
       <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
         <svg className="w-4 h-4 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 3.5a1 1 0 011 1V10h5.5a1 1 0 110 2H11v5.5a1 1 0 11-2 0V12H3.5a1 1 0 110-2H9V4.5a1 1 0 011-1z"/>
+          <path d="M10 3.5a1 1 0 011 1V10h5.5a1 1 0 110 2H11v5.5a1 1 0 11-2 0V12H3.5a1 1 0 110-2H9V4.5a1 1 0 011-1z" />
         </svg>
       </div>
       <p
@@ -66,19 +66,19 @@ function RenderingImageTile() {
     <div className="relative aspect-[4/5] rounded-lg overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-orange-500/30 animate-pulse" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-transparent to-yellow-500/20" 
-           style={{ animation: 'gradient 3s ease infinite' }} />
-      
+      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-transparent to-yellow-500/20"
+        style={{ animation: 'gradient 3s ease infinite' }} />
+
       {/* Shimmer effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-           style={{ animation: 'shimmer 2s infinite' }} />
-      
+        style={{ animation: 'shimmer 2s infinite' }} />
+
       {/* Rendering text */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4" />
           <p className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-             style={{ fontVariationSettings: "'wdth' 100" }}>
+            style={{ fontVariationSettings: "'wdth' 100" }}>
             Rendering...
           </p>
         </div>
@@ -166,7 +166,7 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
     const currentIndexInComplete = completeImages.findIndex(
       (_, i) => galleryImages.indexOf(completeImages[i]) === selectedImageIndex
     );
-    
+
     if (direction === 'prev' && currentIndexInComplete > 0) {
       const prevImage = completeImages[currentIndexInComplete - 1];
       setSelectedImageIndex(galleryImages.indexOf(prevImage));
@@ -179,7 +179,7 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
   // Keyboard navigation
   useEffect(() => {
     if (selectedImageIndex === null) return;
-    
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedImageIndex(null);
@@ -199,7 +199,7 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
 
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
+
     // Create new timeline entry with thinking status
     const newEntry: TimelineEntry = {
       id: Date.now().toString(),
@@ -210,7 +210,7 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
       thinkingText: "I'll create three variations of your editorial with the requested modifications",
       timestamp: now,
     };
-    
+
     setTimelineEntries([...timelineEntries, newEntry]);
 
     // Add rendering placeholder to gallery
@@ -238,11 +238,11 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
         prev.map((entry) =>
           entry.id === newEntry.id
             ? {
-                ...entry,
-                status: 'complete',
-                outputLabel: `Remixed ${uploadedFiles.length || 0} image${uploadedFiles.length !== 1 ? 's' : ''}`,
-                outputImages: completedImages,
-              }
+              ...entry,
+              status: 'complete',
+              outputLabel: `Remixed ${uploadedFiles.length || 0} image${uploadedFiles.length !== 1 ? 's' : ''}`,
+              outputImages: completedImages,
+            }
             : entry
         )
       );
@@ -268,10 +268,9 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
   return (
     <div className="bg-black h-screen w-full flex overflow-hidden">
       {/* Left Sidebar - Collapsable */}
-      <aside 
-        className={`bg-black flex-shrink-0 border-r border-[#6b6b6b] flex flex-col transition-all duration-300 ${
-          isSidebarCollapsed ? 'w-[60px]' : 'w-[294px]'
-        }`}
+      <aside
+        className={`bg-black flex-shrink-0 border-r border-[#6b6b6b] flex flex-col transition-all duration-300 ${isSidebarCollapsed ? 'w-[60px]' : 'w-[294px]'
+          }`}
       >
         {/* Header with collapse button */}
         <div className="px-3 py-4 flex items-center justify-between">
@@ -279,10 +278,10 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
             <>
               {onBackToHome ? (
                 <a href="/" className="p-4 block hover:opacity-80 transition-opacity cursor-pointer">
-                <p className="font-['Roboto_Serif'] text-white text-[20px]">
-                  Merley
-                </p>
-              </a>
+                  <p className="font-['Roboto_Serif'] text-white text-[20px]">
+                    Merley
+                  </p>
+                </a>
               ) : (
                 <p
                   className="font-['Roboto_Serif'] text-white text-[20px]"
@@ -330,9 +329,8 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
                 <button
                   key={album.id}
                   onClick={() => setSelectedAlbum(album)}
-                  className={`w-full flex items-center gap-3 p-2 rounded transition-colors ${
-                    selectedAlbum.id === album.id ? "bg-white/10" : "hover:bg-white/5"
-                  }`}
+                  className={`w-full flex items-center gap-3 p-2 rounded transition-colors ${selectedAlbum.id === album.id ? "bg-white/10" : "hover:bg-white/5"
+                    }`}
                 >
                   <div className="size-[37px] bg-[#2e2e2e] rounded overflow-hidden flex-shrink-0">
                     <img
