@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Link } from "lucide-react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import type { Album } from "@/types";
 
@@ -33,11 +33,11 @@ export function Sidebar({
                 {!isCollapsed && (
                     <>
                         {onBackToHome ? (
-                            <a href="/" className="p-4 block hover:opacity-80 transition-opacity cursor-pointer">
+                            <Link href="/" className="p-4 block hover:opacity-80 transition-opacity cursor-pointer">
                                 <p className="font-['Roboto_Serif'] text-white text-[20px]">
                                     Merley
                                 </p>
-                            </a>
+                            </Link>
                         ) : (
                             <p
                                 className="font-['Roboto_Serif'] text-white text-[20px]"
