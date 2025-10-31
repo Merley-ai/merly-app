@@ -29,7 +29,7 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                                 className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
                                 style={{ fontVariationSettings: "'wdth' 100" }}
                             >
-                                {entry.date}
+                                {entry.timestamp.toLocaleDateString()}
                             </p>
 
                             {/* Input Images */}

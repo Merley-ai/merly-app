@@ -17,7 +17,8 @@
  */
 export interface TimelineEntry {
     id: string;
-    date: string;
+    type: 'user' | 'ai';
+    content: string;
     inputImages: string[];
     prompt: string;
     status: 'thinking' | 'complete';
@@ -25,4 +26,5 @@ export interface TimelineEntry {
     outputImages?: Array<{ url: string; description: string }>;
     outputLabel?: string;
     timestamp: Date;
+    isGenerating?: boolean;
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Link } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
+import { UserMenu } from "@/components/auth";
 import type { Album } from "@/types";
 
 interface SidebarProps {
@@ -33,7 +35,7 @@ export function Sidebar({
                 {!isCollapsed && (
                     <>
                         {onBackToHome ? (
-                            <Link href="/" className="p-4 block hover:opacity-80 transition-opacity cursor-pointer">
+                            <Link href="/" className="block hover:opacity-80 transition-opacity cursor-pointer">
                                 <p className="font-['Roboto_Serif'] text-white text-[20px]">
                                     Merley
                                 </p>
@@ -107,18 +109,7 @@ export function Sidebar({
 
                     {/* User Info */}
                     <div className="p-4 border-t border-[#6b6b6b]/30">
-                        <p
-                            className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                            style={{ fontVariationSettings: "'wdth' 100" }}
-                        >
-                            Mark Kiarie
-                        </p>
-                        <p
-                            className="font-['Roboto:Regular',_sans-serif] text-neutral-300 text-[12px]"
-                            style={{ fontVariationSettings: "'wdth' 100" }}
-                        >
-                            Pro
-                        </p>
+                        <UserMenu />
                     </div>
                 </>
             )}

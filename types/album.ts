@@ -8,4 +8,5 @@ export interface Album {
   id: string;
   name: string;
   thumbnail: string;
+  createdAt: Date;
 }
