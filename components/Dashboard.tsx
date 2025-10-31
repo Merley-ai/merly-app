@@ -4,6 +4,18 @@ import { useState, useRef, useEffect } from "react";
 import { Menu, ArrowUp, ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
 import dashboardSvgPaths from "@/lib/dashboard-svg-paths";
 
+type GenerationStatusEvent = {
+  requestId: string;
+  type: 'QUEUED' | 'STARTED' | 'POLLING' | 'PARTIAL_RESULT' | 'COMPLETED' | 'FAILED';
+  message?: string;
+  route?: 'text-to-image' | 'remix' | 'edit';
+  timestamp: number;
+  error?: {
+    code: string;
+    message: string;
+  };
+};
+
 interface Album {
   id: string;
   name: string;
@@ -15,11 +27,14 @@ interface TimelineEntry {
   date: string;
   inputImages: string[];
   prompt: string;
-  status: 'thinking' | 'complete';
+  status: 'thinking' | 'complete' | 'failed';
   thinkingText?: string;
   outputImages?: Array<{url: string; description: string}>;
   outputLabel?: string;
   timestamp: Date;
+  requestId?: string;
+  statusHistory?: GenerationStatusEvent[];
+  route?: 'text-to-image' | 'remix' | 'edit';
 }
 
 interface GalleryImage {
@@ -57,6 +72,31 @@ function ThinkingAnimation({ text }: { text: string }) {
       >
         {text}{dots}
       </p>
+    </div>
+  );
+}
+
+function StatusFeed({ events }: { events?: GenerationStatusEvent[] }) {
+  if (!events || events.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-1">
+      {events.map((event) => (
+        <div
+          key={`${event.requestId}-${event.timestamp}-${event.type}`}
+          className="flex items-center gap-2"
+        >
+          <span className="inline-block w-[6px] h-[6px] rounded-full bg-white/40 mt-[6px]" />
+          <p
+            className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[12px]"
+            style={{ fontVariationSettings: "'wdth' 100" }}
+          >
+            {event.message ?? event.type}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -123,7 +163,89 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const eventSourcesRef = useRef<Record<string, EventSource>>({});
+
+  useEffect(() => {
+    return () => {
+      Object.values(eventSourcesRef.current).forEach((source) => source.close());
+      eventSourcesRef.current = {};
+    };
+  }, []);
+
+  const resetPromptInput = () => {
+    setInputValue("");
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
+      textareaRef.current.style.height = "";
+    }
+  };
+
+  const closeStatusStream = (requestId: string) => {
+    const existing = eventSourcesRef.current[requestId];
+    if (existing) {
+      existing.close();
+      delete eventSourcesRef.current[requestId];
+    }
+  };
+
+  const updateStatusHistory = (status: GenerationStatusEvent) => {
+    setTimelineEntries((prev) =>
+      prev.map((entry) => {
+        if (entry.requestId !== status.requestId) {
+          return entry;
+        }
+
+        const history = entry.statusHistory ?? [];
+        const exists = history.some(
+          (item) => item.type === status.type && item.timestamp === status.timestamp,
+        );
+        const nextHistory = exists ? history : [...history, status].sort((a, b) => a.timestamp - b.timestamp);
+
+        let nextStatus = entry.status;
+        if (status.type === 'FAILED') {
+          nextStatus = 'failed';
+        } else if (status.type === 'COMPLETED') {
+          nextStatus = 'complete';
+        }
+
+        return {
+          ...entry,
+          route: status.route ?? entry.route,
+          status: nextStatus,
+          statusHistory: nextHistory,
+          thinkingText: status.message ?? entry.thinkingText,
+        };
+      }),
+    );
+  };
+
+  const startStatusStream = (requestId: string) => {
+    closeStatusStream(requestId);
+    const source = new EventSource(`/api/generate/stream?requestId=${encodeURIComponent(requestId)}`);
+    eventSourcesRef.current[requestId] = source;
+
+    source.onmessage = (event) => {
+      if (!event.data) {
+        return;
+      }
+      try {
+        const parsed: GenerationStatusEvent = JSON.parse(event.data);
+        updateStatusHistory(parsed);
+        if (parsed.type === 'COMPLETED' || parsed.type === 'FAILED') {
+          closeStatusStream(requestId);
+        }
+      } catch (parseError) {
+        console.error('Failed to parse status event', parseError);
+      }
+    };
+
+    source.onerror = () => {
+      closeStatusStream(requestId);
+    };
+  };
 
   const handleCreateAlbum = () => {
     const newAlbum: Album = {
@@ -194,75 +316,162 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedImageIndex, galleryImages]);
 
-  const handleSubmit = () => {
-    if (!inputValue.trim() && uploadedFiles.length === 0) return;
+  const handleSubmit = async () => {
+    const trimmedPrompt = inputValue.trim();
+    if (isSubmitting || !trimmedPrompt) return;
+
+    setIsSubmitting(true);
 
     const now = new Date();
+    const timestamp = Date.now();
+    const requestId =
+      typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : timestamp.toString();
     const dateStr = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    
-    // Create new timeline entry with thinking status
+    const currentUploads = [...uploadedFiles];
+    const inputImages = currentUploads.map((file) => URL.createObjectURL(file));
+
     const newEntry: TimelineEntry = {
-      id: Date.now().toString(),
+      id: timestamp.toString(),
       date: dateStr,
-      inputImages: uploadedFiles.map((file) => URL.createObjectURL(file)),
-      prompt: inputValue,
+      inputImages,
+      prompt: trimmedPrompt,
       status: 'thinking',
       thinkingText: "I'll create three variations of your editorial with the requested modifications",
       timestamp: now,
+      requestId,
+      statusHistory: [],
     };
-    
-    setTimelineEntries([...timelineEntries, newEntry]);
 
-    // Add rendering placeholder to gallery
-    const renderingImages: GalleryImage[] = [
-      { id: `render-${Date.now()}-1`, url: "", description: "Rendering...", status: 'rendering', addedAt: now },
-      { id: `render-${Date.now()}-2`, url: "", description: "Rendering...", status: 'rendering', addedAt: now },
-      { id: `render-${Date.now()}-3`, url: "", description: "Rendering...", status: 'rendering', addedAt: now },
-    ];
-    setGalleryImages([...renderingImages, ...galleryImages]);
+    setTimelineEntries((prev) => [...prev, newEntry]);
 
-    // Reset input immediately
-    setInputValue("");
+    const renderingImages: GalleryImage[] = Array.from({ length: 3 }, (_, index) => ({
+      id: `render-${timestamp}-${index + 1}`,
+      url: "",
+      description: "Rendering...",
+      status: 'rendering' as const,
+      addedAt: now,
+    }));
+    const placeholderIds = renderingImages.map((image) => image.id);
+    setGalleryImages((prev) => [...renderingImages, ...prev]);
+
     setUploadedFiles([]);
 
-    // Simulate AI processing - complete after 3 seconds
-    setTimeout(() => {
-      const completedImages = [
-        { url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1000&fit=crop", description: "Contemporary fashion editorial" },
-        { url: "https://images.unsplash.com/photo-1558769132-cb1aea3c3e01?w=800&h=1000&fit=crop", description: "High-fashion lookbook" },
-        { url: "https://images.unsplash.com/photo-1544441893-675973e31985?w=800&h=1000&fit=crop", description: "Editorial portrait" },
-      ];
+    setTimeout(() => startStatusStream(requestId), 0);
 
-      // Update timeline
+    try {
+      const formData = new FormData();
+      formData.append('requestId', requestId);
+      formData.append('prompt', trimmedPrompt);
+      if (currentUploads[0]) {
+        formData.append('image', currentUploads[0]);
+      }
+      if (currentUploads.length > 1) {
+        currentUploads.forEach((file) => {
+          formData.append('reference_images', file);
+        });
+      }
+      formData.append('albumId', selectedAlbum.id);
+      formData.append('albumName', selectedAlbum.name);
+      formData.append('inputImageCount', String(currentUploads.length));
+      formData.append('submittedAt', now.toISOString());
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      let payload: any = null;
+      try {
+        payload = await response.clone().json();
+      } catch {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message ?? payload?.error ?? 'Failed to generate images');
+      }
+
+      const images = Array.isArray(payload?.images) ? payload.images.slice(0, 3) : [];
+      if (images.length !== 3) {
+        throw new Error('Generation did not return three images');
+      }
+
+      const completedImages = images.map((url: string, index: number) => ({
+        url,
+        description: `Generated image ${index + 1}`,
+      }));
+
+      const chosenRoute = typeof payload?.meta?.route === 'string' ? payload.meta.route : undefined;
+
+      setTimelineEntries((prev) =>
+        prev.map((entry) => {
+          if (entry.id !== newEntry.id) {
+            return entry;
+          }
+          const label =
+            chosenRoute === 'text-to-image'
+              ? 'Generated from prompt'
+              : chosenRoute === 'remix'
+                ? 'Remixed reference images'
+                : chosenRoute === 'edit'
+                  ? 'Edited reference image'
+                  : `Remixed ${currentUploads.length || 0} image${currentUploads.length !== 1 ? 's' : ''}`;
+
+          return {
+            ...entry,
+            status: 'complete',
+            outputLabel: label,
+            outputImages: completedImages,
+            route: chosenRoute ?? entry.route,
+            thinkingText: 'Received generated images',
+          };
+        }),
+      );
+
+      setGalleryImages((prev) =>
+        prev.map((img) => {
+          const idx = placeholderIds.indexOf(img.id);
+          if (idx === -1) {
+            return img;
+          }
+          return {
+            ...img,
+            url: completedImages[idx].url,
+            description: completedImages[idx].description,
+            status: 'complete' as const,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error('Image generation failed', error);
+      updateStatusHistory({
+        requestId,
+        type: 'FAILED',
+        message: error instanceof Error ? error.message : 'Request failed',
+        timestamp: Date.now(),
+        route: undefined,
+        error: {
+          code: 'CLIENT_REQUEST_FAILED',
+          message: error instanceof Error ? error.message : 'Request failed',
+        },
+      });
       setTimelineEntries((prev) =>
         prev.map((entry) =>
           entry.id === newEntry.id
             ? {
                 ...entry,
-                status: 'complete',
-                outputLabel: `Remixed ${uploadedFiles.length || 0} image${uploadedFiles.length !== 1 ? 's' : ''}`,
-                outputImages: completedImages,
+                status: 'failed',
+                thinkingText: "We couldn't complete this request. Please try again.",
               }
-            : entry
-        )
+            : entry,
+        ),
       );
-
-      // Update gallery - replace rendering placeholders with actual images
-      setGalleryImages((prev) => {
-        const newImages = prev.map((img, idx) => {
-          if (img.status === 'rendering' && idx < 3) {
-            return {
-              ...img,
-              url: completedImages[idx].url,
-              description: completedImages[idx].description,
-              status: 'complete' as const,
-            };
-          }
-          return img;
-        });
-        return newImages;
-      });
-    }, 3000);
+      setGalleryImages((prev) => prev.filter((img) => !placeholderIds.includes(img.id)));
+    } finally {
+      closeStatusStream(requestId);
+      setIsSubmitting(false);
+      resetPromptInput();
+    }
   };
 
   return (
@@ -437,6 +646,21 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
                 {entry.status === 'thinking' && entry.thinkingText && (
                   <ThinkingAnimation text={entry.thinkingText} />
                 )}
+
+                {/* Failure Message */}
+                {entry.status === 'failed' && entry.thinkingText && (
+                  <p
+                    className="font-['Roboto:Regular',_sans-serif] text-red-400 text-[13px]"
+                    style={{ fontVariationSettings: "'wdth' 100" }}
+                  >
+                    {entry.thinkingText}
+                  </p>
+                )}
+
+                {/* Operations Feed */}
+                {entry.statusHistory && entry.statusHistory.length > 0 && (
+                  <StatusFeed events={entry.statusHistory} />
+                )}
               </div>
             ))}
           </div>
@@ -474,6 +698,7 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
             {/* Text Area and Buttons */}
             <div className="flex items-end gap-3">
               <textarea
+                ref={textareaRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onInput={(e) => {
@@ -484,7 +709,9 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    handleSubmit();
+                    if (!isSubmitting) {
+                      void handleSubmit();
+                    }
                   }
                 }}
                 placeholder="Ask Merley"
@@ -515,10 +742,11 @@ export function Dashboard({ onBackToHome }: DashboardProps = {}) {
                   multiple
                 />
                 <button
-                  onClick={handleSubmit}
+                  onClick={() => void handleSubmit()}
                   type="button"
-                  className="flex-none hover:opacity-80 transition-opacity cursor-pointer"
+                  className="flex-none hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Send"
+                  disabled={isSubmitting || !inputValue.trim()}
                 >
                   <svg className="size-[28px]" fill="none" viewBox="0 0 28 28">
                     <path d={dashboardSvgPaths.p3865f100} fill="#666666" />
