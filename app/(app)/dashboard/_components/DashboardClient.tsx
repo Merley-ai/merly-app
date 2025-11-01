@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Album, TimelineEntry, GalleryImage } from "@/types";
+import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { Sidebar } from "./Sidebar";
 import { TimelineWithInput } from "./TimelineWithInput";
 import { Gallery } from "./Gallery";
@@ -11,6 +12,16 @@ import { ImageViewer } from "./ImageViewer";
 export function DashboardClient() {
     const router = useRouter();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+    // Image generation hook
+    const { create, status: genStatus, images: generatedImages, progress, error: genError } = useImageGeneration({
+        onComplete: (images) => {
+            handleGenerationComplete(images);
+        },
+        onError: (error) => {
+            handleGenerationError(error);
+        },
+    });
 
     // Albums state
     const [albums, setAlbums] = useState<Album[]>([
@@ -122,40 +133,98 @@ export function DashboardClient() {
         setUploadedFiles([...uploadedFiles, ...files]);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!inputValue.trim() && uploadedFiles.length === 0) return;
 
-        const newEntry: TimelineEntry = {
+        const prompt = inputValue;
+        const inputImageUrls = uploadedFiles.map((file) => URL.createObjectURL(file));
+
+        // Add user entry to timeline
+        const userEntry: TimelineEntry = {
             id: Date.now().toString(),
             type: "user",
-            content: inputValue,
-            inputImages: uploadedFiles.map((file) => URL.createObjectURL(file)),
-            prompt: inputValue,
+            content: prompt,
+            inputImages: inputImageUrls,
+            prompt,
+            status: "complete",
+            timestamp: new Date(),
+        };
+
+        setTimelineEntries([...timelineEntries, userEntry]);
+
+        // Add AI "thinking" entry
+        const aiEntry: TimelineEntry = {
+            id: (Date.now() + 1).toString(),
+            type: "ai",
+            content: "Generating your images...",
+            inputImages: [],
+            prompt,
             status: "thinking",
-            thinkingText: "Thinking about your request...",
+            thinkingText: "Creating your masterpiece...",
             timestamp: new Date(),
             isGenerating: true,
         };
 
-        setTimelineEntries([...timelineEntries, newEntry]);
+        setTimelineEntries((prev) => [...prev, aiEntry]);
+
+        // Clear input
         setInputValue("");
         setUploadedFiles([]);
 
-        // Simulate AI response
-        setTimeout(() => {
-            const aiEntry: TimelineEntry = {
-                id: (Date.now() + 1).toString(),
-                type: "ai",
-                content: "Processing your request...",
-                inputImages: [],
-                prompt: inputValue,
-                status: "thinking",
-                thinkingText: "Thinking about your request...",
-                timestamp: new Date(),
-                isGenerating: true,
-            };
-            setTimelineEntries((prev) => [...prev, aiEntry]);
-        }, 500);
+        // Call generation API
+        try {
+            await create({
+                prompt,
+                input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
+                num_images: 4,
+                aspect_ratio: "16:9",
+                album_id: selectedAlbum.id,
+            });
+        } catch (error) {
+            console.error("Generation error:", error);
+            // Error handled by onError callback
+        }
+    };
+
+    // Handle generation completion
+    const handleGenerationComplete = (images: any[]) => {
+        const completedEntry: TimelineEntry = {
+            id: Date.now().toString(),
+            type: "ai",
+            content: "Here are your generated images!",
+            inputImages: [],
+            prompt: "",
+            status: "complete",
+            timestamp: new Date(),
+            outputImages: images.map((img) => ({
+                url: img.url,
+                description: "Generated image",
+            })),
+            outputLabel: "Generated Images",
+        };
+
+        // Replace the "thinking" entry with completed entry
+        setTimelineEntries((prev) =>
+            prev.map((entry) => (entry.isGenerating ? completedEntry : entry))
+        );
+    };
+
+    // Handle generation error
+    const handleGenerationError = (error: string) => {
+        const errorEntry: TimelineEntry = {
+            id: Date.now().toString(),
+            type: "ai",
+            content: `Sorry, something went wrong: ${error}`,
+            inputImages: [],
+            prompt: "",
+            status: "complete",
+            timestamp: new Date(),
+        };
+
+        // Replace the "thinking" entry with error entry
+        setTimelineEntries((prev) =>
+            prev.map((entry) => (entry.isGenerating ? errorEntry : entry))
+        );
     };
 
     const handleNavigateImage = (direction: "prev" | "next") => {
