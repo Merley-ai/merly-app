@@ -43,7 +43,7 @@ export function TimelineWithInput({
                                 className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
                                 style={{ fontVariationSettings: "'wdth' 100" }}
                             >
-                                {entry.timestamp.toLocaleDateString()}
+                                {entry.timestamp.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
                             </p>
 
                             {/* Input Images */}
