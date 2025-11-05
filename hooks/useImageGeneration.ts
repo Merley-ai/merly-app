@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useGenerationPolling } from './useGenerationPolling'
-import { useWebSocket } from './useWebSocket'
+import { useServerSentEvents } from './useServerSentEvents'
 import type { GenerationType } from '@/types/image-generation'
-import type { WebSocketMessage } from './useWebSocket'
+import type { SseMessage } from '@/types/sse'
 
 /**
  * Generation request parameters
@@ -61,11 +61,11 @@ interface UseImageGenerationReturn {
 export function useImageGeneration({
     onComplete,
     onError,
-    useWebSocketConnection = true, // Enable WebSocket by default
+    useServerSentEventsConnection = true, // Enable SSE by default
 }: {
     onComplete?: (images: any[]) => void
     onError?: (error: string) => void
-    useWebSocketConnection?: boolean
+    useServerSentEventsConnection?: boolean
 } = {}): UseImageGenerationReturn {
     const [isGenerating, setIsGenerating] = useState(false)
     const [requestId, setRequestId] = useState<string | null>(null)
@@ -73,11 +73,11 @@ export function useImageGeneration({
     const [images, setImages] = useState<any[]>([])
     const [progress, setProgress] = useState(0)
 
-    const wsUnsubscribeRef = useRef<(() => void) | null>(null)
+    const sseUnsubscribeRef = useRef<(() => void) | null>(null)
     const usePollingFallbackRef = useRef(false)
 
-    // WebSocket hook
-    const { isConnected: wsConnected, subscribe: wsSubscribe } = useWebSocket()
+    // SSE hook
+    const { isConnected: sseConnected, subscribe: sseSubscribe } = useServerSentEvents()
 
     // Polling hook (fallback)
     const {
@@ -87,7 +87,7 @@ export function useImageGeneration({
         error: pollError,
     } = useGenerationPolling({
         requestId,
-        enabled: !!requestId && (!useWebSocketConnection || usePollingFallbackRef.current),
+        enabled: !!requestId && (!useServerSentEventsConnection || usePollingFallbackRef.current),
         onComplete: (imgs) => {
             setIsGenerating(false)
             setImages(imgs)
@@ -103,22 +103,16 @@ export function useImageGeneration({
         },
     })
 
-    // Subscribe to WebSocket updates when requestId changes
+    // Subscribe to SSE updates when requestId changes
     useEffect(() => {
-        if (!requestId || !useWebSocketConnection) return
+        if (!requestId || !useServerSentEventsConnection) return
 
-        // If WebSocket is not connected, fall back to polling
-        if (!wsConnected) {
-            console.log('[useImageGeneration] WebSocket not connected, using polling fallback')
-            usePollingFallbackRef.current = true
-            return
-        }
-
+        console.log('[useImageGeneration] Subscribing to SSE for request:', requestId)
         usePollingFallbackRef.current = false
 
-        // Subscribe to WebSocket updates
-        const unsubscribe = wsSubscribe(requestId, {
-            onSuccess: (data: WebSocketMessage) => {
+        // Subscribe to SSE updates (this will establish connection)
+        const unsubscribe = sseSubscribe(requestId, {
+            onSuccess: (data: SseMessage) => {
                 if (data.payload?.images) {
                     const generatedImages = data.payload.images.map(img => ({
                         url: img.url,
@@ -133,26 +127,31 @@ export function useImageGeneration({
                     onComplete?.(generatedImages)
                 }
             },
-            onError: (data: WebSocketMessage) => {
-                const errorMsg = data.message || 'Generation failed via WebSocket'
+            onError: (data: SseMessage) => {
+                const errorMsg = data.message || 'Generation failed via SSE'
                 setLocalError(errorMsg)
                 setIsGenerating(false)
                 onError?.(errorMsg)
             },
+            onProgress: (data: SseMessage) => {
+                if (data.payload?.progress !== undefined) {
+                    setProgress(data.payload.progress)
+                }
+            },
             onDisconnect: () => {
-                // Fall back to polling if WebSocket disconnects
-                console.log('[useImageGeneration] WebSocket disconnected, falling back to polling')
+                // Fall back to polling if SSE disconnects
+                console.log('[useImageGeneration] SSE disconnected, falling back to polling')
                 usePollingFallbackRef.current = true
             },
         })
 
-        wsUnsubscribeRef.current = unsubscribe
+        sseUnsubscribeRef.current = unsubscribe
 
         return () => {
             unsubscribe()
-            wsUnsubscribeRef.current = null
+            sseUnsubscribeRef.current = null
         }
-    }, [requestId, useWebSocketConnection, wsConnected, wsSubscribe, onComplete, onError])
+    }, [requestId, useServerSentEventsConnection, sseSubscribe, onComplete, onError])
 
     // Determine final status
     const status = requestId ? (usePollingFallbackRef.current ? pollStatus : 'processing') : 'idle'

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       model = 'fal-ai/reve/edit',
       input_images = [],
       aspect_ratio = '16:9',
-      num_images = 4,
+      num_images = 1,
       output_format = 'png',
       album_id,
     } = body
