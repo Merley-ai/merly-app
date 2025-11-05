@@ -46,7 +46,7 @@ export async function getSupabaseClient() {
  * );
  */
 export async function executeSupabaseQuery<T>(
-    query: (client: ReturnType<typeof createClient>) => Promise<T>
+    query: (client: Awaited<ReturnType<typeof getSupabaseClient>>) => Promise<T>
 ): Promise<{ data: T | null; error: Error | null }> {
     try {
         const supabase = await getSupabaseClient()

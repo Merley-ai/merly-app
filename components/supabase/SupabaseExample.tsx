@@ -25,7 +25,7 @@ interface SupabaseExampleProps {
 
 export function SupabaseExample({ className }: SupabaseExampleProps) {
     const { supabase, user, loading } = useSupabase()
-    const [data, setData] = useState<any>(null)
+    const [data, setData] = useState<unknown>(null)
     const [error, setError] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
 
@@ -59,7 +59,7 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
         }
     }
 
-    async function insertData(newData: any) {
+    async function _insertData(newData: Record<string, unknown>) {
         if (!supabase) {
             setError('Supabase not initialized. Check environment variables.')
             return
@@ -119,12 +119,12 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
                 </div>
 
                 {/* Error Display */}
-                {error && (
+                {error ? (
                     <div className="p-4 bg-red-50 rounded-lg">
                         <h3 className="font-semibold text-red-900">Error</h3>
                         <p className="text-sm text-red-700">{error}</p>
                     </div>
-                )}
+                ) : null}
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
@@ -138,23 +138,23 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
                 </div>
 
                 {/* Data Display */}
-                {data && (
+                {data ? (
                     <div className="p-4 bg-green-50 rounded-lg">
                         <h3 className="font-semibold text-green-900 mb-2">Results</h3>
                         <pre className="text-sm text-green-700 overflow-auto max-h-64 bg-white p-2 rounded">
                             {JSON.stringify(data, null, 2)}
                         </pre>
                     </div>
-                )}
+                ) : null}
 
                 {/* Instructions */}
                 <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
                     <p className="font-semibold text-gray-700 mb-2">Setup Instructions:</p>
                     <ul className="list-disc list-inside space-y-1">
-                        <li>Replace 'your_table' with your actual Supabase table name</li>
+                        <li>Replace &apos;your_table&apos; with your actual Supabase table name</li>
                         <li>Configure NEXT_PUBLIC_SUPABASE_URL environment variable</li>
                         <li>Configure NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable</li>
-                        <li>Ensure Auth0 includes 'role: authenticated' claim</li>
+                        <li>Ensure Auth0 includes &apos;role: authenticated&apos; claim</li>
                         <li>Set up Supabase Row Level Security (RLS) policies if needed</li>
                     </ul>
                 </div>

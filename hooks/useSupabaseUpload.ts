@@ -121,7 +121,7 @@ export function useSupabaseUpload(): UseSupabaseUploadReturn {
             const storagePath = generateFilePath(file, userId)
 
             // Upload file to Supabase storage
-            const { data: uploadData, error: uploadError } = await supabase.storage
+            const { error: uploadError } = await supabase.storage
                 .from(bucketName || '')
                 .upload(storagePath, file, {
                     cacheControl: '3600',

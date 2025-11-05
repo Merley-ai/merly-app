@@ -111,7 +111,7 @@ export interface JobResultsResponse {
         prompt?: string
         model?: string
         seed?: number
-        [key: string]: any
+        [key: string]: unknown
     }
 }
 

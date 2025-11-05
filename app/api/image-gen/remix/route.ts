@@ -31,12 +31,12 @@ export async function POST(request: Request) {
     const body: CreateGenerationRequest = await request.json()
     const {
       prompt,
-      model = 'fal-ai/reve/remix',
+      model: _model = 'fal-ai/reve/remix',
       input_images = [],
       aspect_ratio = '16:9',
       num_images = 1,
       output_format = 'png',
-      album_id,
+      album_id: _album_id,
     } = body
 
     // Validate prompt

@@ -291,6 +291,7 @@ export function useAlbums({
         if (autoFetch) {
             fetchAlbums()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []) // Only run on mount, fetchAlbums intentionally excluded
 
     // Restore selected album from localStorage on mount
@@ -312,7 +313,8 @@ export function useAlbums({
             // Fallback to first album
             setSelectedAlbum(albums[0])
         }
-    }, [albums]) // Run when albums change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [albums]) // Run when albums change, selectedAlbum intentionally excluded to avoid loops
 
     return {
         albums,

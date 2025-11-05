@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth0/client";
 import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
+import type { Album } from "@/types/album";
+import type { GeneratedImage } from "@/types/image-generation";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useAlbums } from "@/hooks/useAlbums";
 import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
@@ -36,7 +38,7 @@ export function DashboardClient() {
     });
 
     // Image generation hook with WebSocket support
-    const { create, status: genStatus, images: generatedImages, progress, error: genError, requestId } = useImageGeneration({
+    const { create } = useImageGeneration({
         onComplete: (images) => {
             handleGenerationComplete(images);
         },
@@ -82,7 +84,7 @@ export function DashboardClient() {
     // Handle create album - uses placeholder values automatically
     const handleCreateAlbum = async () => {
         try {
-            const newAlbum = await createAlbum();
+            await createAlbum();
             setIsHomeView(false);
             // Clear timeline for new album
             setTimelineEntries([]);
@@ -92,7 +94,7 @@ export function DashboardClient() {
     };
 
     // Handle select album
-    const handleSelectAlbum = (album: any) => {
+    const handleSelectAlbum = (album: Album) => {
         selectAlbum(album);
         setIsHomeView(false);
         // TODO: Load timeline entries from API for this album
@@ -218,7 +220,7 @@ export function DashboardClient() {
             timestamp: new Date(),
             isGenerating: true,
             numImages,
-            outputImages: Array.from({ length: numImages }, (_, i) => ({
+            outputImages: Array.from({ length: numImages }, () => ({
                 url: '', // Empty URL for placeholder
                 description: 'Generating...',
                 isPlaceholder: true,
@@ -254,7 +256,7 @@ export function DashboardClient() {
     };
 
     // Handle generation completion
-    const handleGenerationComplete = (images: any[]) => {
+    const handleGenerationComplete = (images: GeneratedImage[]) => {
         // Update the generating entry with real images (replace placeholders)
         setTimelineEntries((prev) =>
             prev.map((entry) =>
@@ -265,7 +267,7 @@ export function DashboardClient() {
                         content: "Here are your generated images!",
                         status: "complete" as const,
                         isGenerating: false,
-                        outputImages: images.map((img, idx) => ({
+                        outputImages: images.map((img) => ({
                             url: img.url,
                             description: "Generated image",
                             isPlaceholder: false,
@@ -330,7 +332,7 @@ export function DashboardClient() {
     const currentIndexInComplete =
         selectedImageIndex !== null
             ? completeImages.findIndex(
-                (img, i) => galleryImages[selectedImageIndex]?.id === img.id
+                (img) => galleryImages[selectedImageIndex]?.id === img.id
             )
             : -1;
 

@@ -30,12 +30,12 @@ export async function POST(request: Request) {
     const body: CreateGenerationRequest = await request.json()
     const {
       prompt,
-      model = 'fal-ai/reve/text-to-image',
+      model: _model = 'fal-ai/reve/text-to-image',
       input_images = [],
       aspect_ratio = '16:9',
       num_images = 1,
       output_format = 'png',
-      album_id,
+      album_id: _album_id,
     } = body
 
     // Validate prompt

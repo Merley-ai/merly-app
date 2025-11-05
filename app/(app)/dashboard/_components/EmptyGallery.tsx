@@ -28,7 +28,7 @@ export function EmptyGallery({ onFileChange }: EmptyGalleryProps) {
 
             const event = new Event('change', { bubbles: true });
             Object.defineProperty(event, 'target', { value: input, enumerable: true });
-            onFileChange(event as any);
+            onFileChange(event as unknown as React.ChangeEvent<HTMLInputElement>);
         }
     };
 

@@ -16,7 +16,7 @@ import { checkJobStatus, getJobResults } from '@/lib/api'
  */
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Authenticate User
@@ -28,7 +28,9 @@ export async function GET(
             )
         }
 
-        const requestId = params.id
+        // Await params (Next.js 15+ requirement)
+        const resolvedParams = await params
+        const requestId = resolvedParams.id
 
         // Check Backend Request Status
         try {

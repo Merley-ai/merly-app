@@ -16,7 +16,7 @@ interface JobStatus {
         seed?: number
         content_type?: string
     }>
-    metadata?: any
+    metadata?: Record<string, unknown>
     error?: string
 }
 
@@ -28,7 +28,7 @@ interface UseGenerationPollingOptions {
     enabled?: boolean
     interval?: number // milliseconds
     maxAttempts?: number // maximum polling attempts
-    onComplete?: (images: any[]) => void
+    onComplete?: (images: JobStatus['images']) => void
     onError?: (error: string) => void
     onProgress?: (progress: number) => void
 }
@@ -57,7 +57,7 @@ export function useGenerationPolling({
     onProgress,
 }: UseGenerationPollingOptions) {
     const [status, setStatus] = useState<JobStatus['status']>('pending')
-    const [images, setImages] = useState<any[]>([])
+    const [images, setImages] = useState<JobStatus['images']>([])
     const [progress, setProgress] = useState<number>(0)
     const [error, setError] = useState<string | null>(null)
     const [isPolling, setIsPolling] = useState(false)

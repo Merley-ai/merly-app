@@ -257,7 +257,7 @@ export function ProfileExample() {
                         No Profile Found
                     </h3>
                     <p className="text-gray-600 mb-4">
-                        You don't have a profile in Supabase yet. Fill in your name above and click "Save Profile" to create one.
+                        You don&apos;t have a profile in Supabase yet. Fill in your name above and click &quot;Save Profile&quot; to create one.
                     </p>
                 </div>
             )}
@@ -271,7 +271,7 @@ export function ProfileExample() {
                     <li>You log in with Auth0 (handles authentication)</li>
                     <li>Auth0 creates a JWT with custom claims (role, user_id, email)</li>
                     <li>Your app sends this JWT to Supabase with each request</li>
-                    <li>Supabase validates the JWT using Auth0's public key</li>
+                    <li>Supabase validates the JWT using Auth0&apos;s public key</li>
                     <li>Row Level Security (RLS) policies check the JWT claims</li>
                     <li>You can only access your own data (secured at database level!)</li>
                 </ol>

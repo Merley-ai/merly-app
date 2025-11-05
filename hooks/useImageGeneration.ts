@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useGenerationPolling } from './useGenerationPolling'
 import { useServerSentEvents } from './useServerSentEvents'
-import type { GenerationType } from '@/types/image-generation'
+import type { GenerationType, GeneratedImage } from '@/types/image-generation'
 import type { SseMessage } from '@/types/sse'
 
 /**
@@ -28,7 +28,7 @@ interface UseImageGenerationReturn {
     isGenerating: boolean
     requestId: string | null
     status: 'idle' | 'pending' | 'processing' | 'completed' | 'failed'
-    images: any[]
+    images: GeneratedImage[]
     progress: number
     error: string | null
 
@@ -63,21 +63,21 @@ export function useImageGeneration({
     onError,
     useServerSentEventsConnection = true, // Enable SSE by default
 }: {
-    onComplete?: (images: any[]) => void
+    onComplete?: (images: GeneratedImage[]) => void
     onError?: (error: string) => void
     useServerSentEventsConnection?: boolean
 } = {}): UseImageGenerationReturn {
     const [isGenerating, setIsGenerating] = useState(false)
     const [requestId, setRequestId] = useState<string | null>(null)
     const [localError, setLocalError] = useState<string | null>(null)
-    const [images, setImages] = useState<any[]>([])
+    const [images, setImages] = useState<GeneratedImage[]>([])
     const [progress, setProgress] = useState(0)
 
     const sseUnsubscribeRef = useRef<(() => void) | null>(null)
     const usePollingFallbackRef = useRef(false)
 
     // SSE hook
-    const { isConnected: sseConnected, subscribe: sseSubscribe } = useServerSentEvents()
+    const { subscribe: sseSubscribe } = useServerSentEvents()
 
     // Polling hook (fallback)
     const {
@@ -90,8 +90,8 @@ export function useImageGeneration({
         enabled: !!requestId && (!useServerSentEventsConnection || usePollingFallbackRef.current),
         onComplete: (imgs) => {
             setIsGenerating(false)
-            setImages(imgs)
-            onComplete?.(imgs)
+            setImages(imgs || [])
+            onComplete?.(imgs || [])
         },
         onError: (err) => {
             setIsGenerating(false)
@@ -158,7 +158,7 @@ export function useImageGeneration({
     const error = localError || pollError
 
     // Use WebSocket images if available, otherwise polling images
-    const finalImages = images.length > 0 ? images : pollImages
+    const finalImages = images.length > 0 ? images : (pollImages || [])
     const finalProgress = progress > 0 ? progress : pollProgress
 
     // Submit generation request

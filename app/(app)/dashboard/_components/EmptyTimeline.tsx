@@ -63,7 +63,7 @@ export function EmptyTimeline({
                             className="font-['Roboto:Regular',_sans-serif] text-white/80 text-[16px] leading-relaxed"
                             style={{ fontVariationSettings: "'wdth' 100" }}
                         >
-                            Fresh album — describe what you want to see, or let's brainstorm about where to start.
+                            Fresh album — describe what you want to see, or let&apos;s brainstorm about where to start.
                         </p>
                     </div>
                 </div>

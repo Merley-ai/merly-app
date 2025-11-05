@@ -21,7 +21,6 @@ interface ImageViewerProps {
 export function ImageViewer({
     image,
     imageIndex,
-    totalImages,
     albumName,
     onClose,
     onNavigate,

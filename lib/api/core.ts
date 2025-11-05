@@ -23,7 +23,7 @@ export class BackendAPIError extends Error {
     constructor(
         message: string,
         public statusCode?: number,
-        public details?: any
+        public details?: unknown
     ) {
         super(message)
         this.name = 'BackendAPIError'
@@ -70,7 +70,7 @@ export async function apiFetch<T>(
         clearTimeout(timeoutId)
 
         // Parse response body
-        let data: any
+        let data: unknown
         const contentType = response.headers.get('content-type')
 
         if (contentType?.includes('application/json')) {
@@ -81,8 +81,9 @@ export async function apiFetch<T>(
 
         // Handle non-OK responses
         if (!response.ok) {
+            const dataObj = data as Record<string, unknown> | undefined
             throw new BackendAPIError(
-                data?.error || data?.message || `API error: ${response.status}`,
+                (dataObj?.error as string | undefined) || (dataObj?.message as string | undefined) || `API error: ${response.status}`,
                 response.status,
                 data
             )

@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
                             try {
                                 controller.close()
                                 controllerClosed = true
-                            } catch (closeError) {
+                            } catch {
                                 // Controller already closed, ignore
                             }
                         }

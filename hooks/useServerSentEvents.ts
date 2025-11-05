@@ -115,14 +115,14 @@ export function useServerSentEvents(
             return null
         }
 
-        const record = raw as Record<string, any>
-        const requestId: string | undefined = record.request_id ?? record.data?.request_id
+        const record = raw as Record<string, unknown>
+        const requestId: string | undefined = (record.request_id as string | undefined) ?? ((record.data as Record<string, unknown> | undefined)?.request_id as string | undefined)
 
         if (!requestId) {
             return null
         }
 
-        const normalizeImages = (images: any): SsePayload['images'] => {
+        const normalizeImages = (images: unknown): SsePayload['images'] => {
             if (!Array.isArray(images)) {
                 return undefined
             }
@@ -139,19 +139,20 @@ export function useServerSentEvents(
                 }))
         }
 
-        const buildPayload = (source: any): SsePayload | undefined => {
+        const buildPayload = (source: unknown): SsePayload | undefined => {
             if (!source || typeof source !== 'object') {
                 return undefined
             }
 
+            const sourceObj = source as Record<string, unknown>
             const payload: SsePayload = {}
 
-            const images = normalizeImages(source.images ?? source.Images)
+            const images = normalizeImages(sourceObj.images ?? sourceObj.Images)
             if (images && images.length > 0) {
                 payload.images = images
             }
 
-            const progressValue = source.progress ?? source.Progress ?? source.percentage ?? source.Percentage
+            const progressValue = sourceObj.progress ?? sourceObj.Progress ?? sourceObj.percentage ?? sourceObj.Percentage
             if (typeof progressValue === 'number') {
                 payload.progress = progressValue
             }
@@ -165,8 +166,8 @@ export function useServerSentEvents(
                 return {
                     request_id: requestId,
                     status: normalizedStatus,
-                    message: record.message,
-                    payload: record.payload ?? buildPayload(record.data),
+                    message: record.message as string | undefined,
+                    payload: (record.payload as SsePayload | undefined) ?? buildPayload(record.data),
                 }
             }
         }
@@ -176,7 +177,7 @@ export function useServerSentEvents(
         }
 
         const eventType = record.type.toLowerCase()
-        const eventData = record.data ?? {}
+        const eventData = (record.data ?? {}) as Record<string, unknown>
 
         switch (eventType) {
             case 'completed':
@@ -190,14 +191,14 @@ export function useServerSentEvents(
                 return {
                     request_id: requestId,
                     status: 'ERROR',
-                    message: record.message ?? eventData.message ?? eventData.status ?? eventType.toUpperCase(),
+                    message: (record.message as string | undefined) ?? (eventData.message as string | undefined) ?? (eventData.status as string | undefined) ?? eventType.toUpperCase(),
                     payload: buildPayload(eventData),
                 }
             case 'progress':
                 return {
                     request_id: requestId,
                     status: 'PROGRESS',
-                    message: eventData.message ?? record.message,
+                    message: (eventData.message as string | undefined) ?? (record.message as string | undefined),
                     payload: buildPayload(eventData),
                 }
             case 'queued':
@@ -205,7 +206,7 @@ export function useServerSentEvents(
                 return {
                     request_id: requestId,
                     status: 'PROGRESS',
-                    message: eventData.status ?? eventType.toUpperCase(),
+                    message: (eventData.status as string | undefined) ?? eventType.toUpperCase(),
                     payload: buildPayload(eventData),
                 }
             default:
@@ -323,9 +324,6 @@ export function useServerSentEvents(
         }
     }, [endpoint, handleMessage, cleanup, attemptReconnect, connectionState])
 
-    // Store connectForRequest in ref to break circular dependency
-    connectForRequestRef.current = connectForRequest
-
     /**
      * Connect to SSE endpoint (legacy, for backward compatibility)
      */
@@ -372,6 +370,11 @@ export function useServerSentEvents(
         }
     }, [connectForRequest, disconnect])
 
+    // Store connectForRequest in ref to break circular dependency
+    useEffect(() => {
+        connectForRequestRef.current = connectForRequest
+    }, [connectForRequest])
+
     // Auto-connect on mount if enabled
     useEffect(() => {
         if (autoConnect) {
@@ -382,7 +385,7 @@ export function useServerSentEvents(
         return () => {
             disconnect()
         }
-    }, []) // Only run on mount/unmount
+    }, [autoConnect, connect, disconnect])
 
     return {
         isConnected,

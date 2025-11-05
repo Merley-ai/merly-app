@@ -34,6 +34,6 @@ export type Auth0User = {
     picture?: string;
     sub?: string;
     updated_at?: string;
-    [key: string]: any;
+    [key: string]: unknown;
 };
 

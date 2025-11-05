@@ -15,7 +15,7 @@ import { getAlbum } from '@/lib/api'
  */
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Authenticate User
@@ -27,8 +27,11 @@ export async function GET(
             )
         }
 
+        // Await params (Next.js 15+ requirement)
+        const resolvedParams = await params
+
         // Validate album_id
-        const albumId = params.id
+        const albumId = resolvedParams.id
         if (!albumId || !albumId.trim()) {
             return NextResponse.json(
                 { error: 'Album ID is required' },

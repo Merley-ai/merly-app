@@ -40,7 +40,7 @@ export async function POST(request: Request) {
             aspect_ratio = '16:9',
             num_images = 4,
             output_format = 'png',
-            album_id,
+            album_id: _album_id,
         } = body
 
         // Validate prompt

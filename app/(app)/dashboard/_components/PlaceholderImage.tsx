@@ -1,7 +1,5 @@
 "use client";
 
-import { AnimatedImage } from "@/components/ui/AnimatedImage";
-
 interface PlaceholderImageProps {
     index?: number;
     delay?: number;
@@ -17,7 +15,6 @@ interface PlaceholderImageProps {
  */
 export function PlaceholderImage({
     index = 0,
-    delay = 0,
     className = ""
 }: PlaceholderImageProps) {
     // Generate a unique gradient based on index for visual variety
@@ -62,7 +59,6 @@ export function PlaceholderImage({
  * Smaller version for timeline thumbnails
  */
 export function PlaceholderThumbnail({
-    delay = 0,
     className = ""
 }: {
     delay?: number;
