@@ -2,16 +2,35 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Album, TimelineEntry, GalleryImage } from "@/types";
+import type { TimelineEntry, GalleryImage } from "@/types";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
+import { useAlbums } from "@/hooks/useAlbums";
 import { Sidebar } from "./Sidebar";
+import { HomePage } from "./HomePage";
+import { EmptyTimeline } from "./EmptyTimeline";
 import { TimelineWithInput } from "./TimelineWithInput";
+import { EmptyGallery } from "./EmptyGallery";
 import { Gallery } from "./Gallery";
 import { ImageViewer } from "./ImageViewer";
 
 export function DashboardClient() {
     const router = useRouter();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isHomeView, setIsHomeView] = useState(true);
+
+    // Albums hook - automatically fetches albums on mount
+    const {
+        albums,
+        selectedAlbum,
+        isLoading: albumsLoading,
+        error: albumsError,
+        createAlbum,
+        selectAlbum,
+    } = useAlbums({
+        onError: (error) => {
+            console.error("[Dashboard] Album error:", error);
+        },
+    });
 
     // Image generation hook
     const { create, status: genStatus, images: generatedImages, progress, error: genError } = useImageGeneration({
@@ -23,73 +42,8 @@ export function DashboardClient() {
         },
     });
 
-    // Albums state
-    const [albums, setAlbums] = useState<Album[]>([
-        {
-            id: "1",
-            name: "Summer Collection",
-            thumbnail: "/images/product-1.png",
-            createdAt: new Date("2024-01-15"),
-        },
-        {
-            id: "2",
-            name: "Winter Editorial",
-            thumbnail: "/images/editorial-1.png",
-            createdAt: new Date("2024-02-01"),
-        },
-        {
-            id: "3",
-            name: "Spring Lookbook",
-            thumbnail: "/images/model-1.png",
-            createdAt: new Date("2024-03-10"),
-        },
-    ]);
-
-    const [selectedAlbum, setSelectedAlbum] = useState<Album>(albums[0]);
-
-    // Timeline state
-    const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([
-        {
-            id: "1",
-            type: "user",
-            content: "Create a minimalist fashion editorial",
-            inputImages: ["/images/product-1.png"],
-            prompt: "Create a minimalist fashion editorial",
-            status: "thinking",
-            timestamp: new Date("2024-03-15T10:00:00"),
-        },
-        {
-            id: "2",
-            type: "ai",
-            content: "I'll create a minimalist fashion editorial for you...",
-            inputImages: [],
-            prompt: "Create a minimalist fashion editorial",
-            status: "thinking",
-            timestamp: new Date("2024-03-15T10:01:00"),
-            isGenerating: true,
-        },
-        {
-            id: "3",
-            type: "ai",
-            content: "Here are your images",
-            inputImages: [
-                "/images/editorial-1.png",
-                "/images/editorial-2.png",
-                "/images/product-2.png",
-                "/images/product-3.png",
-            ],
-            prompt: "Create a minimalist fashion editorial",
-            status: "complete",
-            timestamp: new Date("2024-03-15T10:02:00"),
-            outputImages: [
-                {
-                    url: "/images/editorial-1.png",
-                    description: "A minimalist fashion editorial",
-                },
-            ],
-            outputLabel: "Minimalist fashion editorial",
-        },
-    ]);
+    // Timeline state - empty by default, will be loaded from API
+    const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
 
     // Input state
     const [inputValue, setInputValue] = useState("");
@@ -117,15 +71,31 @@ export function DashboardClient() {
         (img) => img.status === "complete"
     );
 
-    const handleCreateAlbum = () => {
-        const newAlbum: Album = {
-            id: Date.now().toString(),
-            name: `New Album ${albums.length + 1}`,
-            thumbnail: "/images/model-1.png",
-            createdAt: new Date(),
-        };
-        setAlbums([...albums, newAlbum]);
-        setSelectedAlbum(newAlbum);
+    // Handle create album - uses placeholder values automatically
+    const handleCreateAlbum = async () => {
+        try {
+            const newAlbum = await createAlbum();
+            setIsHomeView(false);
+            // Clear timeline for new album
+            setTimelineEntries([]);
+        } catch (error) {
+            console.error("[Dashboard] Failed to create album:", error);
+        }
+    };
+
+    // Handle select album
+    const handleSelectAlbum = (album: any) => {
+        selectAlbum(album);
+        setIsHomeView(false);
+        // TODO: Load timeline entries from API for this album
+        // For now, clear timeline - will be implemented later
+        setTimelineEntries([]);
+    };
+
+    // Handle go to home
+    const handleGoToHome = () => {
+        setIsHomeView(true);
+        // Don't clear selectedAlbum, just show home view
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,18 +141,20 @@ export function DashboardClient() {
         setInputValue("");
         setUploadedFiles([]);
 
-        // Call generation API
-        try {
-            await create({
-                prompt,
-                input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
-                num_images: 4,
-                aspect_ratio: "16:9",
-                album_id: selectedAlbum.id,
-            });
-        } catch (error) {
-            console.error("Generation error:", error);
-            // Error handled by onError callback
+        // Call generation API (only if album is selected)
+        if (selectedAlbum) {
+            try {
+                await create({
+                    prompt,
+                    input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
+                    num_images: 4,
+                    aspect_ratio: "16:9",
+                    album_id: selectedAlbum.id,
+                });
+            } catch (error) {
+                console.error("Generation error:", error);
+                // Error handled by onError callback
+            }
         }
     };
 
@@ -266,6 +238,11 @@ export function DashboardClient() {
             )
             : -1;
 
+    // Determine which view to show
+    const showHome = isHomeView || !selectedAlbum;
+    const showEmptyAlbum = !showHome && selectedAlbum && timelineEntries.length === 0;
+    const showLoadedAlbum = !showHome && selectedAlbum && timelineEntries.length > 0;
+
     return (
         <div className="bg-black h-screen w-full flex overflow-hidden">
             <Sidebar
@@ -273,36 +250,63 @@ export function DashboardClient() {
                 onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 albums={albums}
                 selectedAlbum={selectedAlbum}
-                onSelectAlbum={setSelectedAlbum}
+                onSelectAlbum={handleSelectAlbum}
                 onCreateAlbum={handleCreateAlbum}
-                onBackToHome={() => router.push("/")}
+                onGoToHome={handleGoToHome}
+                onBackToWebsite={() => router.push("/")}
+                isLoading={albumsLoading}
+                error={albumsError}
+                isHomeView={showHome}
             />
 
-            <TimelineWithInput
-                albumName={selectedAlbum.name}
-                entries={timelineEntries}
-                inputValue={inputValue}
-                onInputChange={setInputValue}
-                uploadedFiles={uploadedFiles}
-                onFileChange={handleFileChange}
-                onSubmit={handleSubmit}
-            />
+            {/* Home View - No album selected */}
+            {showHome && <HomePage />}
 
-            <Gallery images={galleryImages} onImageClick={setSelectedImageIndex} />
+            {/* Empty Album View - New album with no timeline */}
+            {showEmptyAlbum && (
+                <>
+                    <EmptyTimeline
+                        albumName={selectedAlbum.name}
+                        inputValue={inputValue}
+                        onInputChange={setInputValue}
+                        uploadedFiles={uploadedFiles}
+                        onFileChange={handleFileChange}
+                        onSubmit={handleSubmit}
+                    />
+                    <EmptyGallery onFileChange={handleFileChange} />
+                </>
+            )}
 
-            {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
-                <ImageViewer
-                    image={galleryImages[selectedImageIndex]}
-                    imageIndex={selectedImageIndex}
-                    totalImages={completeImages.length}
-                    albumName={selectedAlbum.name}
-                    onClose={() => setSelectedImageIndex(null)}
-                    onNavigate={handleNavigateImage}
-                    onDownload={handleDownloadImage}
-                    onDelete={handleDeleteImage}
-                    canNavigatePrev={currentIndexInComplete > 0}
-                    canNavigateNext={currentIndexInComplete < completeImages.length - 1}
-                />
+            {/* Loaded Album View - Album with timeline and gallery */}
+            {showLoadedAlbum && (
+                <>
+                    <TimelineWithInput
+                        albumName={selectedAlbum.name}
+                        entries={timelineEntries}
+                        inputValue={inputValue}
+                        onInputChange={setInputValue}
+                        uploadedFiles={uploadedFiles}
+                        onFileChange={handleFileChange}
+                        onSubmit={handleSubmit}
+                    />
+
+                    <Gallery images={galleryImages} onImageClick={setSelectedImageIndex} />
+
+                    {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
+                        <ImageViewer
+                            image={galleryImages[selectedImageIndex]}
+                            imageIndex={selectedImageIndex}
+                            totalImages={completeImages.length}
+                            albumName={selectedAlbum.name}
+                            onClose={() => setSelectedImageIndex(null)}
+                            onNavigate={handleNavigateImage}
+                            onDownload={handleDownloadImage}
+                            onDelete={handleDeleteImage}
+                            canNavigatePrev={currentIndexInComplete > 0}
+                            canNavigateNext={currentIndexInComplete < completeImages.length - 1}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

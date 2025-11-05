@@ -1,7 +1,16 @@
 // Centralized type exports
 
 // Dashboard types
-export type { Album } from './album';
+export type {
+    Album,
+    AlbumResponse,
+    CreateAlbumRequest,
+    UpdateAlbumRequest,
+    DeleteAlbumRequest,
+    GetAlbumRequest,
+    GetAllAlbumsRequest,
+} from './album';
+export { transformAlbumResponse } from './album';
 export type { TimelineEntry } from './timeline';
 export type { GalleryImage } from './gallery';
 export type { DashboardProps } from './dashboard';

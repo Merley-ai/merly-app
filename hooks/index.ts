@@ -6,4 +6,5 @@
 
 export { useGenerationPolling } from './useGenerationPolling'
 export { useImageGeneration } from './useImageGeneration'
+export { useAlbums } from './useAlbums'
 
