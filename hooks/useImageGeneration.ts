@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useGenerationPolling } from './useGenerationPolling'
+import { useWebSocket } from './useWebSocket'
 import type { GenerationType } from '@/types/image-generation'
+import type { WebSocketMessage } from './useWebSocket'
 
 /**
  * Generation request parameters
@@ -24,7 +26,7 @@ interface GenerationRequest {
 interface UseImageGenerationReturn {
     // State
     isGenerating: boolean
-    jobId: string | null
+    requestId: string | null
     status: 'idle' | 'pending' | 'processing' | 'completed' | 'failed'
     images: any[]
     progress: number
@@ -59,25 +61,36 @@ interface UseImageGenerationReturn {
 export function useImageGeneration({
     onComplete,
     onError,
+    useWebSocketConnection = true, // Enable WebSocket by default
 }: {
     onComplete?: (images: any[]) => void
     onError?: (error: string) => void
+    useWebSocketConnection?: boolean
 } = {}): UseImageGenerationReturn {
     const [isGenerating, setIsGenerating] = useState(false)
-    const [jobId, setJobId] = useState<string | null>(null)
+    const [requestId, setRequestId] = useState<string | null>(null)
     const [localError, setLocalError] = useState<string | null>(null)
+    const [images, setImages] = useState<any[]>([])
+    const [progress, setProgress] = useState(0)
 
-    // Use polling hook
+    const wsUnsubscribeRef = useRef<(() => void) | null>(null)
+    const usePollingFallbackRef = useRef(false)
+
+    // WebSocket hook
+    const { isConnected: wsConnected, subscribe: wsSubscribe } = useWebSocket()
+
+    // Polling hook (fallback)
     const {
         status: pollStatus,
-        images,
-        progress,
+        images: pollImages,
+        progress: pollProgress,
         error: pollError,
     } = useGenerationPolling({
-        jobId,
-        enabled: !!jobId,
+        requestId,
+        enabled: !!requestId && (!useWebSocketConnection || usePollingFallbackRef.current),
         onComplete: (imgs) => {
             setIsGenerating(false)
+            setImages(imgs)
             onComplete?.(imgs)
         },
         onError: (err) => {
@@ -85,11 +98,69 @@ export function useImageGeneration({
             setLocalError(err)
             onError?.(err)
         },
+        onProgress: (prog) => {
+            setProgress(prog)
+        },
     })
 
+    // Subscribe to WebSocket updates when requestId changes
+    useEffect(() => {
+        if (!requestId || !useWebSocketConnection) return
+
+        // If WebSocket is not connected, fall back to polling
+        if (!wsConnected) {
+            console.log('[useImageGeneration] WebSocket not connected, using polling fallback')
+            usePollingFallbackRef.current = true
+            return
+        }
+
+        usePollingFallbackRef.current = false
+
+        // Subscribe to WebSocket updates
+        const unsubscribe = wsSubscribe(requestId, {
+            onSuccess: (data: WebSocketMessage) => {
+                if (data.payload?.images) {
+                    const generatedImages = data.payload.images.map(img => ({
+                        url: img.url,
+                        width: img.width,
+                        height: img.height,
+                        content_type: img.content_type,
+                    }))
+
+                    setImages(generatedImages)
+                    setProgress(100)
+                    setIsGenerating(false)
+                    onComplete?.(generatedImages)
+                }
+            },
+            onError: (data: WebSocketMessage) => {
+                const errorMsg = data.message || 'Generation failed via WebSocket'
+                setLocalError(errorMsg)
+                setIsGenerating(false)
+                onError?.(errorMsg)
+            },
+            onDisconnect: () => {
+                // Fall back to polling if WebSocket disconnects
+                console.log('[useImageGeneration] WebSocket disconnected, falling back to polling')
+                usePollingFallbackRef.current = true
+            },
+        })
+
+        wsUnsubscribeRef.current = unsubscribe
+
+        return () => {
+            unsubscribe()
+            wsUnsubscribeRef.current = null
+        }
+    }, [requestId, useWebSocketConnection, wsConnected, wsSubscribe, onComplete, onError])
+
     // Determine final status
-    const status = jobId ? pollStatus : 'idle'
+    const status = requestId ? (usePollingFallbackRef.current ? pollStatus : 'processing') : 'idle'
     const error = localError || pollError
+
+    // Use WebSocket images if available, otherwise polling images
+    const finalImages = images.length > 0 ? images : pollImages
+    const finalProgress = progress > 0 ? progress : pollProgress
 
     // Submit generation request
     const submitGeneration = useCallback(async (
@@ -99,7 +170,7 @@ export function useImageGeneration({
         try {
             setIsGenerating(true)
             setLocalError(null)
-            setJobId(null)
+            setRequestId(null)
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -116,15 +187,20 @@ export function useImageGeneration({
 
             const data = await response.json()
 
-            if (data.job_id) {
-                setJobId(data.job_id)
-                // Polling will start automatically
+            // Handle response with request_id (can be nested in data object)
+            const requestIdValue = data.request_id || data.data?.request_id
+
+            if (requestIdValue) {
+                setRequestId(requestIdValue)
+                // Polling/WebSocket will start automatically
             } else if (data.images) {
                 // Sync response (rare)
                 setIsGenerating(false)
                 onComplete?.(data.images)
             } else {
-                throw new Error('Unexpected response format')
+                // Log the response for debugging
+                console.error('[useImageGeneration] Unexpected response:', data)
+                throw new Error(`Unexpected response format. Response keys: ${Object.keys(data).join(', ')}`)
             }
 
         } catch (err) {
@@ -160,16 +236,16 @@ export function useImageGeneration({
     // Reset function
     const reset = useCallback(() => {
         setIsGenerating(false)
-        setJobId(null)
+        setRequestId(null)
         setLocalError(null)
     }, [])
 
     return {
         isGenerating,
-        jobId,
+        requestId,
         status,
-        images,
-        progress,
+        images: finalImages,
+        progress: finalProgress,
         error,
         create,    // Intelligent routing (recommended)
         generate,  // Text-to-image only

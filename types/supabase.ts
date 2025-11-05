@@ -83,7 +83,7 @@ export type Database = {
                     aspect_ratio: string
                     num_images: number
                     output_format: string
-                    job_id: string | null
+                    request_id: string | null
                     backend_status: string | null
                     status: 'pending' | 'processing' | 'completed' | 'failed'
                     error_message: string | null
@@ -102,7 +102,7 @@ export type Database = {
                     aspect_ratio?: string
                     num_images?: number
                     output_format?: string
-                    job_id?: string | null
+                    request_id?: string | null
                     backend_status?: string | null
                     status?: 'pending' | 'processing' | 'completed' | 'failed'
                     error_message?: string | null
@@ -121,7 +121,7 @@ export type Database = {
                     aspect_ratio?: string
                     num_images?: number
                     output_format?: string
-                    job_id?: string | null
+                    request_id?: string | null
                     backend_status?: string | null
                     status?: 'pending' | 'processing' | 'completed' | 'failed'
                     error_message?: string | null

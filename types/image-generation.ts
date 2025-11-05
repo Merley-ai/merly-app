@@ -70,10 +70,10 @@ export interface RemixImageRequest {
 
 /**
  * Response from backend generation endpoint
- * Contains either job_id (async) or images (sync)
+ * Contains either request_id (async) or images (sync)
  */
 export interface GenerationResponse {
-    job_id?: string // Present if async (sync_mode: false)
+    request_id?: string // Present if async (sync_mode: false)
     status?: string // Backend status
     images?: GeneratedImage[] // Present if sync (sync_mode: true)
     error?: string // Error message if failed
@@ -91,20 +91,20 @@ export interface GeneratedImage {
 }
 
 /**
- * Job status response from backend
+ * Request status response from backend
  */
 export interface JobStatusResponse {
-    job_id: string
+    request_id: string
     status: 'pending' | 'processing' | 'completed' | 'failed'
     progress?: number // 0-100
     error?: string
 }
 
 /**
- * Job results response from backend
+ * Request results response from backend
  */
 export interface JobResultsResponse {
-    job_id: string
+    request_id: string
     status: string
     images: GeneratedImage[]
     metadata?: {
@@ -134,7 +134,7 @@ export interface Generation {
     aspect_ratio: string
     num_images: number
     output_format: string
-    job_id: string | null
+    request_id: string | null
     backend_status: string | null
     status: GenerationStatus
     error_message: string | null
@@ -191,7 +191,7 @@ export interface CreateGenerationRequest {
  */
 export interface CreateGenerationResponse {
     generation: Generation
-    job_id?: string
+    request_id?: string
     results?: GeneratedImage[] // If sync mode
 }
 
@@ -344,10 +344,10 @@ export function isGenerationActive(generation: Generation): boolean {
 }
 
 /**
- * Type guard to check if response is async (has job_id)
+ * Type guard to check if response is async (has request_id)
  */
-export function isAsyncResponse(response: GenerationResponse): response is GenerationResponse & { job_id: string } {
-    return response.job_id !== undefined
+export function isAsyncResponse(response: GenerationResponse): response is GenerationResponse & { request_id: string } {
+    return response.request_id !== undefined
 }
 
 /**

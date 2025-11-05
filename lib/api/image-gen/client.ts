@@ -20,7 +20,7 @@ import { apiFetch, POLLING_TIMEOUT } from '../core'
  * Generate image from text prompt
  * 
  * @param request - Generation parameters
- * @returns Generation response with job_id or images
+ * @returns Generation response with request_id or images
  */
 export async function generateImage(
     request: GenerateImageRequest
@@ -35,7 +35,7 @@ export async function generateImage(
  * Edit an existing image
  * 
  * @param request - Edit parameters including image URL
- * @returns Generation response with job_id or images
+ * @returns Generation response with request_id or images
  */
 export async function editImage(
     request: EditImageRequest
@@ -50,7 +50,7 @@ export async function editImage(
  * Remix multiple images
  * 
  * @param request - Remix parameters including image URLs
- * @returns Generation response with job_id or images
+ * @returns Generation response with request_id or images
  */
 export async function remixImages(
     request: RemixImageRequest
@@ -62,32 +62,32 @@ export async function remixImages(
 }
 
 /**
- * Check status of a generation job
+ * Check status of a generation request
  * 
- * @param jobId - The job ID to check
- * @returns Job status and progress
+ * @param requestId - The request ID to check
+ * @returns Request status and progress
  */
 export async function checkJobStatus(
-    jobId: string
+    requestId: string
 ): Promise<JobStatusResponse> {
     return apiFetch<JobStatusResponse>(
-        `/v1/jobs/${jobId}/status`,
+        `/v1/requests/${requestId}/status`,
         { method: 'GET' },
         POLLING_TIMEOUT // Use shorter timeout for polling
     )
 }
 
 /**
- * Get results of a completed generation job
+ * Get results of a completed generation request
  * 
- * @param jobId - The job ID to get results for
- * @returns Job results with generated images
+ * @param requestId - The request ID to get results for
+ * @returns Request results with generated images
  */
 export async function getJobResults(
-    jobId: string
+    requestId: string
 ): Promise<JobResultsResponse> {
     return apiFetch<JobResultsResponse>(
-        `/v1/jobs/${jobId}/results`,
+        `/v1/requests/${requestId}/results`,
         { method: 'GET' },
         POLLING_TIMEOUT
     )

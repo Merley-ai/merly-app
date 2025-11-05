@@ -2,12 +2,14 @@
 
 import { useRef } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
+import type { UploadedFile } from "@/types";
 
 interface InputAreaProps {
   inputValue: string;
   onInputChange: (value: string) => void;
-  uploadedFiles: File[];
+  uploadedFiles: UploadedFile[];
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemoveFile: (fileId: string) => void;
   onSubmit: () => void;
 }
 
@@ -16,11 +18,16 @@ export function InputArea({
   onInputChange,
   uploadedFiles,
   onFileChange,
+  onRemoveFile,
   onSubmit,
 }: InputAreaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAttachClick = () => {
+    // Reset the input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     fileInputRef.current?.click();
   };
 
@@ -30,24 +37,66 @@ export function InputArea({
         {/* Uploaded Image Thumbnails */}
         {uploadedFiles.length > 0 && (
           <div className="flex gap-2 flex-wrap">
-            {uploadedFiles.map((file, idx) => (
+            {uploadedFiles.map((uploadedFile, idx) => (
               <div
-                key={idx}
-                className="w-[71px] h-[71px] bg-black rounded overflow-hidden relative flex-shrink-0"
+                key={uploadedFile.id}
+                className="w-[71px] h-[71px] bg-black rounded overflow-hidden relative flex-shrink-0 group"
               >
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={uploadedFile.previewUrl}
                   alt={`Upload ${idx + 1}`}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
-                  <p
-                    className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
-                    style={{ fontVariationSettings: "'wdth' 100" }}
+
+                {/* Loading spinner for uploading state */}
+                {uploadedFile.status === 'uploading' && (
+                  <div className="absolute top-1 right-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center">
+                    <div className="w-[10px] h-[10px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+
+                {/* Error indicator with remove button */}
+                {uploadedFile.status === 'error' && (
+                  <button
+                    onClick={() => onRemoveFile(uploadedFile.id)}
+                    className="absolute top-1 right-1 w-[16px] h-[16px] bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
+                    aria-label="Remove failed upload"
                   >
-                    {idx + 1}
-                  </p>
-                </div>
+                    <span className="text-white text-[12px] font-bold leading-none">×</span>
+                  </button>
+                )}
+
+                {/* Success indicator with number and remove button */}
+                {uploadedFile.status === 'completed' && (
+                  <>
+                    <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
+                      <p
+                        className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
+                        style={{ fontVariationSettings: "'wdth' 100" }}
+                      >
+                        {idx + 1}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => onRemoveFile(uploadedFile.id)}
+                      className="absolute top-1 left-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                      aria-label="Remove image"
+                    >
+                      <span className="text-white text-[12px] font-bold leading-none">×</span>
+                    </button>
+                  </>
+                )}
+
+                {/* Pending state - show remove button on hover */}
+                {uploadedFile.status === 'pending' && (
+                  <button
+                    onClick={() => onRemoveFile(uploadedFile.id)}
+                    className="absolute top-1 right-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                    aria-label="Remove image"
+                  >
+                    <span className="text-white text-[12px] font-bold leading-none">×</span>
+                  </button>
+                )}
               </div>
             ))}
           </div>

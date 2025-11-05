@@ -1,4 +1,6 @@
 import { ThinkingAnimation } from "./ThinkingAnimation";
+import { PlaceholderThumbnail } from "./PlaceholderImage";
+import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import type { TimelineEntry } from "@/types";
 
 interface TimelineProps {
@@ -71,8 +73,48 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                             )}
 
                             {/* Thinking Animation */}
-                            {entry.status === 'thinking' && entry.thinkingText && (
+                            {entry.status === 'thinking' && entry.thinkingText && !entry.outputImages && (
                                 <ThinkingAnimation text={entry.thinkingText} />
+                            )}
+
+                            {/* Output Images (or Placeholders) */}
+                            {entry.outputImages && entry.outputImages.length > 0 && (
+                                <div className="space-y-2">
+                                    {entry.outputLabel && (
+                                        <p
+                                            className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[12px]"
+                                            style={{ fontVariationSettings: "'wdth' 100" }}
+                                        >
+                                            {entry.outputLabel}
+                                        </p>
+                                    )}
+                                    <div className="flex gap-2 flex-wrap">
+                                        {entry.outputImages.map((img, idx) => (
+                                            <div key={idx} className="space-y-1">
+                                                {img.isPlaceholder ? (
+                                                    <PlaceholderThumbnail delay={0.1 * idx} />
+                                                ) : (
+                                                    <div className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0">
+                                                        <AnimatedImage
+                                                            src={img.url}
+                                                            alt={img.description}
+                                                            className="w-full h-full object-cover"
+                                                            delay={0.1 * idx}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {img.description && !img.isPlaceholder && (
+                                                    <p
+                                                        className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[10px] w-[71px]"
+                                                        style={{ fontVariationSettings: "'wdth' 100" }}
+                                                    >
+                                                        {img.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ))}

@@ -28,21 +28,21 @@ export async function GET(
             )
         }
 
-        const jobId = params.id
+        const requestId = params.id
 
-        // Check Backend Job Status
+        // Check Backend Request Status
         try {
-            const statusResponse = await checkJobStatus(jobId)
+            const statusResponse = await checkJobStatus(requestId)
 
             // If Backend Completed, Fetch and Return Results
             if (statusResponse.status === 'completed') {
                 try {
-                    const resultsResponse = await getJobResults(jobId)
+                    const resultsResponse = await getJobResults(requestId)
 
                     if (resultsResponse.images && resultsResponse.images.length > 0) {
                         return NextResponse.json({
                             status: 'completed',
-                            job_id: jobId,
+                            request_id: requestId,
                             images: resultsResponse.images,
                             metadata: resultsResponse.metadata,
                         })
@@ -56,7 +56,7 @@ export async function GET(
 
                     return NextResponse.json({
                         status: 'failed',
-                        job_id: jobId,
+                        request_id: requestId,
                         error: errorMessage,
                     })
                 }
@@ -66,7 +66,7 @@ export async function GET(
             if (statusResponse.status === 'failed') {
                 return NextResponse.json({
                     status: 'failed',
-                    job_id: jobId,
+                    request_id: requestId,
                     error: statusResponse.error || 'Backend processing failed',
                 })
             }
@@ -74,7 +74,7 @@ export async function GET(
             // Still Processing
             return NextResponse.json({
                 status: statusResponse.status,
-                job_id: jobId,
+                request_id: requestId,
                 progress: statusResponse.progress,
             })
 
@@ -88,7 +88,7 @@ export async function GET(
             // (might be temporary network issue)
             return NextResponse.json({
                 status: 'processing',
-                job_id: jobId,
+                request_id: requestId,
                 error: errorMessage,
             })
         }

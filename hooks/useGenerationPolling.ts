@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 /**
- * Job status response from backend
+ * Request status response from backend
  */
 interface JobStatus {
     status: 'pending' | 'processing' | 'completed' | 'failed'
-    job_id: string
+    request_id: string
     progress?: number
     images?: Array<{
         url: string
@@ -24,7 +24,7 @@ interface JobStatus {
  * Hook options
  */
 interface UseGenerationPollingOptions {
-    jobId: string | null
+    requestId: string | null
     enabled?: boolean
     interval?: number // milliseconds
     maxAttempts?: number // maximum polling attempts
@@ -36,19 +36,19 @@ interface UseGenerationPollingOptions {
 /**
  * useGenerationPolling Hook
  * 
- * Automatically polls a job until completion or failure
+ * Automatically polls a request until completion or failure
  * 
  * @example
  * ```typescript
  * const { status, images, progress, error, isPolling } = useGenerationPolling({
- *   jobId: 'job_123',
+ *   requestId: 'req_123',
  *   enabled: true,
  *   onComplete: (images) => console.log('Done!', images),
  * })
  * ```
  */
 export function useGenerationPolling({
-    jobId,
+    requestId,
     enabled = true,
     interval = 2000, // Poll every 2 seconds
     maxAttempts = 60, // 2 minutes max (60 * 2s)
@@ -68,10 +68,10 @@ export function useGenerationPolling({
 
     // Check status function
     const checkStatus = useCallback(async () => {
-        if (!jobId) return false
+        if (!requestId) return false
 
         try {
-            const response = await fetch(`/api/image-gen/status/${jobId}`)
+            const response = await fetch(`/api/image-gen/status/${requestId}`)
 
             if (!response.ok) {
                 throw new Error(`Status check failed: ${response.status}`)
@@ -126,11 +126,11 @@ export function useGenerationPolling({
 
             return false // Continue polling
         }
-    }, [jobId, maxAttempts, onComplete, onError, onProgress])
+    }, [requestId, maxAttempts, onComplete, onError, onProgress])
 
     // Start/stop polling based on enabled flag
     useEffect(() => {
-        if (!enabled || !jobId || status === 'completed' || status === 'failed') {
+        if (!enabled || !requestId || status === 'completed' || status === 'failed') {
             // Clear existing interval
             if (intervalRef.current) {
                 clearInterval(intervalRef.current)
@@ -167,18 +167,18 @@ export function useGenerationPolling({
             }
             setIsPolling(false)
         }
-    }, [enabled, jobId, status, interval, checkStatus])
+    }, [enabled, requestId, status, interval, checkStatus])
 
     // Manual retry function
     const retry = useCallback(() => {
-        if (!jobId) return
+        if (!requestId) return
 
         setError(null)
         setStatus('pending')
         attemptCountRef.current = 0
         setAttempts(0)
         checkStatus()
-    }, [jobId, checkStatus])
+    }, [requestId, checkStatus])
 
     return {
         status,

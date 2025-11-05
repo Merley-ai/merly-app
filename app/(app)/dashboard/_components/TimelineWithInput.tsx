@@ -1,14 +1,15 @@
 import { ThinkingAnimation } from "./ThinkingAnimation";
 import { InputArea } from "./InputArea";
-import type { TimelineEntry } from "@/types";
+import type { TimelineEntry, UploadedFile } from "@/types";
 
 interface TimelineWithInputProps {
     albumName: string;
     entries: TimelineEntry[];
     inputValue: string;
     onInputChange: (value: string) => void;
-    uploadedFiles: File[];
+    uploadedFiles: UploadedFile[];
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
 }
 
@@ -19,6 +20,7 @@ export function TimelineWithInput({
     onInputChange,
     uploadedFiles,
     onFileChange,
+    onRemoveFile,
     onSubmit,
 }: TimelineWithInputProps) {
     return (
@@ -99,6 +101,7 @@ export function TimelineWithInput({
                 onInputChange={onInputChange}
                 uploadedFiles={uploadedFiles}
                 onFileChange={onFileChange}
+                onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
             />
         </main>

@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { TimelineEntry, GalleryImage } from "@/types";
+import { useUser } from "@/lib/auth0/client";
+import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useAlbums } from "@/hooks/useAlbums";
+import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
 import { Sidebar } from "./Sidebar";
 import { HomePage } from "./HomePage";
 import { EmptyTimeline } from "./EmptyTimeline";
@@ -15,6 +17,7 @@ import { ImageViewer } from "./ImageViewer";
 
 export function DashboardClient() {
     const router = useRouter();
+    const { user } = useUser();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isHomeView, setIsHomeView] = useState(true);
 
@@ -32,8 +35,8 @@ export function DashboardClient() {
         },
     });
 
-    // Image generation hook
-    const { create, status: genStatus, images: generatedImages, progress, error: genError } = useImageGeneration({
+    // Image generation hook with WebSocket support
+    const { create, status: genStatus, images: generatedImages, progress, error: genError, requestId } = useImageGeneration({
         onComplete: (images) => {
             handleGenerationComplete(images);
         },
@@ -42,28 +45,33 @@ export function DashboardClient() {
         },
     });
 
+    // Supabase upload hook
+    const { uploadFile } = useSupabaseUpload();
+
     // Timeline state - empty by default, will be loaded from API
     const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
 
     // Input state
     const [inputValue, setInputValue] = useState("");
-    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
     // Gallery & viewer state
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
         null
     );
 
-    // Extract images for gallery
+    // Extract images for gallery (including placeholders)
     const galleryImages: GalleryImage[] = timelineEntries
-        .filter((entry) => entry.type === "ai" && !entry.isGenerating)
+        .filter((entry) => entry.type === "ai")
         .flatMap((entry) =>
             entry.outputImages?.map((img, idx) => ({
                 id: `${entry.id}-${idx}`,
                 url: img.url,
                 description: img.description,
-                status: "complete",
+                status: img.isPlaceholder ? ("rendering" as const) : ("complete" as const),
                 addedAt: entry.timestamp,
+                requestId: entry.requestId,
+                index: idx,
             })) || []
         ) as GalleryImage[];
 
@@ -98,16 +106,89 @@ export function DashboardClient() {
         // Don't clear selectedAlbum, just show home view
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleRemoveFile = (fileId: string) => {
+        setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        setUploadedFiles([...uploadedFiles, ...files]);
+        if (!user) return;
+
+        // Create UploadedFile objects with pending state
+        const newUploadedFiles: UploadedFile[] = files.map(file => ({
+            file,
+            id: `${file.name}-${file.size}-${file.lastModified}`,
+            status: 'pending' as const,
+            progress: 0,
+            previewUrl: URL.createObjectURL(file),
+        }));
+
+        // Add to state immediately
+        setUploadedFiles(prev => [...prev, ...newUploadedFiles]);
+
+        // Upload each file to Supabase
+        for (const uploadedFile of newUploadedFiles) {
+            try {
+                // Update status to uploading
+                setUploadedFiles(prev =>
+                    prev.map(uf =>
+                        uf.id === uploadedFile.id
+                            ? { ...uf, status: 'uploading' as const }
+                            : uf
+                    )
+                );
+
+                // Upload to Supabase
+                const result = await uploadFile(uploadedFile.file, user.sub);
+
+                // Update with signed URL
+                setUploadedFiles(prev =>
+                    prev.map(uf =>
+                        uf.id === uploadedFile.id
+                            ? {
+                                ...uf,
+                                status: 'completed' as const,
+                                progress: 100,
+                                signedUrl: result.url,
+                                storagePath: result.path,
+                            }
+                            : uf
+                    )
+                );
+            } catch (error) {
+                console.error('[Dashboard] Upload error:', error);
+
+                // Update status to error
+                setUploadedFiles(prev =>
+                    prev.map(uf =>
+                        uf.id === uploadedFile.id
+                            ? {
+                                ...uf,
+                                status: 'error' as const,
+                                error: error instanceof Error ? error.message : 'Upload failed',
+                            }
+                            : uf
+                    )
+                );
+            }
+        }
     };
 
     const handleSubmit = async () => {
         if (!inputValue.trim() && uploadedFiles.length === 0) return;
 
+        // Only allow submission if all files are uploaded successfully
+        const completedFiles = uploadedFiles.filter(f => f.status === 'completed');
+        if (uploadedFiles.length > 0 && completedFiles.length !== uploadedFiles.length) {
+            console.warn('[Dashboard] Cannot submit: Some files are still uploading or failed');
+            return;
+        }
+
         const prompt = inputValue;
-        const inputImageUrls = uploadedFiles.map((file) => URL.createObjectURL(file));
+        // Use signed URLs from Supabase instead of blob URLs
+        const inputImageUrls = completedFiles
+            .map(f => f.signedUrl)
+            .filter((url): url is string => !!url);
 
         // Add user entry to timeline
         const userEntry: TimelineEntry = {
@@ -122,9 +203,12 @@ export function DashboardClient() {
 
         setTimelineEntries([...timelineEntries, userEntry]);
 
-        // Add AI "thinking" entry
+        const numImages = 4;
+        const aiEntryId = (Date.now() + 1).toString();
+
+        // Add AI entry with placeholder images immediately
         const aiEntry: TimelineEntry = {
-            id: (Date.now() + 1).toString(),
+            id: aiEntryId,
             type: "ai",
             content: "Generating your images...",
             inputImages: [],
@@ -133,6 +217,13 @@ export function DashboardClient() {
             thinkingText: "Creating your masterpiece...",
             timestamp: new Date(),
             isGenerating: true,
+            numImages,
+            outputImages: Array.from({ length: numImages }, (_, i) => ({
+                url: '', // Empty URL for placeholder
+                description: 'Generating...',
+                isPlaceholder: true,
+            })),
+            outputLabel: 'Generating Images',
         };
 
         setTimelineEntries((prev) => [...prev, aiEntry]);
@@ -147,10 +238,14 @@ export function DashboardClient() {
                 await create({
                     prompt,
                     input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
-                    num_images: 4,
+                    num_images: numImages,
                     aspect_ratio: "16:9",
                     album_id: selectedAlbum.id,
                 });
+
+                // Placeholders are already showing from the AI entry above
+                // They will be replaced when handleGenerationComplete is called
+
             } catch (error) {
                 console.error("Generation error:", error);
                 // Error handled by onError callback
@@ -160,24 +255,25 @@ export function DashboardClient() {
 
     // Handle generation completion
     const handleGenerationComplete = (images: any[]) => {
-        const completedEntry: TimelineEntry = {
-            id: Date.now().toString(),
-            type: "ai",
-            content: "Here are your generated images!",
-            inputImages: [],
-            prompt: "",
-            status: "complete",
-            timestamp: new Date(),
-            outputImages: images.map((img) => ({
-                url: img.url,
-                description: "Generated image",
-            })),
-            outputLabel: "Generated Images",
-        };
-
-        // Replace the "thinking" entry with completed entry
+        // Update the generating entry with real images (replace placeholders)
         setTimelineEntries((prev) =>
-            prev.map((entry) => (entry.isGenerating ? completedEntry : entry))
+            prev.map((entry) =>
+                entry.isGenerating
+                    ? {
+                        ...entry,
+                        id: Date.now().toString(),
+                        content: "Here are your generated images!",
+                        status: "complete" as const,
+                        isGenerating: false,
+                        outputImages: images.map((img, idx) => ({
+                            url: img.url,
+                            description: "Generated image",
+                            isPlaceholder: false,
+                        })),
+                        outputLabel: "Generated Images",
+                    }
+                    : entry
+            )
         );
     };
 
@@ -271,6 +367,7 @@ export function DashboardClient() {
                         onInputChange={setInputValue}
                         uploadedFiles={uploadedFiles}
                         onFileChange={handleFileChange}
+                        onRemoveFile={handleRemoveFile}
                         onSubmit={handleSubmit}
                     />
                     <EmptyGallery onFileChange={handleFileChange} />
@@ -287,6 +384,7 @@ export function DashboardClient() {
                         onInputChange={setInputValue}
                         uploadedFiles={uploadedFiles}
                         onFileChange={handleFileChange}
+                        onRemoveFile={handleRemoveFile}
                         onSubmit={handleSubmit}
                     />
 

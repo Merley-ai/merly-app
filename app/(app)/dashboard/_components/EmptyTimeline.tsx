@@ -1,13 +1,15 @@
 "use client";
 
 import { InputArea } from "./InputArea";
+import type { UploadedFile } from "@/types";
 
 interface EmptyTimelineProps {
     albumName: string;
     inputValue: string;
     onInputChange: (value: string) => void;
-    uploadedFiles: File[];
+    uploadedFiles: UploadedFile[];
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
 }
 
@@ -23,6 +25,7 @@ export function EmptyTimeline({
     onInputChange,
     uploadedFiles,
     onFileChange,
+    onRemoveFile,
     onSubmit,
 }: EmptyTimelineProps) {
     const currentDate = new Date().toLocaleDateString('en-US', {
@@ -72,6 +75,7 @@ export function EmptyTimeline({
                 onInputChange={onInputChange}
                 uploadedFiles={uploadedFiles}
                 onFileChange={onFileChange}
+                onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
             />
         </main>

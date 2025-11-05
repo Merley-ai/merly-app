@@ -10,10 +10,13 @@
  *      - 'complete' (generation finished)
  * - `thinkingText` (optional): Status message shown while `status` is 'thinking'.
  * - `outputImages` (optional): Array of output images generated, each with:
- *      - `url`: Image URL string.
+ *      - `url`: Image URL string (empty for rendering placeholders).
  *      - `description`: Short description or caption for the image.
+ *      - `isPlaceholder`: True if this is a placeholder waiting for generation.
  * - `outputLabel` (optional): A label or summary for the output content.
  * - `timestamp`: Exact Date instance marking when this entry was created or updated.
+ * - `requestId` (optional): Request ID for tracking generation progress.
+ * - `numImages` (optional): Number of images being generated (for placeholders).
  */
 export interface TimelineEntry {
     id: string;
@@ -23,8 +26,10 @@ export interface TimelineEntry {
     prompt: string;
     status: 'thinking' | 'complete';
     thinkingText?: string;
-    outputImages?: Array<{ url: string; description: string }>;
+    outputImages?: Array<{ url: string; description: string; isPlaceholder?: boolean }>;
     outputLabel?: string;
     timestamp: Date;
     isGenerating?: boolean;
+    requestId?: string;
+    numImages?: number;
 }

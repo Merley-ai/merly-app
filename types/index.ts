@@ -14,6 +14,7 @@ export { transformAlbumResponse } from './album';
 export type { TimelineEntry } from './timeline';
 export type { GalleryImage } from './gallery';
 export type { DashboardProps } from './dashboard';
+export type { UploadedFile } from './upload';
 
 // Image generation types
 export type {
