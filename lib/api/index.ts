@@ -10,7 +10,6 @@ export {
     getBackendURL,
     BACKEND_URL,
     API_TIMEOUT,
-    POLLING_TIMEOUT,
     BackendAPIError,
     BackendTimeoutError,
 } from './core'
@@ -20,8 +19,6 @@ export {
     generateImage,
     editImage,
     remixImages,
-    checkJobStatus,
-    getJobResults,
 } from './image-gen/client'
 
 // Album Management API

@@ -16,15 +16,6 @@ export type { GalleryImage } from './gallery';
 export type { DashboardProps } from './dashboard';
 export type { UploadedFile } from './upload';
 
-// SSE types
-export type {
-    SseMessage,
-    SseHandlers,
-    SseConnectionState,
-    UseServerSentEventsOptions,
-    UseServerSentEventsReturn,
-} from './sse';
-
 // Image generation types
 export type {
     GenerationType,

@@ -16,7 +16,6 @@ if (!BACKEND_URL) {
 }
 
 const API_TIMEOUT = 30000
-const POLLING_TIMEOUT = 10000
 
 // Custom error for API-related failures
 export class BackendAPIError extends Error {
@@ -130,6 +129,5 @@ export function getBackendURL(): string {
 export {
     BACKEND_URL,
     API_TIMEOUT,
-    POLLING_TIMEOUT,
 }
 
