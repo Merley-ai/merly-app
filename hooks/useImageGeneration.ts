@@ -90,7 +90,7 @@ export function useImageGeneration({
         request: GenerationRequest
     ) => {
         console.log('[useImageGeneration] 🚀 Starting generation request', { endpoint, request })
-        
+
         try {
             setIsGenerating(true)
             setError(null)
@@ -105,8 +105,8 @@ export function useImageGeneration({
                 body: JSON.stringify(request),
             })
 
-            console.log('[useImageGeneration] 📥 Response received:', { 
-                status: response.status, 
+            console.log('[useImageGeneration] 📥 Response received:', {
+                status: response.status,
                 ok: response.ok,
                 contentType: response.headers.get('content-type')
             })
@@ -128,10 +128,10 @@ export function useImageGeneration({
                 setRequestId(requestIdValue)
                 setIsGenerating(false)
                 onSuccess?.(requestIdValue)
-                
+
                 // Step 2: Subscribe to SSE updates
                 console.log('[useImageGeneration] 🔌 Setting up SSE connection...')
-                
+
                 // Close existing connection if any
                 if (eventSourceRef.current) {
                     console.log('[useImageGeneration] 🔌 Closing existing EventSource')
@@ -143,9 +143,9 @@ export function useImageGeneration({
                 setSSEStatus('processing')
 
                 // Create new EventSource connection
-                const sseUrl = `/api/events?stream=${requestIdValue}`
+                const sseUrl = `/api/events?requestId=${requestIdValue}`
                 console.log('[useImageGeneration] 🔌 Creating EventSource:', sseUrl)
-                
+
                 const eventSource = new EventSource(sseUrl)
                 eventSourceRef.current = eventSource
 
@@ -157,15 +157,15 @@ export function useImageGeneration({
                 // Handle incoming messages
                 eventSource.onmessage = (event) => {
                     console.log('[useImageGeneration] 📨 SSE message received:', event.data)
-                    
+
                     try {
                         const data: ImageSSEStatus = JSON.parse(event.data)
                         console.log('[useImageGeneration] 📦 Parsed SSE data:', data)
-                        
+
                         // Update progress
                         setProgress(data.progress)
                         console.log('[useImageGeneration] 📊 Progress updated:', data.progress + '%')
-                        
+
                         if (data.status === 'complete') {
                             console.log('[useImageGeneration] 🎉 Generation complete!')
                             // Handle completion
@@ -181,13 +181,13 @@ export function useImageGeneration({
                             }
                             setSSEStatus('completed')
                             setProgress(100)
-                            
+
                             // Trigger onComplete callback with images
                             if (completedImages.length > 0) {
                                 console.log('[useImageGeneration] 🎊 Calling onComplete callback with', completedImages.length, 'images')
                                 onComplete?.(completedImages)
                             }
-                            
+
                             console.log('[useImageGeneration] 🔌 Closing SSE connection (complete)')
                             eventSource.close()
                         } else if (data.status === 'error') {
@@ -266,7 +266,7 @@ export function useImageGeneration({
             eventSourceRef.current.close()
             eventSourceRef.current = null
         }
-        
+
         setIsGenerating(false)
         setRequestId(null)
         setError(null)

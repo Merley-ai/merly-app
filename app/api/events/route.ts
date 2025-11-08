@@ -204,7 +204,6 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
  * - stream: The request_id to subscribe to (also accepts requestId)
  * 
  * @example
- * GET /api/events?stream=abc-123-def
  * GET /api/events?requestId=abc-123-def
  */
 export async function GET(request: NextRequest) {
