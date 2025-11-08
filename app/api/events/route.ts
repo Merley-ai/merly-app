@@ -59,10 +59,10 @@ type BackendEventData = BackendQueuedEventData | BackendCompletedEventData | Bac
  */
 function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrapper): ImageSSEStatus {
   console.log('[SSE] 🔄 Transforming backend event:', eventType, eventWrapper)
-  
+
   const timestamp = Date.now()
   const eventData = eventWrapper.data
-  
+
   // Handle queued event
   if (eventType === 'queued' || eventData.status === 'queued') {
     return {
@@ -72,7 +72,7 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       timestamp,
     }
   }
-  
+
   // Handle processing event
   if (eventType === 'processing' || eventData.status === 'processing') {
     const processingData = eventData as BackendProcessingEventData
@@ -83,11 +83,11 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       timestamp,
     }
   }
-  
+
   // Handle completed event
   if (eventType === 'completed' || eventData.status === 'completed') {
     const completedData = eventData as BackendCompletedEventData
-    
+
     // Check if images exist before mapping
     if (!completedData.images || !Array.isArray(completedData.images)) {
       console.error('[SSE] ❌ Completed event missing images array:', completedData)
@@ -98,7 +98,7 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
         timestamp,
       }
     }
-    
+
     const images: GeneratedImage[] = completedData.images.map(img => ({
       url: img.url,
       width: img.width,
@@ -106,9 +106,9 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       seed: img.seed,
       content_type: img.content_type,
     }))
-    
+
     console.log('[SSE] ✅ Transformed images:', images.length, 'images')
-    
+
     return {
       status: 'complete',
       progress: 100,
@@ -117,7 +117,7 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       timestamp,
     }
   }
-  
+
   // Handle failed event
   if (eventType === 'failed' || eventData.status === 'FAILED' || eventData.status === 'failed') {
     const failedData = eventData as BackendFailedEventData
@@ -128,7 +128,7 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       timestamp,
     }
   }
-  
+
   // Default fallback
   console.warn('[SSE] ⚠️ Unknown event type or status:', eventType, eventData)
   return {
@@ -146,31 +146,31 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
 async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>): AsyncGenerator<{ event: string; data: string }> {
   const decoder = new TextDecoder()
   let buffer = ''
-  
+
   try {
     while (true) {
       const { done, value } = await reader.read()
-      
+
       if (done) {
         console.log('[SSE] 📡 Backend stream ended')
         break
       }
-      
+
       buffer += decoder.decode(value, { stream: true })
-      
+
       // Split by double newline (SSE message boundary)
       const messages = buffer.split('\n\n')
-      
+
       // Keep the last incomplete message in buffer
       buffer = messages.pop() || ''
-      
+
       // Process complete messages
       for (const message of messages) {
         if (!message.trim()) continue
-        
+
         let eventType = 'message'
         let data = ''
-        
+
         const lines = message.split('\n')
         for (const line of lines) {
           if (line.startsWith('event:')) {
@@ -179,7 +179,7 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
             data = line.slice(5).trim()
           }
         }
-        
+
         if (data) {
           console.log('[SSE] 📨 Parsed backend event:', eventType, data.substring(0, 100))
           yield { event: eventType, data }
@@ -219,8 +219,8 @@ export async function GET(request: NextRequest) {
 
   // Get backend URL and construct SSE endpoint
   const backendUrl = getBackendURL()
-  const backendSSEUrl = `${backendUrl}/v1/image-gen/events?request_id=${streamId}`
-  
+  const backendSSEUrl = `www.api.merley.co/v1/image-gen/events?request_id=${streamId}`
+
   console.log('[SSE Proxy] 🔌 Connecting to backend SSE:', backendSSEUrl)
 
   try {
@@ -251,11 +251,11 @@ export async function GET(request: NextRequest) {
 
     // Create a readable stream that proxies backend SSE events
     const encoder = new TextEncoder()
-    
+
     const stream = new ReadableStream({
       async start(controller) {
         console.log('[SSE Proxy] ✅ Client stream started, proxying events...')
-        
+
         // Send initial connection message
         const initialMessage: ImageSSEStatus = {
           status: 'processing',
@@ -263,7 +263,7 @@ export async function GET(request: NextRequest) {
           message: 'Connected to generation service...',
           timestamp: Date.now(),
         }
-        
+
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify(initialMessage)}\n\n`)
         )
@@ -271,7 +271,7 @@ export async function GET(request: NextRequest) {
 
         try {
           const reader = backendResponse.body!.getReader()
-          
+
           // Parse and proxy backend SSE events
           for await (const { event, data } of parseSSEStream(reader)) {
             try {
@@ -282,16 +282,16 @@ export async function GET(request: NextRequest) {
                 request_id: eventWrapper.request_id,
                 dataKeys: Object.keys(eventWrapper.data || {})
               })
-              
+
               // Transform to frontend format
               const frontendEvent = transformBackendEvent(event, eventWrapper)
-              
+
               // Send to client
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify(frontendEvent)}\n\n`)
               )
               console.log('[SSE Proxy] 📤 Proxied event to client:', frontendEvent.status, frontendEvent.message)
-              
+
               // Close stream on completion or error
               if (frontendEvent.status === 'complete' || frontendEvent.status === 'error') {
                 console.log('[SSE Proxy] ✅ Final event received, closing stream')
@@ -306,7 +306,7 @@ export async function GET(request: NextRequest) {
           }
         } catch (error) {
           console.error('[SSE Proxy] ❌ Error reading backend stream:', error)
-          
+
           // Send error to client
           const errorEvent: ImageSSEStatus = {
             status: 'error',
@@ -314,18 +314,18 @@ export async function GET(request: NextRequest) {
             message: error instanceof Error ? error.message : 'Stream error',
             timestamp: Date.now(),
           }
-          
+
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`)
           )
-          
+
           controller.close()
         }
       },
     })
 
     console.log('[SSE Proxy] 📡 Returning proxied SSE stream to client')
-    
+
     // Return SSE response to client
     return new Response(stream, {
       headers: {
@@ -337,7 +337,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('[SSE Proxy] ❌ Failed to establish backend connection:', error)
-    
+
     return new Response(
       JSON.stringify({
         error: 'Failed to connect to backend SSE',
