@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import type { ImageSSEStatus, GeneratedImage } from '@/types/image-generation'
-import { getBackendURL } from '@/lib/api'
+// import { getBackendURL } from '@/lib/api'
 
 /**
  * Backend SSE event types
