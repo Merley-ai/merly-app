@@ -34,7 +34,7 @@ export function getSSEUrl(requestId: string): string {
 
     // Use Next.js proxy route to avoid CORS issues
     // The proxy route at /api/events handles the backend connection server-side
-    const sseUrl = `https://api.merley.co/v1/image-gen/events?requestId=${encodeURIComponent(requestId)}`
+    const sseUrl = `/api/events?requestId=${encodeURIComponent(requestId)}`
 
     return sseUrl
 }
