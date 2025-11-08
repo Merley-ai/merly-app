@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { GenerationType, GeneratedImage, ImageSSEStatus } from '@/types/image-generation'
+import { createImageGenerationSSE } from '@/lib/api'
 
 /**
  * Generation request parameters
@@ -142,11 +143,10 @@ export function useImageGeneration({
                 setProgress(0)
                 setSSEStatus('processing')
 
-                // Create new EventSource connection
-                const sseUrl = `/api/events?requestId=${requestIdValue}`
-                console.log('[useImageGeneration] 🔌 Creating EventSource:', sseUrl)
+                // Create new EventSource connection using SSE client utility
+                console.log('[useImageGeneration] 🔌 Creating SSE connection for requestId:', requestIdValue)
 
-                const eventSource = new EventSource(sseUrl)
+                const eventSource = createImageGenerationSSE(requestIdValue)
                 eventSourceRef.current = eventSource
 
                 // Log connection opened

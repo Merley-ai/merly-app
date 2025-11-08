@@ -1,7 +1,7 @@
 /**
  * Backend API Client Library
  * Exports all functions and utilities for communicating with the backend API.
- * Includes image generation and album management.
+ * Includes image generation (HTTP and SSE), album management, and core utilities.
  */
 
 // Core utilities
@@ -20,6 +20,12 @@ export {
     editImage,
     remixImages,
 } from './image-gen/client'
+
+// Image Generation SSE Client
+export {
+    createImageGenerationSSE,
+    getSSEUrl,
+} from './image-gen/sse-client'
 
 // Album Management API
 export {
