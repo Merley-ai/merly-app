@@ -103,8 +103,8 @@ All other routes (like `/`, home page) are accessible to everyone.
 Create a file named `.env.local` in the root directory:
 
 ```env
-SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -113,8 +113,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 2. Select your project (or create a new one)
 3. Navigate to **Settings → API**
 4. Copy:
-   - **Project URL** → `SUPABASE_URL`
-   - **anon/public key** → `SUPABASE_ANON_KEY`
+   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
+   - **anon/public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### 2. Restart Development Server
 
