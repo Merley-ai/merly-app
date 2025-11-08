@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DEFAULT_PATHS } from '@/lib/constants/routes';
 
 export function Navigation() {
   return (
@@ -23,11 +24,11 @@ export function Navigation() {
         >
           Login
         </a>
-        <a href="/auth/login">
+        <Link href={DEFAULT_PATHS.AFTER_LOGIN}>
           <button className="bg-white rounded-[25px] px-6 py-2 font-['Roboto:Medium',_sans-serif] text-black text-[14px] cursor-pointer hover:opacity-90 transition-opacity">
             Start Creating
           </button>
-        </a>
+        </Link>
       </div>
     </nav>
   );
