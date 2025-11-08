@@ -357,3 +357,20 @@ export function isSyncResponse(response: GenerationResponse): response is Genera
     return response.images !== undefined && response.images.length > 0
 }
 
+// ============================================
+// SSE (Server-Sent Events) Types
+// ============================================
+
+/**
+ * SSE status update from backend
+ * Sent during real-time image generation
+ */
+export interface ImageSSEStatus {
+    status: 'processing' | 'complete' | 'error'
+    progress: number // 0-100
+    message: string
+    imageUrl?: string
+    images?: GeneratedImage[]
+    timestamp: number
+}
+

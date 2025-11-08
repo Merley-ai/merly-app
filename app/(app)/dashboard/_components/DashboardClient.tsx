@@ -205,7 +205,7 @@ export function DashboardClient() {
 
         setTimelineEntries([...timelineEntries, userEntry]);
 
-        const numImages = 4;
+        const numImages = 2;
         const aiEntryId = (Date.now() + 1).toString();
 
         // Add AI entry with placeholder images immediately
