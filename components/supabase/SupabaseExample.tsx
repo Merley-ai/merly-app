@@ -15,7 +15,7 @@ import { useState } from 'react'
  * BEFORE USING THIS COMPONENT:
  * 1. Update the table name from 'your_table' to your actual table name
  * 2. Update the select query to match your table schema
- * 3. Configure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
+ * 3. Configure SUPABASE_URL and SUPABASE_ANON_KEY
  * 4. Ensure Auth0 is configured with 'role: authenticated' claim
  */
 
@@ -152,8 +152,8 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
                     <p className="font-semibold text-gray-700 mb-2">Setup Instructions:</p>
                     <ul className="list-disc list-inside space-y-1">
                         <li>Replace &apos;your_table&apos; with your actual Supabase table name</li>
-                        <li>Configure NEXT_PUBLIC_SUPABASE_URL environment variable</li>
-                        <li>Configure NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable</li>
+                        <li>Configure SUPABASE_URL environment variable</li>
+                        <li>Configure SUPABASE_ANON_KEY environment variable</li>
                         <li>Ensure Auth0 includes &apos;role: authenticated&apos; claim</li>
                         <li>Set up Supabase Row Level Security (RLS) policies if needed</li>
                     </ul>
