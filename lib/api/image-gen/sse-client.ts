@@ -17,23 +17,24 @@
 
 'use client'
 
-import { getBackendURL } from '../core'
-
 /**
  * Get the SSE endpoint URL for a given request ID
  * 
+ * Uses the Next.js proxy route to avoid CORS issues.
+ * The proxy route handles the connection to the backend SSE endpoint server-side.
+ * 
  * @param requestId - The image generation request ID
- * @returns Full SSE URL pointing to backend events endpoint
- * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured
+ * @returns SSE URL pointing to Next.js proxy route
+ * @throws Error if requestId is invalid
  */
 export function getSSEUrl(requestId: string): string {
     if (!requestId || !requestId.trim()) {
         throw new Error('Request ID is required for SSE connection')
     }
 
-    const backendUrl = getBackendURL()
-    // Backend SSE endpoint format: /v1/image-gen/events?request_id={requestId}
-    const sseUrl = `${backendUrl}/v1/image-gen/events?requestId=${encodeURIComponent(requestId)}`
+    // Use Next.js proxy route to avoid CORS issues
+    // The proxy route at /api/events handles the backend connection server-side
+    const sseUrl = `/api/events?requestId=${encodeURIComponent(requestId)}`
 
     return sseUrl
 }
@@ -41,17 +42,19 @@ export function getSSEUrl(requestId: string): string {
 /**
  * Create an EventSource connection for image generation SSE updates
  * 
- * Establishes a Server-Sent Events connection to the backend to receive
- * real-time updates about image generation progress.
+ * Establishes a Server-Sent Events connection through the Next.js proxy route
+ * to receive real-time updates about image generation progress.
+ * 
+ * The proxy route handles the backend connection server-side, avoiding CORS issues.
  * 
  * The EventSource will automatically:
- * - Connect to the backend SSE endpoint
+ * - Connect to the Next.js proxy route (/api/events)
  * - Handle reconnection on errors (EventSource default behavior)
  * - Send events with the request status, progress, and results
  * 
  * @param requestId - The image generation request ID to subscribe to
- * @returns EventSource instance connected to backend SSE endpoint
- * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured or requestId is invalid
+ * @returns EventSource instance connected to Next.js proxy route
+ * @throws Error if requestId is invalid
  * 
  * @example
  * ```typescript

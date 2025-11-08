@@ -56,8 +56,8 @@ export function useSupabaseUpload(): UseSupabaseUploadReturn {
     const supabase = createSupabaseClient()
 
     // Get bucket and folder configuration from environment
-    const bucketName = process.env.SUPABASE_STORAGE_BUCKET
-    const uploadsFolderName = process.env.SUPABASE_STORAGE_UPLOADS_FOLDER
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET
+    const uploadsFolderName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_UPLOADS_FOLDER
 
     /**
      * Generate unique file path in storage
