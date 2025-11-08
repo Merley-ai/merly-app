@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
 
   // Get backend URL and construct SSE endpoint
   // const backendUrl = getBackendURL()
-  const backendSSEUrl = `www.api.merley.co/v1/image-gen/events?request_id=${streamId}`
+  const backendSSEUrl = `https://api.merley.co/v1/image-gen/events?request_id=${streamId}`
 
   console.log('[SSE Proxy] 🔌 Connecting to backend SSE:', backendSSEUrl)
 
