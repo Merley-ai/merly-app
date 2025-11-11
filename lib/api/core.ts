@@ -10,10 +10,7 @@
  * Backend API base URL
  * Can be configured via environment variable
  */
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.merley.co'
-console.log('[Core] BACKEND_URL', BACKEND_URL)
-// Hardcoded fallback for production debugging
-// TODO: Remove hardcoded URL and use environment variables properly
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
 if (!BACKEND_URL) {
     throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
 }
@@ -159,14 +156,10 @@ export function getBackendURL(): string {
  * ```
  */
 export function getSSEUrl(endpoint: string): string {
-    if (!BACKEND_URL) {
-        throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
-    }
-
     // Ensure endpoint starts with /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
 
-    return `${BACKEND_URL}${normalizedEndpoint}`
+    return `https://api.merley.co${normalizedEndpoint}`
 }
 
 export {
