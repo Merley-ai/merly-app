@@ -192,6 +192,10 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
   }
 }
 
+// Force dynamic rendering for SSE endpoints
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * GET /api/events
  * 
