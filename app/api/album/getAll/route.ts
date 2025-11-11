@@ -3,7 +3,7 @@ import { getUser } from '@/lib/auth0/server'
 import { getAllAlbums } from '@/lib/api'
 
 /**
- * GET /api/album/getAll
+ * GET /api/album/get-all
  * 
  * Fetch all albums for the authenticated user
  * 

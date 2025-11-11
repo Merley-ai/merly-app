@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import type { ImageSSEStatus, GeneratedImage } from '@/types/image-generation'
-// import { getBackendURL } from '@/lib/api'
+import { SSEConnectionError } from '@/lib/api/core'
+import { connectToImageGenerationSSE, createSSEHeaders } from '@/lib/api/image-gen/sse-server-client'
 
 /**
  * Backend SSE event types
@@ -217,35 +218,12 @@ export async function GET(request: NextRequest) {
     return new Response('Missing stream or requestId parameter', { status: 400 })
   }
 
-  // Get backend URL and construct SSE endpoint
-  // const backendUrl = getBackendURL()
-  const backendSSEUrl = `https://api.merley.co/v1/image-gen/events?requestId=${streamId}`
-
-  console.log('[SSE Proxy] 🔌 Connecting to backend SSE:', backendSSEUrl)
-
   try {
-    // Establish SSE connection to backend
-    const backendResponse = await fetch(backendSSEUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-      },
-      // Don't timeout, this is a long-lived connection
-      signal: request.signal,
+    // Use the dedicated SSE server client to establish backend connection
+    const { response: backendResponse } = await connectToImageGenerationSSE({
+      requestId: streamId,
+      timeout: 30000,
     })
-
-    if (!backendResponse.ok) {
-      console.error('[SSE Proxy] ❌ Backend SSE connection failed:', backendResponse.status)
-      return new Response(`Backend SSE connection failed: ${backendResponse.status}`, {
-        status: backendResponse.status,
-      })
-    }
-
-    if (!backendResponse.body) {
-      console.error('[SSE Proxy] ❌ Backend response has no body')
-      return new Response('Backend response has no body', { status: 500 })
-    }
 
     console.log('[SSE Proxy] ✅ Connected to backend SSE stream')
 
@@ -326,25 +304,31 @@ export async function GET(request: NextRequest) {
 
     console.log('[SSE Proxy] 📡 Returning proxied SSE stream to client')
 
-    // Return SSE response to client
+    // Return SSE response to client with standardized headers
     return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no', // Disable buffering for nginx
-      },
+      headers: createSSEHeaders(),
     })
   } catch (error) {
-    console.error('[SSE Proxy] ❌ Failed to establish backend connection:', error)
+    // Handle SSE connection errors with proper error class
+    const sseError = error instanceof SSEConnectionError
+      ? error
+      : new SSEConnectionError(
+        error instanceof Error ? error.message : 'Unknown error',
+        streamId,
+        500,
+        error
+      )
+
+    console.error('[SSE Proxy] ❌ Failed to establish backend connection:', sseError)
 
     return new Response(
       JSON.stringify({
         error: 'Failed to connect to backend SSE',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: sseError.message,
+        requestId: sseError.requestId,
       }),
       {
-        status: 500,
+        status: sseError.statusCode || 500,
         headers: {
           'Content-Type': 'application/json',
         },

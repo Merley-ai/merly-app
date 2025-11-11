@@ -177,7 +177,7 @@ export function Sidebar({
                     </div>
 
                     {/* User Info */}
-                    <div className="p-4 border-t border-[#6b6b6b]/30">
+                    <div className="p-7">
                         <UserMenu />
                     </div>
                 </>

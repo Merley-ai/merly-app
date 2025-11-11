@@ -19,3 +19,30 @@ export interface GalleryImage {
     index?: number;
 }
 
+/**
+ * Backend API response for gallery images
+ */
+export interface GalleryImageResponse {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    user_id: string;
+    album_id: string;
+    prompt_request_id: string;
+    parent_image_id: string;
+    file_name: string;
+    fal_url: string;
+    storage_url: string;
+}
+
+/**
+ * Request parameters for getting album gallery
+ */
+export interface GetAlbumGalleryRequest {
+    albumId: string;
+    limit?: number;
+    offset?: number;
+    order_by?: string;
+    ascending?: boolean;
+}
+

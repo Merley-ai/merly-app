@@ -4,5 +4,11 @@
 
 export { cn } from './cn';
 export { downloadImage } from './image';
-export { formatShortDate, formatFullDate } from './date';
+export { humanizeDate, isSameDay, getRelativeTime } from './date';
+export {
+    transformTimelineEvent,
+    transformTimelineEvents,
+    groupTimelineEventsByDate,
+    mergeTimelineEvents
+} from './timeline';
 

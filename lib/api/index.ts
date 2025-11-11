@@ -8,10 +8,12 @@
 export {
     apiFetch,
     getBackendURL,
+    getSSEUrl,
     BACKEND_URL,
     API_TIMEOUT,
     BackendAPIError,
     BackendTimeoutError,
+    SSEConnectionError,
 } from './core'
 
 // Image Generation API
@@ -24,8 +26,17 @@ export {
 // Image Generation SSE Client
 export {
     createImageGenerationSSE,
-    getSSEUrl,
 } from './image-gen/sse-client'
+
+// Image Generation SSE Server Client (Backend/API Routes)
+export {
+    connectToImageGenerationSSE,
+    createSSEHeaders,
+} from './image-gen/sse-server-client'
+export type {
+    SSEConnectionOptions,
+    SSEConnectionResult,
+} from './image-gen/sse-server-client'
 
 // Album Management API
 export {

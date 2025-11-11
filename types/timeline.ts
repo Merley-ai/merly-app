@@ -33,3 +33,49 @@ export interface TimelineEntry {
     requestId?: string;
     numImages?: number;
 }
+
+/**
+ * API Response Types for Timeline Events
+ */
+
+/**
+ * Represents a prompt request from the backend API
+ */
+export interface PromptRequest {
+    aspect_ratio: string;
+    created_at: string;
+    image_url: string;
+    num_images: number;
+    prompt: string;
+    request_id: string;
+    status: string;
+}
+
+/**
+ * Represents a timeline event from the backend API
+ */
+export interface TimelineEvent {
+    album_id: string;
+    created_at: string;
+    deleted_at: string | null;
+    id: string;
+    image_ids: string[] | null;
+    prompt_request: PromptRequest | null;
+    prompt_request_id: string | null;
+    prompt_text: string | null;
+    system_message: string | null;
+    type: string;
+    updated_at: string;
+    user_id: string;
+}
+
+/**
+ * Request parameters for getting album timeline
+ */
+export interface GetAlbumTimelineRequest {
+    albumId: string;
+    limit?: number;
+    offset?: number;
+    order_by?: string;
+    ascending?: boolean;
+}

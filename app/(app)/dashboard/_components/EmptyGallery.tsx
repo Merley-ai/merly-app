@@ -37,7 +37,7 @@ export function EmptyGallery({ onFileChange }: EmptyGalleryProps) {
     };
 
     return (
-        <div className="w-[382px] bg-black border-l border-[#6b6b6b] flex items-center justify-center p-8">
+        <section className="bg-black flex-1 border-l border-[#6b6b6b] flex items-center justify-center">
             <div
                 className="border-2 border-dashed border-white/20 rounded-lg p-12 flex flex-col items-center justify-center gap-4 hover:border-white/40 transition-colors cursor-pointer"
                 onDrop={handleDrop}
@@ -57,7 +57,7 @@ export function EmptyGallery({ onFileChange }: EmptyGalleryProps) {
                     className="hidden"
                 />
             </div>
-        </div>
+        </section>
     );
 }
 

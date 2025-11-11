@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { PlaceholderImage } from "./PlaceholderImage";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import type { GalleryImage } from "@/types";
@@ -5,11 +6,41 @@ import type { GalleryImage } from "@/types";
 interface GalleryProps {
   images: GalleryImage[];
   onImageClick: (index: number) => void;
+  onLoadMore?: () => void;
+  isLoadingMore?: boolean;
+  hasMore?: boolean;
 }
 
-export function Gallery({ images, onImageClick }: GalleryProps) {
+export function Gallery({
+  images,
+  onImageClick,
+  onLoadMore,
+  isLoadingMore = false,
+  hasMore = false,
+}: GalleryProps) {
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  // Handle scroll for infinite scroll down
+  useEffect(() => {
+    const container = galleryRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      // Check if scrolled to bottom (with 100px threshold)
+      const scrolledToBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+      if (scrolledToBottom && hasMore && !isLoadingMore && onLoadMore) {
+        onLoadMore();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [hasMore, isLoadingMore, onLoadMore]);
+
   return (
-    <section className="bg-[#1a1a1a] flex-1 overflow-y-auto p-2">
+    <section ref={galleryRef} className="bg-[#1a1a1a] flex-1 overflow-y-auto p-2">
       <div className="grid grid-cols-2 gap-2">
         {images.map((image, index) => (
           <div key={image.id}>
@@ -40,6 +71,18 @@ export function Gallery({ images, onImageClick }: GalleryProps) {
             )}
           </div>
         ))}
+
+        {/* Loading indicator at bottom */}
+        {isLoadingMore && (
+          <div className="col-span-2 flex items-center justify-center py-6">
+            <p
+              className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
+              style={{ fontVariationSettings: "'wdth' 100" }}
+            >
+              ....loading
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

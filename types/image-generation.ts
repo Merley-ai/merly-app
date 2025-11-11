@@ -25,6 +25,7 @@ export interface GenerateImageRequest {
     sub_path: string
     prompt: string
     user_id: string
+    album_id?: string
     image_url?: string
     aspect_ratio?: string
     num_images?: number
@@ -41,6 +42,7 @@ export interface EditImageRequest {
     sub_path: string
     prompt: string
     user_id: string
+    album_id?: string
     image_url: string
     aspect_ratio?: string
     num_images?: number
@@ -57,6 +59,7 @@ export interface RemixImageRequest {
     sub_path: string
     prompt: string
     user_id: string
+    album_id?: string
     image_urls: string[]
     aspect_ratio?: string
     num_images?: number

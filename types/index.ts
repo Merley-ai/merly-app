@@ -11,8 +11,17 @@ export type {
     GetAllAlbumsRequest,
 } from './album';
 export { transformAlbumResponse } from './album';
-export type { TimelineEntry } from './timeline';
-export type { GalleryImage } from './gallery';
+export type {
+    TimelineEntry,
+    TimelineEvent,
+    PromptRequest,
+    GetAlbumTimelineRequest
+} from './timeline';
+export type {
+    GalleryImage,
+    GalleryImageResponse,
+    GetAlbumGalleryRequest
+} from './gallery';
 export type { DashboardProps } from './dashboard';
 export type { UploadedFile } from './upload';
 

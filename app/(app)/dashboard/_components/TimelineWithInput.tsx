@@ -1,5 +1,7 @@
+import { useRef, useEffect } from "react";
 import { ThinkingAnimation } from "./ThinkingAnimation";
 import { InputArea } from "./InputArea";
+import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { TimelineEntry, UploadedFile } from "@/types";
 
 interface TimelineWithInputProps {
@@ -11,6 +13,9 @@ interface TimelineWithInputProps {
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
+    onLoadMore?: () => void;
+    isLoadingMore?: boolean;
+    hasMore?: boolean;
 }
 
 export function TimelineWithInput({
@@ -22,7 +27,51 @@ export function TimelineWithInput({
     onFileChange,
     onRemoveFile,
     onSubmit,
+    onLoadMore,
+    isLoadingMore = false,
+    hasMore = false,
 }: TimelineWithInputProps) {
+    const timelineRef = useRef<HTMLDivElement>(null);
+    const scrollPositionRef = useRef<number>(0);
+
+    // Handle scroll for infinite scroll up
+    useEffect(() => {
+        const container = timelineRef.current;
+        if (!container) return;
+
+        const handleScroll = () => {
+            // Check if scrolled to top (with 50px threshold)
+            if (container.scrollTop < 50 && hasMore && !isLoadingMore && onLoadMore) {
+                // Save scroll position before loading
+                scrollPositionRef.current = container.scrollHeight - container.scrollTop;
+                onLoadMore();
+            }
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [hasMore, isLoadingMore, onLoadMore]);
+
+    // Restore scroll position after loading more, or scroll to bottom for new messages
+    useEffect(() => {
+        const container = timelineRef.current;
+        if (!container) return;
+
+        if (scrollPositionRef.current > 0) {
+            // Restore position after loading older messages
+            const newScrollTop = container.scrollHeight - scrollPositionRef.current;
+            container.scrollTop = newScrollTop;
+            scrollPositionRef.current = 0;
+        } else {
+            // Auto-scroll to bottom for new messages (latest at bottom)
+            setTimeout(() => {
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 0);
+        }
+    }, [entries.length]);
+
     return (
         <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r border-[#6b6b6b] flex flex-col">
             {/* Header */}
@@ -36,62 +85,100 @@ export function TimelineWithInput({
             </header>
 
             {/* Timeline Feed */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            <div ref={timelineRef} className="flex-1 overflow-y-auto px-4 py-6">
+                {/* Loading indicator at top */}
+                {isLoadingMore && (
+                    <div className="flex items-center justify-center py-4">
+                        <p
+                            className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
+                            style={{ fontVariationSettings: "'wdth' 100" }}
+                        >
+                            ....loading
+                        </p>
+                    </div>
+                )}
+
                 <div className="space-y-8">
-                    {entries.map((entry) => (
-                        <div key={entry.id} className="space-y-4">
-                            {/* Date Header */}
-                            <p
-                                className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
-                                style={{ fontVariationSettings: "'wdth' 100" }}
-                            >
-                                {entry.timestamp.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-                            </p>
+                    {entries.map((entry, index) => {
+                        // Show date only if it's the first entry OR if the date is different from the previous entry
+                        const showDate = index === 0 || !isSameDay(entry.timestamp, entries[index - 1].timestamp);
 
-                            {/* Input Images */}
-                            {entry.inputImages.length > 0 && (
-                                <div className="flex gap-2">
-                                    {entry.inputImages.map((img, idx) => (
-                                        <div
-                                            key={idx}
-                                            className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
-                                        >
-                                            <img
-                                                src={img}
-                                                alt={`Input ${idx + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
-                                                <p
-                                                    className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
-                                                    style={{ fontVariationSettings: "'wdth' 100" }}
-                                                >
-                                                    {idx + 1}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* User Prompt */}
-                            {entry.prompt && (
-                                <div className="bg-[#2e2e2e] rounded-[40px] px-6 py-4">
+                        return (
+                            <div key={entry.id} className="space-y-4">
+                                {/* Date Header - Only show at beginning of each day, centered */}
+                                {showDate && (
                                     <p
-                                        className="font-['Roboto:Regular',_sans-serif] text-white text-[16px]"
+                                        className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[16px] text-center"
                                         style={{ fontVariationSettings: "'wdth' 100" }}
                                     >
-                                        {entry.prompt}
+                                        {humanizeDate(entry.timestamp)}
                                     </p>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Thinking Animation */}
-                            {entry.status === 'thinking' && entry.thinkingText && (
-                                <ThinkingAnimation text={entry.thinkingText} />
-                            )}
-                        </div>
-                    ))}
+                                {/* Conversation Flow - User on right, AI on left */}
+                                {entry.type === 'user' ? (
+                                    /* User Message - Right aligned */
+                                    <div className="flex flex-col items-end space-y-2">
+                                        {/* Input Images */}
+                                        {entry.inputImages.length > 0 && (
+                                            <div className="flex gap-2">
+                                                {entry.inputImages.map((img, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
+                                                    >
+                                                        <img
+                                                            src={img}
+                                                            alt={`Input ${idx + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                        <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
+                                                            <p
+                                                                className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
+                                                                style={{ fontVariationSettings: "'wdth' 100" }}
+                                                            >
+                                                                {idx + 1}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* User Prompt */}
+                                        {entry.prompt && (
+                                            <div className="bg-[#2e2e2e] rounded-[40px] px-6 py-4 max-w-[80%]">
+                                                <p
+                                                    className="font-['Roboto:Regular',_sans-serif] text-white text-[16px]"
+                                                    style={{ fontVariationSettings: "'wdth' 100" }}
+                                                >
+                                                    {entry.prompt}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    /* AI Message - Left aligned */
+                                    <div className="flex flex-col items-start space-y-2">
+                                        {/* AI Content */}
+                                        {entry.content && (
+                                            <p
+                                                className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[16px] max-w-[80%]"
+                                                style={{ fontVariationSettings: "'wdth' 100" }}
+                                            >
+                                                {entry.content}
+                                            </p>
+                                        )}
+
+                                        {/* Thinking Animation */}
+                                        {entry.status === 'thinking' && entry.thinkingText && (
+                                            <ThinkingAnimation text={entry.thinkingText} />
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 

@@ -13,6 +13,16 @@ import type {
     GetAllAlbumsRequest,
 } from '@/types/album'
 
+import type {
+    TimelineEvent,
+    GetAlbumTimelineRequest,
+} from '@/types/timeline'
+
+import type {
+    GalleryImageResponse,
+    GetAlbumGalleryRequest,
+} from '@/types/gallery'
+
 // Import shared utilities
 import { apiFetch } from '../core'
 
@@ -26,7 +36,7 @@ export async function getAllAlbums(
     request: GetAllAlbumsRequest
 ): Promise<AlbumResponse[]> {
     const response = await apiFetch<{ message: string; data: AlbumResponse[] | null }>(
-        `/v1/album/getAll/${request.user_id}`,
+        `/v1/album/get-all/${request.user_id}`,
         { method: 'GET' }
     )
 
@@ -52,6 +62,64 @@ export async function getAlbum(
 }
 
 /**
+ * Get timeline events for an album
+ * 
+ * @param request - Contains albumId and optional query parameters (limit, offset, order_by, ascending)
+ * @returns Array of timeline events for the album
+ */
+export async function getAlbumTimeline(
+    request: GetAlbumTimelineRequest
+): Promise<TimelineEvent[]> {
+    const { albumId, limit, offset, order_by, ascending } = request
+
+    // Build query parameters
+    const params = new URLSearchParams()
+    if (limit !== undefined) params.append('limit', limit.toString())
+    if (offset !== undefined) params.append('offset', offset.toString())
+    if (order_by) params.append('order_by', order_by)
+    if (ascending !== undefined) params.append('ascending', ascending.toString())
+
+    const queryString = params.toString()
+    const url = `/v1/album/get/${albumId}/timeline${queryString ? `?${queryString}` : ''}`
+
+    const response = await apiFetch<{ message: string; data: TimelineEvent[] }>(
+        url,
+        { method: 'GET' }
+    )
+
+    return response.data
+}
+
+/**
+ * Get gallery images for an album
+ * 
+ * @param request - Contains albumId and optional query parameters (limit, offset, order_by, ascending)
+ * @returns Array of gallery images for the album
+ */
+export async function getAlbumGallery(
+    request: GetAlbumGalleryRequest
+): Promise<GalleryImageResponse[]> {
+    const { albumId, limit, offset, order_by, ascending } = request
+
+    // Build query parameters
+    const params = new URLSearchParams()
+    if (limit !== undefined) params.append('limit', limit.toString())
+    if (offset !== undefined) params.append('offset', offset.toString())
+    if (order_by) params.append('order_by', order_by)
+    if (ascending !== undefined) params.append('ascending', ascending.toString())
+
+    const queryString = params.toString()
+    const url = `/v1/album/get/${albumId}/gallery${queryString ? `?${queryString}` : ''}`
+
+    const response = await apiFetch<{ message: string; data: GalleryImageResponse[] }>(
+        url,
+        { method: 'GET' }
+    )
+
+    return response.data
+}
+
+/**
  * Create a new album
  * 
  * @param request - Contains user_id, name, and optional description
@@ -60,10 +128,12 @@ export async function getAlbum(
 export async function createAlbum(
     request: CreateAlbumRequest
 ): Promise<AlbumResponse> {
-    const response = await apiFetch<{ message: string; data: AlbumResponse }>('/v1/album/create', {
-        method: 'POST',
-        body: JSON.stringify(request),
-    })
+    const response = await apiFetch<{ message: string; data: AlbumResponse }>(
+        '/v1/album/create',
+        {
+            method: 'POST',
+            body: JSON.stringify(request),
+        })
 
     return response.data
 }
@@ -77,10 +147,12 @@ export async function createAlbum(
 export async function updateAlbum(
     request: UpdateAlbumRequest
 ): Promise<AlbumResponse> {
-    const response = await apiFetch<{ message: string; data: AlbumResponse }>('/v1/album/update', {
-        method: 'PATCH',
-        body: JSON.stringify(request),
-    })
+    const response = await apiFetch<{ message: string; data: AlbumResponse }>(
+        '/v1/album/update',
+        {
+            method: 'PATCH',
+            body: JSON.stringify(request),
+        })
 
     return response.data
 }
@@ -94,10 +166,12 @@ export async function updateAlbum(
 export async function deleteAlbum(
     request: DeleteAlbumRequest
 ): Promise<void> {
-    await apiFetch<{ message: string; data: null }>('/v1/album/delete', {
-        method: 'DELETE',
-        body: JSON.stringify(request),
-    })
+    await apiFetch<{ message: string; data: null }>(
+        '/v1/album/delete',
+        {
+            method: 'DELETE',
+            body: JSON.stringify(request),
+        })
 
     // Return void on success
     return

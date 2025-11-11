@@ -40,7 +40,7 @@ export async function POST(request: Request) {
             aspect_ratio = '16:9',
             num_images = 2,
             output_format = 'png',
-            album_id: _album_id,
+            album_id,
         } = body
 
         // Validate prompt
@@ -91,6 +91,7 @@ export async function POST(request: Request) {
                     sub_path: modelConfig.sub_path,
                     prompt,
                     user_id: user.sub,
+                    album_id,
                     aspect_ratio,
                     num_images,
                     output_format,
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
                     sub_path: modelConfig.sub_path,
                     prompt,
                     user_id: user.sub,
+                    album_id,
                     image_url: validImages[0], // Use the single image
                     aspect_ratio,
                     num_images,
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
                     sub_path: modelConfig.sub_path,
                     prompt,
                     user_id: user.sub,
+                    album_id,
                     image_urls: validImages, // Use all images
                     aspect_ratio,
                     num_images,

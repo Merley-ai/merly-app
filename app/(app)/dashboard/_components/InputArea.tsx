@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import type { UploadedFile } from "@/types";
 
@@ -22,6 +22,11 @@ export function InputArea({
   onSubmit,
 }: InputAreaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showUploadTooltip, setShowUploadTooltip] = useState(false);
+  const [showSendTooltip, setShowSendTooltip] = useState(false);
+
+  // Check if send button should be disabled
+  const isSendDisabled = !inputValue.trim() && uploadedFiles.length === 0;
 
   const handleAttachClick = () => {
     // Reset the input value to allow selecting the same file again
@@ -31,8 +36,13 @@ export function InputArea({
     fileInputRef.current?.click();
   };
 
+  const handleSubmit = () => {
+    if (isSendDisabled) return;
+    onSubmit();
+  };
+
   return (
-    <div className="p-4 border-t border-[#6b6b6b]/30">
+    <div className="p-6">
       <div className="bg-[#2e2e2e] rounded-[29px] px-6 py-4 flex flex-col gap-3">
         {/* Uploaded Image Thumbnails */}
         {uploadedFiles.length > 0 && (
@@ -103,7 +113,7 @@ export function InputArea({
         )}
 
         {/* Text Area and Buttons */}
-        <div className="flex items-end gap-3">
+        <div className="flex items-center gap-3">
           <textarea
             value={inputValue}
             onChange={(e) => onInputChange(e.target.value)}
@@ -115,7 +125,7 @@ export function InputArea({
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                onSubmit();
+                handleSubmit();
               }
             }}
             placeholder="Ask Merley"
@@ -127,16 +137,36 @@ export function InputArea({
             }}
           />
           <div className="flex items-center gap-3 flex-shrink-0">
-            <button
-              onClick={handleAttachClick}
-              type="button"
-              className="flex-none hover:opacity-80 transition-opacity cursor-pointer"
-              aria-label="Attach file"
-            >
-              <svg className="size-[18px]" fill="none" viewBox="0 0 18 18">
-                <path d={dashboardSvgPaths.p110a4400} fill="#666666" />
-              </svg>
-            </button>
+            {/* Upload Button with Tooltip */}
+            <div className="relative">
+              <button
+                onClick={handleAttachClick}
+                onMouseEnter={() => setShowUploadTooltip(true)}
+                onMouseLeave={() => setShowUploadTooltip(false)}
+                type="button"
+                className="flex-none transition-all duration-200 hover:scale-110 cursor-pointer"
+                aria-label="Upload image"
+              >
+                <svg className="size-[18px]" fill="none" viewBox="0 0 18 18">
+                  <path d={dashboardSvgPaths.p110a4400} fill="#666666" />
+                </svg>
+              </button>
+              {/* Tooltip */}
+              {showUploadTooltip && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
+                  <div className="relative bg-white rounded-lg px-3 py-2 shadow-lg">
+                    <p className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal whitespace-nowrap">
+                      Upload image
+                    </p>
+                    {/* Tooltip arrow */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px]">
+                      <div className="border-[6px] border-transparent border-t-white" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -145,16 +175,40 @@ export function InputArea({
               accept="image/*"
               multiple
             />
-            <button
-              onClick={onSubmit}
-              type="button"
-              className="flex-none hover:opacity-80 transition-opacity cursor-pointer"
-              aria-label="Send"
-            >
-              <svg className="size-[28px]" fill="none" viewBox="0 0 28 28">
-                <path d={dashboardSvgPaths.p3865f100} fill="#666666" />
-              </svg>
-            </button>
+
+            {/* Send Button with Tooltip */}
+            <div className="relative">
+              <button
+                onClick={handleSubmit}
+                onMouseEnter={() => setShowSendTooltip(true)}
+                onMouseLeave={() => setShowSendTooltip(false)}
+                type="button"
+                disabled={isSendDisabled}
+                className={`flex-none transition-all duration-200 ${isSendDisabled
+                  ? 'opacity-30 cursor-not-allowed'
+                  : 'hover:scale-110 cursor-pointer'
+                  }`}
+                aria-label="Send"
+              >
+                <svg className="size-[28px]" fill="none" viewBox="0 0 28 28">
+                  <path d={dashboardSvgPaths.p3865f100} fill="#666666" />
+                </svg>
+              </button>
+              {/* Tooltip */}
+              {showSendTooltip && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
+                  <div className="relative bg-white rounded-lg px-3 py-2 shadow-lg">
+                    <p className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal whitespace-nowrap">
+                      Send
+                    </p>
+                    {/* Tooltip arrow */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px]">
+                      <div className="border-[6px] border-transparent border-t-white" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

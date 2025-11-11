@@ -37,6 +37,19 @@ export class BackendTimeoutError extends Error {
     }
 }
 
+// Custom error for SSE connection failures
+export class SSEConnectionError extends Error {
+    constructor(
+        message: string,
+        public requestId?: string,
+        public statusCode?: number,
+        public details?: unknown
+    ) {
+        super(message)
+        this.name = 'SSEConnectionError'
+    }
+}
+
 /**
  * Fetch wrapper with timeout, error handling, and automatic JSON parsing
  * 
@@ -124,6 +137,33 @@ export function getBackendURL(): string {
         throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
     }
     return BACKEND_URL
+}
+
+/**
+ * Get SSE endpoint URL for backend streaming
+ * 
+ * Constructs full URL for Server-Sent Events endpoints.
+ * Uses the same backend URL configuration as HTTP APIs.
+ * 
+ * @param endpoint - SSE endpoint path (e.g., '/v1/image-gen/123/event-stream')
+ * @returns Full SSE URL
+ * @throws Error if BACKEND_URL is not configured
+ * 
+ * @example
+ * ```typescript
+ * const sseUrl = getSSEUrl('/v1/image-gen/abc-123/event-stream')
+ * // Returns: 'http://localhost:50051/v1/image-gen/abc-123/event-stream'
+ * ```
+ */
+export function getSSEUrl(endpoint: string): string {
+    if (!BACKEND_URL) {
+        throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
+    }
+
+    // Ensure endpoint starts with /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+
+    return `${BACKEND_URL}${normalizedEndpoint}`
 }
 
 export {
