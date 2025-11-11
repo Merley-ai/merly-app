@@ -10,8 +10,10 @@
  * Backend API base URL
  * Can be configured via environment variable
  */
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.merley.co'
 console.log('[Core] BACKEND_URL', BACKEND_URL)
+// Hardcoded fallback for production debugging
+// TODO: Remove hardcoded URL and use environment variables properly
 if (!BACKEND_URL) {
     throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
 }
