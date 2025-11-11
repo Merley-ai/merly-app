@@ -151,15 +151,15 @@ export function getBackendURL(): string {
  * 
  * @example
  * ```typescript
- * const sseUrl = getSSEUrl('/v1/image-gen/abc-123/event-stream')
- * // Returns: 'http://localhost:50051/v1/image-gen/abc-123/event-stream'
+ * const sseUrl = getBackendSSEUrl('/v1/image-gen/events?request_id=abc-123')
+ * // Returns: 'https://api.merley.co/v1/image-gen/events?request_id=abc-123'
  * ```
  */
-export function getSSEUrl(endpoint: string): string {
+export function getBackendSSEUrl(endpoint: string): string {
     // Ensure endpoint starts with /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
 
-    return `https://api.merley.co${normalizedEndpoint}`
+    return `${BACKEND_URL}${normalizedEndpoint}`
 }
 
 export {

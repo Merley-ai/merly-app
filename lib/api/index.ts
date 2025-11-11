@@ -8,7 +8,7 @@
 export {
     apiFetch,
     getBackendURL,
-    getSSEUrl,
+    getBackendSSEUrl,
     BACKEND_URL,
     API_TIMEOUT,
     BackendAPIError,
@@ -26,9 +26,10 @@ export {
 // Image Generation SSE Client
 export {
     createImageGenerationSSE,
+    getSSEUrl,
 } from './image-gen/sse-client'
 
-// Image Generation SSE Server Client (Backend/API Routes)
+// Image Generation SSE Server
 export {
     connectToImageGenerationSSE,
     createSSEHeaders,

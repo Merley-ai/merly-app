@@ -10,7 +10,7 @@
  * - Designed for use in Next.js API routes (server-side only)
  */
 
-import { getSSEUrl, SSEConnectionError } from '../core'
+import { getBackendSSEUrl, SSEConnectionError } from '../core'
 
 /**
  * Options for establishing an SSE connection to the backend
@@ -70,12 +70,12 @@ export async function connectToImageGenerationSSE(
     }
 
     // Construct the backend SSE URL using the centralized utility
-    const endpoint = `/v1/image-gen/${requestId}/event-stream`
-    const backendSSEUrl = getSSEUrl(endpoint)
+    const endpoint = `https://api.merley.co/v1/image-gen/${requestId}/event-stream`
+    // const backendSSEUrl = getBackendSSEUrl(endpoint)
 
     console.log('[SSE Server Client] 🔌 Connecting to backend SSE:', {
         requestId,
-        url: backendSSEUrl,
+        url: endpoint,
     })
 
     try {
@@ -83,7 +83,7 @@ export async function connectToImageGenerationSSE(
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-        const response = await fetch(backendSSEUrl, {
+        const response = await fetch(endpoint, {
             method: 'GET',
             headers: {
                 'Accept': 'text/event-stream',

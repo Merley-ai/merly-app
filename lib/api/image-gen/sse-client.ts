@@ -1,3 +1,6 @@
+
+import { getBackendURL } from '../core'
+
 /**
  * Image Generation SSE Client
  * 
@@ -20,21 +23,18 @@
 /**
  * Get the SSE endpoint URL for a given request ID
  * 
- * Uses the Next.js proxy route to avoid CORS issues.
- * The proxy route handles the connection to the backend SSE endpoint server-side.
- * 
- * @param requestId - The image generation request ID
- * @returns SSE URL pointing to Next.js proxy route
- * @throws Error if requestId is invalid
+ * Uses the Next.js proxy route to avoid  * @param requestId - The image generation request ID
+ * @returns Full SSE URL pointing to backend events endpoint
+ * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured
  */
 export function getSSEUrl(requestId: string): string {
     if (!requestId || !requestId.trim()) {
         throw new Error('Request ID is required for SSE connection')
     }
 
-    // Use Next.js proxy route to avoid CORS issues
-    // The proxy route at /api/events handles the backend connection server-side
-    const sseUrl = `/api/events?requestId=${encodeURIComponent(requestId)}`
+    const backendUrl = getBackendURL()
+    // Backend SSE endpoint format: /v1/image-gen/events?request_id={requestId}
+    const sseUrl = `${backendUrl}/v1/image-gen/events?requestId=${encodeURIComponent(requestId)}`
 
     return sseUrl
 }
@@ -42,18 +42,18 @@ export function getSSEUrl(requestId: string): string {
 /**
  * Create an EventSource connection for image generation SSE updates
  * 
- * Establishes a Server-Sent Events connection through the Next.js proxy route
- * to receive real-time updates about image generation progress.
- * 
- * The proxy route handles the backend connection server-side, avoiding CORS issues.
+ * Establishes a Server-Sent Events connection to the backend to receive
+ * real-time updates about image generation progress.
  * 
  * The EventSource will automatically:
- * - Connect to the Next.js proxy route (/api/events)
+ * - Connect to the backend SSE endpoint
  * - Handle reconnection on errors (EventSource default behavior)
  * - Send events with the request status, progress, and results
  * 
  * @param requestId - The image generation request ID to subscribe to
- * @returns EventSource instance connected to Next.js proxy route
+ * @returns EventSource instance connected to backend SSE endpoint
+ * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured or requestId is invalid
+ @returns EventSource instance connected to Next.js proxy route
  * @throws Error if requestId is invalid
  * 
  * @example
