@@ -1,5 +1,4 @@
 
-import { getBackendURL } from '../core'
 
 /**
  * Image Generation SSE Client
@@ -20,12 +19,17 @@ import { getBackendURL } from '../core'
 
 'use client'
 
+import { getBackendURL } from '../core'
+
 /**
- * Get the SSE endpoint URL for a given request ID
+ * Get client-side SSE URL for direct browser EventSource connections
  * 
- * Uses the Next.js proxy route to avoid  * @param requestId - The image generation request ID
- * @returns Full SSE URL pointing to backend events endpoint
- * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured
+ * Returns the full backend SSE URL for direct connection.
+ * NOTE: This requires CORS to be properly configured on the backend.
+ * 
+ * @param requestId - The image generation request ID
+ * @returns Full backend SSE URL: https://api.merley.co/v1/image-gen/events?request_id=...
+ * @throws Error if requestId is invalid or NEXT_PUBLIC_BACKEND_URL is not configured
  */
 export function getSSEUrl(requestId: string): string {
     if (!requestId || !requestId.trim()) {
@@ -34,7 +38,7 @@ export function getSSEUrl(requestId: string): string {
 
     const backendUrl = getBackendURL()
     // Backend SSE endpoint format: /v1/image-gen/events?request_id={requestId}
-    const sseUrl = `${backendUrl}/v1/image-gen/events?requestId=${encodeURIComponent(requestId)}`
+    const sseUrl = `${backendUrl}/v1/image-gen/events?request_id=${encodeURIComponent(requestId)}`
 
     return sseUrl
 }
@@ -42,19 +46,20 @@ export function getSSEUrl(requestId: string): string {
 /**
  * Create an EventSource connection for image generation SSE updates
  * 
- * Establishes a Server-Sent Events connection to the backend to receive
- * real-time updates about image generation progress.
+ * Establishes a direct Server-Sent Events connection to the backend API
+ * to receive real-time updates about image generation progress.
+ * 
+ * NOTE: This requires CORS to be properly configured on the backend to allow
+ * cross-origin requests from your frontend domain.
  * 
  * The EventSource will automatically:
- * - Connect to the backend SSE endpoint
+ * - Connect directly to the backend SSE endpoint
  * - Handle reconnection on errors (EventSource default behavior)
  * - Send events with the request status, progress, and results
  * 
  * @param requestId - The image generation request ID to subscribe to
- * @returns EventSource instance connected to backend SSE endpoint
- * @throws Error if NEXT_PUBLIC_BACKEND_URL is not configured or requestId is invalid
- @returns EventSource instance connected to Next.js proxy route
- * @throws Error if requestId is invalid
+ * @returns EventSource instance connected directly to backend SSE endpoint
+ * @throws Error if requestId is invalid or NEXT_PUBLIC_BACKEND_URL is not configured
  * 
  * @example
  * ```typescript
@@ -91,7 +96,7 @@ export function createImageGenerationSSE(requestId: string): EventSource {
         throw new Error('EventSource is not available. This utility requires a browser environment.')
     }
 
-    // Get SSE URL using backend URL from environment
+    // Get SSE URL for direct backend connection
     const sseUrl = getSSEUrl(requestId)
 
     console.log('[SSE Client] 🔌 Creating SSE connection:', sseUrl)
