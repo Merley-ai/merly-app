@@ -38,7 +38,7 @@ export function getSSEUrl(requestId: string): string {
 
     const backendUrl = getBackendURL()
     // Backend SSE endpoint format: /v1/image-gen/events?request_id={requestId}
-    const sseUrl = `${backendUrl}/v1/image-gen/events?request_id=${encodeURIComponent(requestId)}`
+    const sseUrl = `${backendUrl}/v1/image-gen/${requestId}/event-stream`
 
     return sseUrl
 }
