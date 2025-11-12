@@ -70,12 +70,13 @@ export async function connectToImageGenerationSSE(
     }
 
     // Construct the backend SSE URL using the centralized utility
-    const endpoint = `https://api.merley.co/v1/image-gen/${requestId}/event-stream`
-    // const backendSSEUrl = getBackendSSEUrl(endpoint)
+    // Backend endpoint format: /v1/image-gen/{requestId}/event-stream
+    const endpoint = `/v1/image-gen/${requestId}/event-stream`
+    const backendSSEUrl = getBackendSSEUrl(endpoint)
 
     console.log('[SSE Server Client] 🔌 Connecting to backend SSE:', {
         requestId,
-        url: endpoint,
+        url: backendSSEUrl,
     })
 
     try {
@@ -83,7 +84,7 @@ export async function connectToImageGenerationSSE(
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
 
-        const response = await fetch(endpoint, {
+        const response = await fetch(backendSSEUrl, {
             method: 'GET',
             headers: {
                 'Accept': 'text/event-stream',

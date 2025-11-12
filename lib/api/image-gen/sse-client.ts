@@ -19,26 +19,26 @@
 
 'use client'
 
-import { getBackendURL } from '../core'
-
 /**
- * Get client-side SSE URL for direct browser EventSource connections
+ * Get client-side SSE URL for browser EventSource connections
  * 
- * Returns the full backend SSE URL for direct connection.
- * NOTE: This requires CORS to be properly configured on the backend.
+ * Returns a relative path to the Next.js proxy endpoint to avoid CORS issues.
+ * The proxy route at /api/events handles the backend connection server-side,
+ * which bypasses CORS restrictions and handles duplicate header issues.
  * 
  * @param requestId - The image generation request ID
- * @returns Full backend SSE URL: https://api.merley.co/v1/image-gen/events?request_id=...
- * @throws Error if requestId is invalid or NEXT_PUBLIC_BACKEND_URL is not configured
+ * @returns Relative SSE URL for browser: /api/events?requestId=...
+ * @throws Error if requestId is invalid
  */
 export function getSSEUrl(requestId: string): string {
     if (!requestId || !requestId.trim()) {
         throw new Error('Request ID is required for SSE connection')
     }
 
-    const backendUrl = getBackendURL()
-    // Backend SSE endpoint format: /v1/image-gen/events?request_id={requestId}
-    const sseUrl = `${backendUrl}/v1/image-gen/${requestId}/event-stream`
+    // Use Next.js proxy route to avoid CORS issues
+    // The proxy route at /api/events handles the backend connection server-side
+    // This bypasses CORS restrictions and handles backend header issues
+    const sseUrl = `/api/events?requestId=${encodeURIComponent(requestId)}`
 
     return sseUrl
 }
@@ -46,20 +46,22 @@ export function getSSEUrl(requestId: string): string {
 /**
  * Create an EventSource connection for image generation SSE updates
  * 
- * Establishes a direct Server-Sent Events connection to the backend API
+ * Establishes a Server-Sent Events connection through the Next.js proxy route
  * to receive real-time updates about image generation progress.
  * 
- * NOTE: This requires CORS to be properly configured on the backend to allow
- * cross-origin requests from your frontend domain.
+ * The proxy route handles the backend connection server-side, which:
+ * - Avoids CORS issues (no cross-origin requests from browser)
+ * - Handles backend header issues (duplicate CORS headers, etc.)
+ * - Transforms event format as needed
  * 
  * The EventSource will automatically:
- * - Connect directly to the backend SSE endpoint
+ * - Connect to the Next.js proxy route (/api/events)
  * - Handle reconnection on errors (EventSource default behavior)
  * - Send events with the request status, progress, and results
  * 
  * @param requestId - The image generation request ID to subscribe to
- * @returns EventSource instance connected directly to backend SSE endpoint
- * @throws Error if requestId is invalid or NEXT_PUBLIC_BACKEND_URL is not configured
+ * @returns EventSource instance connected to Next.js proxy route
+ * @throws Error if requestId is invalid
  * 
  * @example
  * ```typescript
@@ -96,7 +98,7 @@ export function createImageGenerationSSE(requestId: string): EventSource {
         throw new Error('EventSource is not available. This utility requires a browser environment.')
     }
 
-    // Get SSE URL for direct backend connection
+    // Get SSE URL using Next.js proxy route (avoids CORS issues)
     const sseUrl = getSSEUrl(requestId)
 
     console.log('[SSE Client] 🔌 Creating SSE connection:', sseUrl)
