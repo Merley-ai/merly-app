@@ -28,6 +28,9 @@ export function DashboardClient() {
     // Track current generation request ID for updating placeholders
     const currentGenerationRef = useRef<{ aiEntryId: string; numImages: number } | null>(null);
 
+    // Track newly created album to avoid race conditions
+    const newlyCreatedAlbumRef = useRef<Album | null>(null);
+
     // Albums hook - automatically fetches albums on mount
     const {
         albums,
@@ -109,11 +112,16 @@ export function DashboardClient() {
     // Handle create album - uses placeholder values automatically
     const handleCreateAlbum = async () => {
         try {
-            await createAlbum();
+            const newAlbum = await createAlbum();
+            console.log('[Dashboard] ✅ Album created:', newAlbum.id);
+            // Store in ref to avoid race conditions with state updates
+            newlyCreatedAlbumRef.current = newAlbum;
             setIsHomeView(false);
             // Timeline and gallery will auto-load via hooks
+            // Note: selectedAlbum is set by useAlbums hook's createAlbum function
         } catch (error) {
-            console.error("[Dashboard] Failed to create album:", error);
+            console.error("[Dashboard] ❌ Failed to create album:", error);
+            newlyCreatedAlbumRef.current = null;
         }
     };
 
@@ -266,21 +274,52 @@ export function DashboardClient() {
         setInputValue("");
         setUploadedFiles([]);
 
-        // Call generation API (only if album is selected)
-        if (selectedAlbum) {
-            try {
-                await create({
-                    prompt,
-                    input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
-                    num_images: numImages,
-                    aspect_ratio: "16:9",
-                    album_id: selectedAlbum.id,
-                });
+        // Get album - use ref if state hasn't updated yet (race condition fix)
+        const albumToUse = selectedAlbum || newlyCreatedAlbumRef.current;
 
-            } catch (error) {
-                console.error("Generation error:", error);
-                // Error handled by onError callback
-            }
+        if (!albumToUse) {
+            console.error('[Dashboard] ❌ Cannot generate: No album selected');
+            // Update AI entry to show error
+            updateTimelineEntry(aiEntryId, {
+                content: "Error: No album selected. Please select or create an album first.",
+                status: "complete",
+                isGenerating: false,
+                thinkingText: undefined,
+            });
+            return;
+        }
+
+        if (!albumToUse.id) {
+            console.error('[Dashboard] ❌ Cannot generate: Album has no ID', albumToUse);
+            updateTimelineEntry(aiEntryId, {
+                content: "Error: Invalid album. Please try again.",
+                status: "complete",
+                isGenerating: false,
+                thinkingText: undefined,
+            });
+            return;
+        }
+
+        console.log('[Dashboard] 🚀 Starting generation with album_id:', albumToUse.id);
+        console.log('[Dashboard] 📋 Using album from:', selectedAlbum ? 'state' : 'ref (newly created)');
+
+        // Clear the ref after using it
+        if (newlyCreatedAlbumRef.current && newlyCreatedAlbumRef.current.id === albumToUse.id) {
+            newlyCreatedAlbumRef.current = null;
+        }
+
+        try {
+            await create({
+                prompt,
+                input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
+                num_images: numImages,
+                aspect_ratio: "16:9",
+                album_id: albumToUse.id,
+            });
+
+        } catch (error) {
+            console.error("[Dashboard] ❌ Generation error:", error);
+            // Error handled by onError callback
         }
     };
 
@@ -296,14 +335,10 @@ export function DashboardClient() {
         if (generationInfo) {
             const { aiEntryId } = generationInfo;
 
-            // Remove the AI thinking entry from timeline (no longer needed)
-            const generatingEntry = timelineEntries.find(e => e.id === aiEntryId);
-            if (generatingEntry) {
-                console.log('[Dashboard] ✅ Found timeline entry, removing it');
-                removeTimelineEntry(aiEntryId);
-            } else {
-                console.log('[Dashboard] ℹ️ Timeline entry not found (likely replaced by backend data)');
-            }
+            // Always remove the AI thinking entry from timeline (no longer needed)
+            // Remove it unconditionally - even if not found, it's safe to call
+            console.log('[Dashboard] 🗑️ Removing thinking entry:', aiEntryId);
+            removeTimelineEntry(aiEntryId);
 
             // Update placeholder images in gallery using the stored ID
             const placeholderPrefix = `placeholder-${aiEntryId}-`;

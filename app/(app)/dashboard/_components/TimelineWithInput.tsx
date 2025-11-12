@@ -85,7 +85,7 @@ export function TimelineWithInput({
             </header>
 
             {/* Timeline Feed */}
-            <div ref={timelineRef} className="flex-1 overflow-y-auto px-4 py-6">
+            <div ref={timelineRef} className="flex-1 overflow-y-auto px-4 py-6 scrollbar-minimal">
                 {/* Loading indicator at top */}
                 {isLoadingMore && (
                     <div className="flex items-center justify-center py-4">

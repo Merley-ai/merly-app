@@ -42,14 +42,43 @@ export async function POST(request: Request) {
 
         // Call Backend API
         try {
-            const album = await createAlbum({
+            console.log('[API] Creating album with:', {
                 user_id: user.sub,
                 name: name.trim(),
                 description: description?.trim(),
             })
 
+            const albumResponse = await createAlbum({
+                user_id: user.sub,
+                name: name.trim(),
+                description: description?.trim(),
+            })
 
-            console.log('Create Album Response:', album)
+            console.log('[API] ✅ Backend returned album response:', albumResponse)
+            console.log('[API] 📦 Response type:', Array.isArray(albumResponse) ? 'array' : typeof albumResponse)
+
+            // Handle case where backend returns an array instead of a single object
+            const album = Array.isArray(albumResponse) ? albumResponse[0] : albumResponse
+
+            console.log('[API] 📦 Extracted album:', album)
+            console.log('[API] 📦 Album ID:', album?.id)
+            console.log('[API] 📦 Album structure:', {
+                id: album?.id,
+                user_id: album?.user_id,
+                name: album?.name,
+                hasId: !!album?.id,
+            })
+
+            if (!album || !album.id) {
+                console.error('[API] ❌ Invalid album from backend:', album)
+                return NextResponse.json(
+                    {
+                        error: 'Backend returned invalid album data',
+                        details: 'Album missing required fields',
+                    },
+                    { status: 500 }
+                )
+            }
 
             return NextResponse.json(
                 {

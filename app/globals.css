@@ -200,3 +200,30 @@ html {
     transform: translateX(100%);
   }
 }
+
+/* Minimalistic scrollbar styling */
+@layer utilities {
+  .scrollbar-minimal {
+    scrollbar-width: 3px;
+    scrollbar-color: rgba(255, 255, 255, 0.7) transparent;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar {
+    width: 1px;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 2px;
+    /* min-height: 5px;
+    max-height: 10px; */
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+}

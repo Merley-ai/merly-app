@@ -40,7 +40,7 @@ export function Gallery({
   }, [hasMore, isLoadingMore, onLoadMore]);
 
   return (
-    <section ref={galleryRef} className="bg-[#1a1a1a] flex-1 overflow-y-auto p-2">
+    <section ref={galleryRef} className="bg-[#1a1a1a] flex-1 overflow-y-auto p-2 scrollbar-minimal">
       <div className="grid grid-cols-2 gap-2">
         {images.map((image, index) => (
           <div key={image.id}>

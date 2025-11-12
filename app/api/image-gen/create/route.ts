@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getUser } from '@/lib/auth0/server'
-import { generateImage, editImage, remixImages } from '@/lib/api'
+import { generateImage, editImage, remixImages, BackendAPIError } from '@/lib/api'
 import { GENERATION_MODELS } from '@/types/image-generation'
 import type { CreateGenerationRequest } from '@/types/image-generation'
 
@@ -42,6 +42,14 @@ export async function POST(request: Request) {
             output_format = 'png',
             album_id,
         } = body
+
+        console.log('[Image Gen API] 📦 Request body:', {
+            prompt: prompt?.substring(0, 50),
+            input_images_count: input_images?.length || 0,
+            album_id,
+            num_images,
+            aspect_ratio,
+        })
 
         // Validate prompt
         if (!prompt || !prompt.trim()) {
@@ -86,6 +94,11 @@ export async function POST(request: Request) {
 
             if (generationType === 'generate') {
                 // Text-to-Image Generation
+                console.log('[Image Gen API] 🚀 Calling generateImage with:', {
+                    user_id: user.sub,
+                    album_id,
+                    prompt: prompt.substring(0, 50),
+                })
                 backendResponse = await generateImage({
                     model: modelConfig.model,
                     sub_path: modelConfig.sub_path,
@@ -135,17 +148,38 @@ export async function POST(request: Request) {
             })
 
         } catch (backendError) {
-            const errorMessage = backendError instanceof Error
-                ? backendError.message
-                : 'Unknown backend error'
+            console.error('[Image Gen API] ❌ Backend error:', backendError)
+
+            // Extract detailed error information
+            let errorMessage = 'Unknown backend error'
+            let statusCode = 500
+            let errorDetails: unknown = null
+
+            if (backendError instanceof BackendAPIError) {
+                errorMessage = backendError.message
+                statusCode = backendError.statusCode || 500
+                errorDetails = backendError.details
+            } else if (backendError instanceof Error) {
+                errorMessage = backendError.message
+            }
+
+            console.error('[Image Gen API] ❌ Error details:', {
+                message: errorMessage,
+                statusCode,
+                details: errorDetails,
+                album_id,
+                generation_type: generationType,
+            })
 
             return NextResponse.json(
                 {
                     error: 'Backend generation failed',
                     details: errorMessage,
                     generation_type: generationType,
+                    album_id, // Include album_id in error for debugging
+                    backend_status: statusCode,
                 },
-                { status: 500 }
+                { status: statusCode >= 400 && statusCode < 500 ? statusCode : 500 }
             )
         }
 
