@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { DEFAULT_PATHS } from '@/lib/constants/routes';
+import { LoginButton } from '@/components/auth/LoginButton';
 
 export function Navigation() {
   return (
@@ -17,18 +18,15 @@ export function Navigation() {
         <p className="font-['Roboto:Medium',_sans-serif] text-white text-[14px] hidden sm:block" style={{ fontVariationSettings: "'wdth' 100" }}>
           Pricing
         </p>
-        <a
-          href="/auth/login"
-          className="font-['Roboto:Medium',_sans-serif] text-white text-[14px] hidden sm:block hover:opacity-80 transition-opacity cursor-pointer"
-          style={{ fontVariationSettings: "'wdth' 100" }}
+        <LoginButton
+          returnTo={DEFAULT_PATHS.AFTER_LOGIN}
+          className="font-['Roboto:Medium',_sans-serif] text-white text-[14px] hidden sm:block hover:opacity-80 transition-opacity cursor-pointer bg-transparent p-0"
         >
           Login
-        </a>
-        <Link href={DEFAULT_PATHS.AFTER_LOGIN}>
-          <button className="bg-white rounded-[25px] px-6 py-2 font-['Roboto:Medium',_sans-serif] text-black text-[14px] cursor-pointer hover:opacity-90 transition-opacity">
-            Start Creating
-          </button>
-        </Link>
+        </LoginButton>
+        <LoginButton returnTo={DEFAULT_PATHS.AFTER_LOGIN}>
+          Start Creating
+        </LoginButton>
       </div>
     </nav>
   );
