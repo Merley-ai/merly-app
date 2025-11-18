@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { UserMenu } from "@/components/auth";
 import type { Album } from "@/types";
@@ -60,7 +61,7 @@ export function Sidebar({
                 )}
                 <button
                     onClick={onToggleCollapse}
-                    className="text-white/60 hover:text-white transition-colors ml-auto"
+                    className="text-white/60 hover:text-white transition-colors ml-auto cursor-pointer"
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? (
@@ -76,7 +77,7 @@ export function Sidebar({
                     {/* Home Button */}
                     <button
                         onClick={onGoToHome}
-                        className={`mx-3 mt-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors ${isHomeView ? 'bg-white/10' : ''
+                        className={`mx-3 mt-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
                             }`}
                     >
                         <svg className="size-[14px]" fill="none" viewBox="0 0 14 14">
@@ -94,7 +95,7 @@ export function Sidebar({
                     <button
                         onClick={onCreateAlbum}
                         disabled={isLoading}
-                        className="mx-3 mb-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="mx-3 mb-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg className="size-[14px]" fill="none" viewBox="0 0 14 14">
                             <path d={dashboardSvgPaths.p2d909600} fill="#666666" />
@@ -109,14 +110,16 @@ export function Sidebar({
 
                     {/* Albums List */}
                     <div className="flex-1 overflow-y-auto px-3 space-y-3">
-                        {/* Loading State */}
+                        {/* Loading State - Skeleton Loaders */}
                         {isLoading && albums.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-8 space-y-3">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white/60"></div>
-                                <p className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[12px]">
-                                    Loading albums...
-                                </p>
-                            </div>
+                            <>
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="w-full flex items-center gap-2 p-2 rounded-xl bg-white/5 animate-pulse">
+                                        <div className="size-[37px] bg-white/7 rounded-4xl flex-shrink-0" />
+                                        <div className="flex-1 h-4 bg-white/7 rounded" />
+                                    </div>
+                                ))}
+                            </>
                         )}
 
                         {/* Error State */}
@@ -148,15 +151,19 @@ export function Sidebar({
                             <button
                                 key={album.id || `album-${index}`}
                                 onClick={() => onSelectAlbum(album)}
-                                className={`w-full flex items-center gap-3 p-2 rounded transition-colors ${selectedAlbum?.id === album.id ? "bg-white/10" : "hover:bg-white/5"
+                                className={`w-full flex items-center gap-2 p-2 rounded-xl transition-colors cursor-pointer ${!isHomeView && selectedAlbum?.id === album.id ? "bg-white/20" : "hover:bg-white/20"
                                     }`}
                             >
-                                <div className="size-[37px] bg-[#2e2e2e] rounded overflow-hidden flex-shrink-0">
+                                <div className="size-[37px] bg-[#2e2e2e] rounded-4xl overflow-hidden flex-shrink-0 relative">
                                     {album.thumbnail_url ? (
-                                        <img
+                                        <Image
                                             src={album.thumbnail_url}
                                             alt={album.name}
-                                            className="size-full object-cover"
+                                            fill
+                                            className="object-cover"
+                                            sizes="37px"
+                                            quality={75}
+                                            unoptimized={album.thumbnail_url.includes('fal.media') || album.thumbnail_url.includes('fal.ai')}
                                         />
                                     ) : (
                                         <div className="size-full flex items-center justify-center">
@@ -167,7 +174,7 @@ export function Sidebar({
                                     )}
                                 </div>
                                 <p
-                                    className="font-['Roboto:Regular',_sans-serif] text-white text-[14px] text-left truncate"
+                                    className={`p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px] text-left truncate ${!isHomeView && selectedAlbum?.id === album.id ? 'font-semibold' : ''}`}
                                     style={{ fontVariationSettings: "'wdth' 100" }}
                                 >
                                     {album.name}

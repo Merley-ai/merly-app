@@ -53,7 +53,7 @@ export function useAlbums({
 }: UseAlbumsOptions = {}): UseAlbumsReturn {
     const [albums, setAlbums] = useState<Album[]>([])
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(autoFetch)
     const [error, setError] = useState<string | null>(null)
 
     // Fetch all albums
@@ -81,11 +81,6 @@ export function useAlbums({
 
             setAlbums(transformedAlbums)
 
-            // Auto-select first album if none selected
-            if (!selectedAlbum && transformedAlbums.length > 0) {
-                setSelectedAlbum(transformedAlbums[0])
-            }
-
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Unknown error fetching albums'
             setError(errorMsg)
@@ -94,7 +89,7 @@ export function useAlbums({
         } finally {
             setIsLoading(false)
         }
-    }, [selectedAlbum, onError])
+    }, [onError])
 
     // Create new album
     const createAlbum = useCallback(async (
@@ -311,7 +306,6 @@ export function useAlbums({
         if (autoFetch) {
             fetchAlbums()
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []) // Only run on mount, fetchAlbums intentionally excluded
 
     // Restore selected album from localStorage on mount
@@ -329,11 +323,7 @@ export function useAlbums({
             } catch (err) {
                 console.warn('[useAlbums] Failed to restore selected album from localStorage:', err)
             }
-
-            // Fallback to first album
-            setSelectedAlbum(albums[0])
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [albums]) // Run when albums change, selectedAlbum intentionally excluded to avoid loops
 
     return {

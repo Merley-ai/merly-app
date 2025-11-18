@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import type { GalleryImage } from "@/types";
@@ -114,11 +115,16 @@ export function ImageViewer({
             </div>
 
             {/* Image Container */}
-            <div className="flex-1 flex items-center justify-center p-8">
-                <img
+            <div className="flex-1 flex items-center justify-center p-8 relative">
+                <Image
                     src={image.url}
                     alt={image.description}
-                    className="max-w-[90%] max-h-[90%] object-contain rounded-lg"
+                    fill
+                    className="object-contain rounded-lg"
+                    sizes="90vw"
+                    quality={95}
+                    priority
+                    unoptimized={image.url.includes('fal.media') || image.url.includes('fal.ai')}
                 />
             </div>
         </div>
