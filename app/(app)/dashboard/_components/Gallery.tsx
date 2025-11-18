@@ -23,22 +23,11 @@ function GalleryImageItem({
   index: number;
   onImageClick: (index: number) => void;
 }) {
+  // Use image URL as part of the key to reset state when URL changes
+  // This avoids setState in effects by letting React handle state reset through remounting
   const [imageLoaded, setImageLoaded] = useState(false);
-  const prevUrlRef = useRef<string | undefined>(image.url);
 
-  // Reset imageLoaded state when image URL changes (e.g., status changes from rendering to complete)
-  // Using useEffect with proper dependency tracking to avoid setState during render
-  useEffect(() => {
-    if (prevUrlRef.current !== image.url) {
-      prevUrlRef.current = image.url;
-      if (image.url) {
-        // URL changed, reset loaded state
-        setImageLoaded(false);
-      }
-    }
-  }, [image.url]);
-
-  // Derive placeholder visibility from image status instead of using effect
+  // Derive placeholder visibility from image status
   const shouldShowPlaceholder = image.status === 'rendering' || (image.status === 'complete' && image.url && !imageLoaded);
 
   const handleImageLoad = () => {
@@ -126,7 +115,7 @@ export function Gallery({
       <div className="grid grid-cols-3 gap-0.5">
         {images.map((image, index) => (
           <GalleryImageItem
-            key={image.id}
+            key={`${image.id}-${image.url || 'no-url'}`}
             image={image}
             index={index}
             onImageClick={onImageClick}
