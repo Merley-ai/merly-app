@@ -40,7 +40,7 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                                     {entry.inputImages.map((img, idx) => (
                                         <div
                                             key={idx}
-                                            className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
+                                            className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
                                         >
                                             <img
                                                 src={img}
@@ -94,7 +94,7 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                                                 {img.isPlaceholder ? (
                                                     <PlaceholderThumbnail delay={0.1 * idx} />
                                                 ) : (
-                                                    <div className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0">
+                                                    <div className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0">
                                                         <AnimatedImage
                                                             src={img.url}
                                                             alt={img.description}
@@ -105,7 +105,7 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                                                 )}
                                                 {img.description && !img.isPlaceholder && (
                                                     <p
-                                                        className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[10px] w-[71px]"
+                                                        className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[10px] w-[120px]"
                                                         style={{ fontVariationSettings: "'wdth' 100" }}
                                                     >
                                                         {img.description}

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth0/client";
+import { downloadImage } from "@/lib/utils";
 import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
 import type { Album } from "@/types/album";
 import type { GeneratedImage } from "@/types/image-generation";
@@ -399,28 +400,36 @@ export function DashboardClient() {
     const handleNavigateImage = (direction: "prev" | "next") => {
         if (selectedImageIndex === null) return;
 
-        const currentIndexInComplete = completeImages.findIndex(
-            (img) => img.id === galleryImages[selectedImageIndex].id
-        );
+        let newIndex = selectedImageIndex;
 
-        if (direction === "prev" && currentIndexInComplete > 0) {
-            const prevImage = completeImages[currentIndexInComplete - 1];
-            const newIndex = galleryImages.findIndex((img) => img.id === prevImage.id);
-            setSelectedImageIndex(newIndex);
-        } else if (
-            direction === "next" &&
-            currentIndexInComplete < completeImages.length - 1
-        ) {
-            const nextImage = completeImages[currentIndexInComplete + 1];
-            const newIndex = galleryImages.findIndex((img) => img.id === nextImage.id);
+        if (direction === "prev") {
+            // Search backwards for the previous complete image
+            for (let i = selectedImageIndex - 1; i >= 0; i--) {
+                if (galleryImages[i].status === "complete") {
+                    newIndex = i;
+                    break;
+                }
+            }
+        } else if (direction === "next") {
+            // Search forwards for the next complete image
+            for (let i = selectedImageIndex + 1; i < galleryImages.length; i++) {
+                if (galleryImages[i].status === "complete") {
+                    newIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Only update if we found a different image
+        if (newIndex !== selectedImageIndex) {
             setSelectedImageIndex(newIndex);
         }
     };
 
-    const handleDownloadImage = () => {
-        if (selectedImageIndex !== null && galleryImages[selectedImageIndex]) {
-            console.log("Downloading:", galleryImages[selectedImageIndex].url);
-        }
+    const handleDownloadImage = async (url: string) => {
+        // Get the current image to use its description as filename
+        const currentImage = selectedImageIndex !== null ? galleryImages[selectedImageIndex] : null;
+        await downloadImage(url, currentImage?.description);
     };
 
     const handleDeleteImage = () => {
@@ -428,12 +437,12 @@ export function DashboardClient() {
         setSelectedImageIndex(null);
     };
 
-    const currentIndexInComplete =
-        selectedImageIndex !== null
-            ? completeImages.findIndex(
-                (img) => galleryImages[selectedImageIndex]?.id === img.id
-            )
-            : -1;
+    // Check if navigation is possible by looking for complete images before/after current index
+    const canNavigatePrev = selectedImageIndex !== null && selectedImageIndex > 0 &&
+        galleryImages.slice(0, selectedImageIndex).some(img => img.status === "complete");
+
+    const canNavigateNext = selectedImageIndex !== null && selectedImageIndex < galleryImages.length - 1 &&
+        galleryImages.slice(selectedImageIndex + 1).some(img => img.status === "complete");
 
     // Determine which view to show
     const showHome = isHomeView || !selectedAlbum;
@@ -545,8 +554,8 @@ export function DashboardClient() {
                             onNavigate={handleNavigateImage}
                             onDownload={handleDownloadImage}
                             onDelete={handleDeleteImage}
-                            canNavigatePrev={currentIndexInComplete > 0}
-                            canNavigateNext={currentIndexInComplete < completeImages.length - 1}
+                            canNavigatePrev={canNavigatePrev}
+                            canNavigateNext={canNavigateNext}
                         />
                     )}
                 </>

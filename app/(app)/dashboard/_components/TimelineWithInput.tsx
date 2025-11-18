@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { ThinkingAnimation } from "./ThinkingAnimation";
 import { InputArea } from "./InputArea";
 import { humanizeDate, isSameDay } from "@/lib/utils";
@@ -33,8 +33,9 @@ export function TimelineWithInput({
 }: TimelineWithInputProps) {
     const timelineRef = useRef<HTMLDivElement>(null);
     const scrollPositionRef = useRef<number>(0);
+    const [hasScrolledContent, setHasScrolledContent] = useState(false);
 
-    // Handle scroll for infinite scroll up
+    // Handle scroll for infinite scroll up and shadow detection
     useEffect(() => {
         const container = timelineRef.current;
         if (!container) return;
@@ -46,9 +47,17 @@ export function TimelineWithInput({
                 scrollPositionRef.current = container.scrollHeight - container.scrollTop;
                 onLoadMore();
             }
+
+            // Check if there's content below (not scrolled to bottom)
+            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
+            setHasScrolledContent(!isAtBottom);
         };
 
         container.addEventListener('scroll', handleScroll);
+
+        // Initial check
+        handleScroll();
+
         return () => container.removeEventListener('scroll', handleScroll);
     }, [hasMore, isLoadingMore, onLoadMore]);
 
@@ -125,7 +134,7 @@ export function TimelineWithInput({
                                                 {entry.inputImages.map((img, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className="w-[71px] h-[71px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
+                                                        className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
                                                     >
                                                         <img
                                                             src={img}
@@ -190,6 +199,7 @@ export function TimelineWithInput({
                 onFileChange={onFileChange}
                 onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
+                hasScrolledContent={hasScrolledContent}
             />
         </main>
     );

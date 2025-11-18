@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
+import { Tooltip } from "@/components/ui/Tooltip";
 import type { UploadedFile } from "@/types";
 
 interface InputAreaProps {
@@ -11,6 +12,7 @@ interface InputAreaProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile: (fileId: string) => void;
   onSubmit: () => void;
+  hasScrolledContent?: boolean;
 }
 
 export function InputArea({
@@ -20,10 +22,9 @@ export function InputArea({
   onFileChange,
   onRemoveFile,
   onSubmit,
+  hasScrolledContent = false,
 }: InputAreaProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showUploadTooltip, setShowUploadTooltip] = useState(false);
-  const [showSendTooltip, setShowSendTooltip] = useState(false);
 
   // Check if send button should be disabled
   const isSendDisabled = !inputValue.trim() && uploadedFiles.length === 0;
@@ -42,7 +43,13 @@ export function InputArea({
   };
 
   return (
-    <div className="p-6">
+    <div
+      className={`pb-4 pl-4 pr-4 pt-3  transition-shadow duration-300 relative ${hasScrolledContent
+        ? 'shadow-[0_-16px_48px_0px_rgba(0,0,0,0.4)]'
+        : ''
+        }`}
+    >
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-b from-white/20 to-transparent blur-[4px]" />
       <div className="bg-[#2e2e2e] rounded-[29px] px-6 py-4 flex flex-col gap-3">
         {/* Uploaded Image Thumbnails */}
         {uploadedFiles.length > 0 && (
@@ -138,11 +145,9 @@ export function InputArea({
           />
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Upload Button with Tooltip */}
-            <div className="relative">
+            <Tooltip text="Upload image" position="top">
               <button
                 onClick={handleAttachClick}
-                onMouseEnter={() => setShowUploadTooltip(true)}
-                onMouseLeave={() => setShowUploadTooltip(false)}
                 type="button"
                 className="flex-none transition-all duration-200 hover:scale-110 cursor-pointer"
                 aria-label="Upload image"
@@ -151,21 +156,7 @@ export function InputArea({
                   <path d={dashboardSvgPaths.p110a4400} fill="#666666" />
                 </svg>
               </button>
-              {/* Tooltip */}
-              {showUploadTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
-                  <div className="relative bg-white rounded-lg px-3 py-2 shadow-lg">
-                    <p className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal whitespace-nowrap">
-                      Upload image
-                    </p>
-                    {/* Tooltip arrow */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px]">
-                      <div className="border-[6px] border-transparent border-t-white" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            </Tooltip>
 
             <input
               ref={fileInputRef}
@@ -177,11 +168,9 @@ export function InputArea({
             />
 
             {/* Send Button with Tooltip */}
-            <div className="relative">
+            <Tooltip text="Send" position="top" disabled={isSendDisabled}>
               <button
                 onClick={handleSubmit}
-                onMouseEnter={() => setShowSendTooltip(true)}
-                onMouseLeave={() => setShowSendTooltip(false)}
                 type="button"
                 disabled={isSendDisabled}
                 className={`flex-none transition-all duration-200 ${isSendDisabled
@@ -194,21 +183,7 @@ export function InputArea({
                   <path d={dashboardSvgPaths.p3865f100} fill="#666666" />
                 </svg>
               </button>
-              {/* Tooltip */}
-              {showSendTooltip && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
-                  <div className="relative bg-white rounded-lg px-3 py-2 shadow-lg">
-                    <p className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal whitespace-nowrap">
-                      Send
-                    </p>
-                    {/* Tooltip arrow */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px]">
-                      <div className="border-[6px] border-transparent border-t-white" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            </Tooltip>
           </div>
         </div>
       </div>
