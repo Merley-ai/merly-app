@@ -101,10 +101,7 @@ export function createImageGenerationSSE(requestId: string): EventSource {
     // Get SSE URL using Next.js proxy route (avoids CORS issues)
     const sseUrl = getSSEUrl(requestId)
 
-    console.log('[SSE Client] 🔌 Creating SSE connection:', sseUrl)
-
     // Create and return EventSource instance
-    // EventSource automatically handles connection and reconnection
     const eventSource = new EventSource(sseUrl)
 
     return eventSource

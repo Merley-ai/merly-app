@@ -56,8 +56,6 @@ export async function DELETE(request: Request) {
                 ? backendError.message
                 : 'Unknown backend error'
 
-            console.error('[API] Failed to delete album:', errorMessage)
-
             return NextResponse.json(
                 {
                     error: 'Failed to delete album in backend',
@@ -68,7 +66,6 @@ export async function DELETE(request: Request) {
         }
 
     } catch (error) {
-        console.error('[API] Album delete error:', error)
         return NextResponse.json(
             {
                 error: 'Failed to delete album',

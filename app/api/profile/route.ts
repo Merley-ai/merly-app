@@ -42,8 +42,6 @@ export async function GET() {
             .single()
 
         if (error && error.code !== 'PGRST116') {
-            // PGRST116 = no rows returned (profile doesn't exist yet)
-            console.error('Supabase error:', error)
             return NextResponse.json(
                 { error: 'Failed to fetch profile', details: error.message },
                 { status: 500 }
@@ -56,8 +54,7 @@ export async function GET() {
         }
 
         return NextResponse.json({ profile })
-    } catch (error) {
-        console.error('Error in GET /api/profile:', error)
+    } catch (_error) {
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -129,7 +126,6 @@ export async function POST(request: Request) {
             .single()
 
         if (error) {
-            console.error('Supabase error:', error)
             return NextResponse.json(
                 { error: 'Failed to save profile', details: error.message },
                 { status: 500 }
@@ -137,8 +133,7 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ profile })
-    } catch (error) {
-        console.error('Error in POST /api/profile:', error)
+    } catch (_error) {
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

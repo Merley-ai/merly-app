@@ -63,8 +63,6 @@ export async function GET(
                 ? backendError.message
                 : 'Unknown backend error'
 
-            console.error('[API] Failed to fetch timeline:', errorMessage)
-
             return NextResponse.json(
                 {
                     error: 'Failed to fetch timeline from backend',
@@ -75,7 +73,6 @@ export async function GET(
         }
 
     } catch (error) {
-        console.error('[API] Album timeline error:', error)
         return NextResponse.json(
             {
                 error: 'Failed to fetch timeline',

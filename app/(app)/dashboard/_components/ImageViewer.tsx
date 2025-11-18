@@ -23,7 +23,7 @@ interface ImageViewerProps {
 export function ImageViewer({
     image,
     imageIndex,
-    albumName,
+    albumName: _albumName,
     onClose,
     onNavigate,
     onDownload,

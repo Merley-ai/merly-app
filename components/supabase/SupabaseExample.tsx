@@ -53,7 +53,6 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Unknown error'
             setError(`Failed to fetch data: ${message}`)
-            console.error('Supabase query error:', err)
         } finally {
             setIsLoading(false)
         }
@@ -83,7 +82,6 @@ export function SupabaseExample({ className }: SupabaseExampleProps) {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Unknown error'
             setError(`Failed to insert data: ${message}`)
-            console.error('Supabase insert error:', err)
         } finally {
             setIsLoading(false)
         }

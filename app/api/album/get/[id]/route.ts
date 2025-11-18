@@ -53,8 +53,6 @@ export async function GET(
                 ? backendError.message
                 : 'Unknown backend error'
 
-            console.error('[API] Failed to fetch album:', errorMessage)
-
             return NextResponse.json(
                 {
                     error: 'Failed to fetch album from backend',
@@ -65,7 +63,6 @@ export async function GET(
         }
 
     } catch (error) {
-        console.error('[API] Album get error:', error)
         return NextResponse.json(
             {
                 error: 'Failed to fetch album',

@@ -41,8 +41,8 @@ export function DashboardClient() {
         createAlbum,
         selectAlbum,
     } = useAlbums({
-        onError: (error) => {
-            console.error("[Dashboard] Album error:", error);
+        onError: () => {
+            // Error handled by hook
         },
     });
 
@@ -73,8 +73,8 @@ export function DashboardClient() {
         albumId: selectedAlbum?.id || null,
         limit: 20,
         autoFetch: true,
-        onError: (error) => {
-            console.error('[Dashboard] Timeline error:', error);
+        onError: () => {
+            // Error handled by hook
         },
     });
 
@@ -91,8 +91,8 @@ export function DashboardClient() {
         albumId: selectedAlbum?.id || null,
         limit: 20,
         autoFetch: true,
-        onError: (error) => {
-            console.error('[Dashboard] Gallery error:', error);
+        onError: () => {
+            // Error handled by hook
         },
     });
 
@@ -114,14 +114,10 @@ export function DashboardClient() {
     const handleCreateAlbum = async () => {
         try {
             const newAlbum = await createAlbum();
-            console.log('[Dashboard] ✅ Album created:', newAlbum.id);
-            // Store in ref to avoid race conditions with state updates
             newlyCreatedAlbumRef.current = newAlbum;
             setIsHomeView(false);
-            // Timeline and gallery will auto-load via hooks
-            // Note: selectedAlbum is set by useAlbums hook's createAlbum function
-        } catch (error) {
-            console.error("[Dashboard] ❌ Failed to create album:", error);
+
+        } catch {
             newlyCreatedAlbumRef.current = null;
         }
     };
@@ -189,8 +185,6 @@ export function DashboardClient() {
                     )
                 );
             } catch (error) {
-                console.error('[Dashboard] Upload error:', error);
-
                 // Update status to error
                 setUploadedFiles(prev =>
                     prev.map(uf =>
@@ -213,7 +207,6 @@ export function DashboardClient() {
         // Only allow submission if all files are uploaded successfully
         const completedFiles = uploadedFiles.filter(f => f.status === 'completed');
         if (uploadedFiles.length > 0 && completedFiles.length !== uploadedFiles.length) {
-            console.warn('[Dashboard] Cannot submit: Some files are still uploading or failed');
             return;
         }
 
@@ -279,8 +272,7 @@ export function DashboardClient() {
         const albumToUse = selectedAlbum || newlyCreatedAlbumRef.current;
 
         if (!albumToUse) {
-            console.error('[Dashboard] ❌ Cannot generate: No album selected');
-            // Update AI entry to show error
+
             updateTimelineEntry(aiEntryId, {
                 content: "Error: No album selected. Please select or create an album first.",
                 status: "complete",
@@ -291,7 +283,6 @@ export function DashboardClient() {
         }
 
         if (!albumToUse.id) {
-            console.error('[Dashboard] ❌ Cannot generate: Album has no ID', albumToUse);
             updateTimelineEntry(aiEntryId, {
                 content: "Error: Invalid album. Please try again.",
                 status: "complete",
@@ -300,9 +291,6 @@ export function DashboardClient() {
             });
             return;
         }
-
-        console.log('[Dashboard] 🚀 Starting generation with album_id:', albumToUse.id);
-        console.log('[Dashboard] 📋 Using album from:', selectedAlbum ? 'state' : 'ref (newly created)');
 
         // Clear the ref after using it
         if (newlyCreatedAlbumRef.current && newlyCreatedAlbumRef.current.id === albumToUse.id) {
@@ -318,8 +306,7 @@ export function DashboardClient() {
                 album_id: albumToUse.id,
             });
 
-        } catch (error) {
-            console.error("[Dashboard] ❌ Generation error:", error);
+        } catch {
             // Error handled by onError callback
         }
     };
@@ -327,28 +314,18 @@ export function DashboardClient() {
     // Handle generation completion
     // Use ref to track generation info instead of searching timeline (which may have been replaced by backend data)
     const handleGenerationComplete = useCallback((images: GeneratedImage[]) => {
-        console.log('[Dashboard] 🎉 handleGenerationComplete called with', images.length, 'images');
-        console.log('[Dashboard] 🖼️ Current gallery images:', galleryImages.length);
-
         const generationInfo = currentGenerationRef.current;
-        console.log('[Dashboard] 🔍 Generation info from ref:', generationInfo);
 
         if (generationInfo) {
             const { aiEntryId } = generationInfo;
 
-            // Always remove the AI thinking entry from timeline (no longer needed)
-            // Remove it unconditionally - even if not found, it's safe to call
-            console.log('[Dashboard] 🗑️ Removing thinking entry:', aiEntryId);
             removeTimelineEntry(aiEntryId);
 
             // Update placeholder images in gallery using the stored ID
             const placeholderPrefix = `placeholder-${aiEntryId}-`;
-            console.log('[Dashboard] 🔍 Looking for placeholders with prefix:', placeholderPrefix);
-            console.log('[Dashboard] 🖼️ Gallery image IDs:', galleryImages.map(img => img.id));
 
             images.forEach((img, index) => {
                 const placeholderId = `${placeholderPrefix}${index}`;
-                console.log('[Dashboard] 🔄 Updating placeholder:', placeholderId, 'with URL:', img.url);
                 updateGalleryImage(placeholderId, {
                     url: img.url,
                     description: "Generated image",
@@ -358,15 +335,11 @@ export function DashboardClient() {
 
             // Clear the ref after successful update
             currentGenerationRef.current = null;
-        } else {
-            console.warn('[Dashboard] ⚠️ No generation info found in ref');
         }
-    }, [timelineEntries, galleryImages, removeTimelineEntry, updateGalleryImage]);
+    }, [removeTimelineEntry, updateGalleryImage]);
 
     // Handle generation error
     const handleGenerationError = (error: string) => {
-        console.log('[Dashboard] ❌ handleGenerationError called:', error);
-
         const generationInfo = currentGenerationRef.current;
         if (generationInfo) {
             const { aiEntryId } = generationInfo;
@@ -388,7 +361,6 @@ export function DashboardClient() {
                 if (img.id.startsWith(placeholderPrefix)) {
                     // Note: We don't have a removeImage function, so placeholders will remain
                     // They could be updated to show error state instead
-                    console.log('[Dashboard] ⚠️ Placeholder remains:', img.id);
                 }
             });
 
@@ -433,7 +405,6 @@ export function DashboardClient() {
     };
 
     const handleDeleteImage = () => {
-        console.log("Delete image:", selectedImageIndex);
         setSelectedImageIndex(null);
     };
 

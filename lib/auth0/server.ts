@@ -12,8 +12,7 @@ import { redirect } from "next/navigation";
 export async function getSession() {
     try {
         return await auth0.getSession();
-    } catch (error) {
-        console.error("Error getting session:", error);
+    } catch (_error) {
         return null;
     }
 }
@@ -56,8 +55,7 @@ export async function getAccessToken() {
     try {
         const session = await auth0.getSession();
         return session?.accessToken || null;
-    } catch (error) {
-        console.error("Error getting access token:", error);
+    } catch (_error) {
         return null;
     }
 }

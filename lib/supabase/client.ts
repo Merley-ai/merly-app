@@ -12,10 +12,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-        'Supabase environment variables not configured. ' +
-        'Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
-    )
+    // Supabase environment variables not configured
 }
 
 /**
@@ -29,8 +26,7 @@ export function createSupabaseClient() {
                 const response = await fetch('/auth/access-token')
                 const data = await response.json()
                 return data.accessToken || null
-            } catch (error) {
-                console.error('Error fetching Auth0 access token:', error)
+            } catch (_error) {
                 return null
             }
         },

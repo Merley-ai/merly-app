@@ -1,7 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
 import { PlaceholderImage } from "./PlaceholderImage";
-import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import type { GalleryImage } from "@/types";
 
 interface GalleryProps {
@@ -25,29 +24,31 @@ function GalleryImageItem({
   onImageClick: (index: number) => void;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [showPlaceholder, setShowPlaceholder] = useState(image.status === 'rendering');
+  const prevUrlRef = useRef<string | undefined>(image.url);
 
-  // Update placeholder visibility when status changes
+  // Reset imageLoaded state when image URL changes (e.g., status changes from rendering to complete)
+  // Using useEffect with proper dependency tracking to avoid setState during render
   useEffect(() => {
-    if (image.status === 'complete' && image.url) {
-      // Keep placeholder visible while image loads
-      setShowPlaceholder(true);
-      setImageLoaded(false);
+    if (prevUrlRef.current !== image.url) {
+      prevUrlRef.current = image.url;
+      if (image.url) {
+        // URL changed, reset loaded state
+        setImageLoaded(false);
+      }
     }
-  }, [image.status, image.url]);
+  }, [image.url]);
+
+  // Derive placeholder visibility from image status instead of using effect
+  const shouldShowPlaceholder = image.status === 'rendering' || (image.status === 'complete' && image.url && !imageLoaded);
 
   const handleImageLoad = () => {
     setImageLoaded(true);
-    // Fade out placeholder after image loads
-    setTimeout(() => {
-      setShowPlaceholder(false);
-    }, 300); // Match fade duration
   };
 
   return (
     <div className="relative aspect-[4/5] rounded-lg overflow-hidden">
       {/* Placeholder layer - fades out when image loads */}
-      {showPlaceholder && (
+      {shouldShowPlaceholder && (
         <div
           className="absolute inset-0 transition-opacity duration-300"
           style={{ opacity: imageLoaded ? 0 : 1 }}

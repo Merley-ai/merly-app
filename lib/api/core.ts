@@ -107,18 +107,15 @@ export async function apiFetch<T>(
 
         // Handle abort/timeout
         if (error instanceof Error && error.name === 'AbortError') {
-            console.error('[Backend API] Request timeout')
             throw new BackendTimeoutError()
         }
 
         // Custom errors
         if (error instanceof BackendAPIError || error instanceof BackendTimeoutError) {
-            console.error('[Backend API] Error:', error)
             throw error
         }
 
         // Handle network errors
-        console.error('[Backend API] Network error:', error)
         throw new BackendAPIError(
             'Network error: Unable to connect to backend',
             0,

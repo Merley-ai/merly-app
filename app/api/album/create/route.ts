@@ -42,35 +42,16 @@ export async function POST(request: Request) {
 
         // Call Backend API
         try {
-            console.log('[API] Creating album with:', {
-                user_id: user.sub,
-                name: name.trim(),
-                description: description?.trim(),
-            })
-
             const albumResponse = await createAlbum({
                 user_id: user.sub,
                 name: name.trim(),
                 description: description?.trim(),
             })
 
-            console.log('[API] ✅ Backend returned album response:', albumResponse)
-            console.log('[API] 📦 Response type:', Array.isArray(albumResponse) ? 'array' : typeof albumResponse)
-
             // Handle case where backend returns an array instead of a single object
             const album = Array.isArray(albumResponse) ? albumResponse[0] : albumResponse
 
-            console.log('[API] 📦 Extracted album:', album)
-            console.log('[API] 📦 Album ID:', album?.id)
-            console.log('[API] 📦 Album structure:', {
-                id: album?.id,
-                user_id: album?.user_id,
-                name: album?.name,
-                hasId: !!album?.id,
-            })
-
             if (!album || !album.id) {
-                console.error('[API] ❌ Invalid album from backend:', album)
                 return NextResponse.json(
                     {
                         error: 'Backend returned invalid album data',
@@ -93,8 +74,6 @@ export async function POST(request: Request) {
                 ? backendError.message
                 : 'Unknown backend error'
 
-            console.error('[API] Failed to create album:', errorMessage)
-
             return NextResponse.json(
                 {
                     error: 'Failed to create album in backend',
@@ -105,7 +84,6 @@ export async function POST(request: Request) {
         }
 
     } catch (error) {
-        console.error('[API] Album create error:', error)
         return NextResponse.json(
             {
                 error: 'Failed to create album',

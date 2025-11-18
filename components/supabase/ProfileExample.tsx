@@ -52,7 +52,6 @@ export function ProfileExample() {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Unknown error'
             setError(message)
-            console.error('Error fetching profile:', err)
         } finally {
             setLoading(false)
         }
@@ -90,7 +89,6 @@ export function ProfileExample() {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Unknown error'
             setError(message)
-            console.error('Error saving profile:', err)
         } finally {
             setLoading(false)
         }

@@ -59,7 +59,6 @@ type BackendEventData = BackendQueuedEventData | BackendCompletedEventData | Bac
  * Backend events come wrapped with type, request_id, timestamp, and data
  */
 function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrapper): ImageSSEStatus {
-  console.log('[SSE] 🔄 Transforming backend event:', eventType, eventWrapper)
 
   const timestamp = Date.now()
   const eventData = eventWrapper.data
@@ -91,7 +90,6 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
 
     // Check if images exist before mapping
     if (!completedData.images || !Array.isArray(completedData.images)) {
-      console.error('[SSE] ❌ Completed event missing images array:', completedData)
       return {
         status: 'error',
         progress: 0,
@@ -107,8 +105,6 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
       seed: img.seed,
       content_type: img.content_type,
     }))
-
-    console.log('[SSE] ✅ Transformed images:', images.length, 'images')
 
     return {
       status: 'complete',
@@ -131,7 +127,6 @@ function transformBackendEvent(eventType: string, eventWrapper: BackendEventWrap
   }
 
   // Default fallback
-  console.warn('[SSE] ⚠️ Unknown event type or status:', eventType, eventData)
   return {
     status: 'processing',
     progress: 0,
@@ -153,7 +148,6 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
       const { done, value } = await reader.read()
 
       if (done) {
-        console.log('[SSE] 📡 Backend stream ended')
         break
       }
 
@@ -182,7 +176,6 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
         }
 
         if (data) {
-          console.log('[SSE] 📨 Parsed backend event:', eventType, data.substring(0, 100))
           yield { event: eventType, data }
         }
       }
@@ -215,10 +208,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
   const streamId = searchParams.get('stream') || searchParams.get('requestId')
 
-  console.log('[SSE Proxy] 📡 New SSE connection request for stream:', streamId)
-
   if (!streamId) {
-    console.error('[SSE Proxy] ❌ No stream/requestId parameter provided')
     return new Response('Missing stream or requestId parameter', { status: 400 })
   }
 
@@ -229,15 +219,11 @@ export async function GET(request: NextRequest) {
       timeout: 30000,
     })
 
-    console.log('[SSE Proxy] ✅ Connected to backend SSE stream')
-
     // Create a readable stream that proxies backend SSE events
     const encoder = new TextEncoder()
 
     const stream = new ReadableStream({
       async start(controller) {
-        console.log('[SSE Proxy] ✅ Client stream started, proxying events...')
-
         // Send initial connection message
         const initialMessage: ImageSSEStatus = {
           status: 'processing',
@@ -249,7 +235,6 @@ export async function GET(request: NextRequest) {
         controller.enqueue(
           encoder.encode(`data: ${JSON.stringify(initialMessage)}\n\n`)
         )
-        console.log('[SSE Proxy] 📤 Sent initial message to client')
 
         try {
           const reader = backendResponse.body!.getReader()
@@ -259,11 +244,6 @@ export async function GET(request: NextRequest) {
             try {
               // Parse backend event data (wrapped structure)
               const eventWrapper: BackendEventWrapper = JSON.parse(data)
-              console.log('[SSE Proxy] 📦 Received backend event wrapper:', {
-                type: eventWrapper.type,
-                request_id: eventWrapper.request_id,
-                dataKeys: Object.keys(eventWrapper.data || {})
-              })
 
               // Transform to frontend format
               const frontendEvent = transformBackendEvent(event, eventWrapper)
@@ -272,23 +252,17 @@ export async function GET(request: NextRequest) {
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify(frontendEvent)}\n\n`)
               )
-              console.log('[SSE Proxy] 📤 Proxied event to client:', frontendEvent.status, frontendEvent.message)
 
               // Close stream on completion or error
               if (frontendEvent.status === 'complete' || frontendEvent.status === 'error') {
-                console.log('[SSE Proxy] ✅ Final event received, closing stream')
                 controller.close()
                 break
               }
-            } catch (parseError) {
-              console.error('[SSE Proxy] ❌ Failed to parse/transform event:', parseError)
-              console.error('[SSE Proxy] ❌ Raw data:', data)
+            } catch (_parseError) {
               // Continue processing other events
             }
           }
         } catch (error) {
-          console.error('[SSE Proxy] ❌ Error reading backend stream:', error)
-
           // Send error to client
           const errorEvent: ImageSSEStatus = {
             status: 'error',
@@ -306,8 +280,6 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    console.log('[SSE Proxy] 📡 Returning proxied SSE stream to client')
-
     // Return SSE response to client with standardized headers
     return new Response(stream, {
       headers: createSSEHeaders(),
@@ -322,8 +294,6 @@ export async function GET(request: NextRequest) {
         500,
         error
       )
-
-    console.error('[SSE Proxy] ❌ Failed to establish backend connection:', sseError)
 
     return new Response(
       JSON.stringify({

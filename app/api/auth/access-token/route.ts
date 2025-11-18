@@ -26,8 +26,7 @@ export async function GET() {
         }
 
         return NextResponse.json({ accessToken })
-    } catch (error) {
-        console.error('Error fetching access token:', error)
+    } catch (_error) {
         return NextResponse.json(
             { error: 'Failed to fetch access token' },
             { status: 500 }

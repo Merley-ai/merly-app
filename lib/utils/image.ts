@@ -42,7 +42,6 @@ export async function downloadImage(url: string, description?: string): Promise<
     // Clean up blob URL
     window.URL.revokeObjectURL(blobUrl);
   } catch (error) {
-    console.error('Failed to download image:', error);
     throw error;
   }
 }

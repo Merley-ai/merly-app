@@ -43,14 +43,6 @@ export async function POST(request: Request) {
             album_id,
         } = body
 
-        console.log('[Image Gen API] 📦 Request body:', {
-            prompt: prompt?.substring(0, 50),
-            input_images_count: input_images?.length || 0,
-            album_id,
-            num_images,
-            aspect_ratio,
-        })
-
         // Validate prompt
         if (!prompt || !prompt.trim()) {
             return NextResponse.json(
@@ -94,11 +86,6 @@ export async function POST(request: Request) {
 
             if (generationType === 'generate') {
                 // Text-to-Image Generation
-                console.log('[Image Gen API] 🚀 Calling generateImage with:', {
-                    user_id: user.sub,
-                    album_id,
-                    prompt: prompt.substring(0, 50),
-                })
                 backendResponse = await generateImage({
                     model: modelConfig.model,
                     sub_path: modelConfig.sub_path,
@@ -148,28 +135,16 @@ export async function POST(request: Request) {
             })
 
         } catch (backendError) {
-            console.error('[Image Gen API] ❌ Backend error:', backendError)
-
             // Extract detailed error information
             let errorMessage = 'Unknown backend error'
             let statusCode = 500
-            let errorDetails: unknown = null
 
             if (backendError instanceof BackendAPIError) {
                 errorMessage = backendError.message
                 statusCode = backendError.statusCode || 500
-                errorDetails = backendError.details
             } else if (backendError instanceof Error) {
                 errorMessage = backendError.message
             }
-
-            console.error('[Image Gen API] ❌ Error details:', {
-                message: errorMessage,
-                statusCode,
-                details: errorDetails,
-                album_id,
-                generation_type: generationType,
-            })
 
             return NextResponse.json(
                 {

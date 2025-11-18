@@ -16,7 +16,6 @@ export function UserMenu() {
   }
 
   if (error) {
-    console.error('Auth error:', error)
     return null
   }
 

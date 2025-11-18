@@ -28,12 +28,6 @@ export function EmptyTimeline({
     onRemoveFile,
     onSubmit,
 }: EmptyTimelineProps) {
-    const currentDate = new Date().toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-
     return (
         <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r border-[#6b6b6b] flex flex-col">
             {/* Header */}

@@ -76,7 +76,6 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry {
     }
 
     // Fallback for unknown types
-    console.warn('[Timeline Transform] Unknown event type:', event.type)
     return {
         id: event.id,
         type: 'ai',

@@ -16,7 +16,7 @@ import { NextResponse } from "next/server";
  * Configured to redirect to dashboard after successful login.
  */
 export const auth0 = new Auth0Client({
-    onCallback: async (error, ctx, session) => {
+    onCallback: async (error, ctx, _session) => {
         if (error) {
             // On error, redirect to login with error message
             return NextResponse.redirect(

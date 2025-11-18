@@ -74,11 +74,6 @@ export async function connectToImageGenerationSSE(
     const endpoint = `/v1/image-gen/${requestId}/event-stream`
     const backendSSEUrl = getBackendSSEUrl(endpoint)
 
-    console.log('[SSE Server Client] 🔌 Connecting to backend SSE:', {
-        requestId,
-        url: backendSSEUrl,
-    })
-
     try {
         // Establish connection to backend SSE endpoint with timeout
         const controller = new AbortController()
@@ -113,8 +108,6 @@ export async function connectToImageGenerationSSE(
                 500
             )
         }
-
-        console.log('[SSE Server Client] ✅ Successfully connected to backend SSE')
 
         return {
             response,

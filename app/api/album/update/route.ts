@@ -68,8 +68,6 @@ export async function PATCH(request: Request) {
                 ? backendError.message
                 : 'Unknown backend error'
 
-            console.error('[API] Failed to update album:', errorMessage)
-
             return NextResponse.json(
                 {
                     error: 'Failed to update album in backend',
@@ -80,7 +78,6 @@ export async function PATCH(request: Request) {
         }
 
     } catch (error) {
-        console.error('[API] Album update error:', error)
         return NextResponse.json(
             {
                 error: 'Failed to update album',

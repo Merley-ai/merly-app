@@ -10,10 +10,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-        'Supabase environment variables not configured. ' +
-        'Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
-    )
+    // Supabase environment variables not configured
 }
 
 /**
@@ -53,7 +50,6 @@ export async function executeSupabaseQuery<T>(
         const data = await query(supabase)
         return { data, error: null }
     } catch (error) {
-        console.error('Supabase query error:', error)
         return { data: null, error: error as Error }
     }
 }
