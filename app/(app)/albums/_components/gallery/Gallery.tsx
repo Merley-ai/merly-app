@@ -56,14 +56,12 @@ function GalleryImageItem({
           <Image
             src={image.url}
             alt={image.description}
-            // TODO: add image name/description
-            // alt={image.description}
             fill
             className="object-cover"
             onLoad={handleImageLoad}
             loading="lazy"
-            // sizes="(max-width: 768px) 50vw, 33vw"
-            // quality={85}
+            sizes="(max-width: 768px) 50vw, 33vw"
+            quality={85}
             unoptimized={image.url.includes('fal.media') || image.url.includes('fal.ai')}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200">

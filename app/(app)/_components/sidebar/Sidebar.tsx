@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { UserMenu } from "@/components/auth";
+import { Tooltip } from "@/components/ui/Tooltip";
 import type { Album } from "@/types";
 
 interface SidebarProps {
@@ -36,11 +37,11 @@ export function Sidebar({
 }: SidebarProps) {
     return (
         <aside
-            className={`bg-black flex-shrink-0 border-r border-[#6b6b6b] flex flex-col transition-all duration-300 ${isCollapsed ? 'w-[60px]' : 'w-[294px]'
+            className={`bg-black flex-shrink-0 border-r-[0.5px] border-white/20 flex flex-col transition-all duration-300 overflow-visible ${isCollapsed ? 'w-[66px]' : 'w-[260px]'
                 }`}
         >
             {/* Header with collapse button */}
-            <div className="px-3 py-4 flex items-center justify-between">
+            <div className={`px-3 py-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                 {!isCollapsed && (
                     <>
                         {onBackToWebsite ? (
@@ -61,30 +62,106 @@ export function Sidebar({
                 )}
                 <button
                     onClick={onToggleCollapse}
-                    className="text-white/60 hover:text-white transition-colors ml-auto cursor-pointer"
+                    className={`text-white/60 hover:text-white transition-colors cursor-pointer ${!isCollapsed ? 'ml-auto' : ''}`}
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? (
-                        <ChevronRight className="size-5" />
+                        <Menu className="size-6" />
                     ) : (
-                        <ChevronLeft className="size-5" />
+                        <ChevronLeft className="size-6" />
                     )}
                 </button>
             </div>
 
-            {!isCollapsed && (
+            {isCollapsed ? (
                 <>
+                    {/* Collapsed View - Icons with Tooltips */}
+                    <div className="flex flex-col items-center gap-3 px-3 mt-4 mb-4">
+                        {/* Home Button */}
+                        <Tooltip text="Home" position="right">
+                            <button
+                                onClick={onGoToHome}
+                                className={`p-2 hover:bg-white/5 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
+                                    }`}
+                            >
+                                <svg className="size-[27px]" fill="none" viewBox="0 0 14 14">
+                                    <path d="M7 1.5L1.5 6v6.5h4V9h3v3.5h4V6L7 1.5z" fill="#ddddddff" />
+                                </svg>
+                            </button>
+                        </Tooltip>
+
+                        {/* Create New Album Button */}
+                        <Tooltip text="Create New Album" position="right">
+                            <button
+                                onClick={onCreateAlbum}
+                                disabled={isLoading}
+                                className="p-2 hover:bg-white/5 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
+                                    <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
+                                </svg>
+                            </button>
+                        </Tooltip>
+                    </div>
+
+                    {/* Albums List - Collapsed */}
+                    <div className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-2 pt-2">
+                        {albums.map((album, index) => (
+                            <Tooltip key={album.id || `album-${index}`} text={album.name} position="right">
+                                <button
+                                    onClick={() => onSelectAlbum(album)}
+                                    className={`size-[37px] rounded-4xl overflow-hidden flex-shrink-0 relative transition-all cursor-pointer ${!isHomeView && selectedAlbum?.id === album.id
+                                        ? "ring-2 ring-white/40"
+                                        : "hover:ring-2 hover:ring-white/60"
+                                        }`}
+                                >
+                                    {album.thumbnail_url ? (
+                                        <Image
+                                            src={album.thumbnail_url}
+                                            alt={album.name}
+                                            fill
+                                            className="object-cover"
+                                            sizes="37px"
+                                            quality={75}
+                                            unoptimized={album.thumbnail_url.includes('fal.media') || album.thumbnail_url.includes('fal.ai')}
+                                        />
+                                    ) : (
+                                        <div className="size-full bg-[#666666] flex items-center justify-center">
+                                            <svg className="size-[16px] " fill="none" viewBox="0 0 14 14">
+                                                {/* <path d={dashboardSvgPaths.p2d909600} fill="#666666" /> */}
+                                            </svg>
+                                        </div>
+                                    )}
+                                </button>
+                            </Tooltip>
+                        ))}
+                    </div>
+
+                    {/* User Info - Collapsed */}
+                    <div className="p-3 flex justify-center">
+                        <Tooltip text="Account Profile" position="right">
+                            <div>
+                                <UserMenu />
+                            </div>
+                        </Tooltip>
+                    </div>
+                </>
+            ) : (
+                <>
+                    {/* Expanded View */}
                     {/* Home Button */}
                     <button
                         onClick={onGoToHome}
-                        className={`mx-3 mt-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
+                        className={`mx-3 mt-4 p-2 flex items-center gap-2 hover:bg-white/5 rounded-xl transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
                             }`}
                     >
-                        <svg className="size-[14px]" fill="none" viewBox="0 0 14 14">
-                            <path d="M7 1.5L1.5 6v6.5h4V9h3v3.5h4V6L7 1.5z" fill="#666666" />
-                        </svg>
+                        <div className="size-[37px] flex items-center justify-center flex-shrink-0">
+                            <svg className="size-[27px]" fill="none" viewBox="0 0 14 14">
+                                <path d="M7 1.5L1.5 6v6.5h4V9h3v3.5h4V6L7 1.5z" fill="#ddddddff" />
+                            </svg>
+                        </div>
                         <p
-                            className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
+                            className="p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
                             style={{ fontVariationSettings: "'wdth' 100" }}
                         >
                             Home
@@ -95,13 +172,15 @@ export function Sidebar({
                     <button
                         onClick={onCreateAlbum}
                         disabled={isLoading}
-                        className="mx-3 mb-4 px-3 py-2 flex items-center gap-3 hover:bg-white/5 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="mx-3 mb-4 p-2 flex items-center gap-2 hover:bg-white/5 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <svg className="size-[14px]" fill="none" viewBox="0 0 14 14">
-                            <path d={dashboardSvgPaths.p2d909600} fill="#666666" />
-                        </svg>
+                        <div className="size-[37px] flex items-center justify-center flex-shrink-0">
+                            <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
+                                <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
+                            </svg>
+                        </div>
                         <p
-                            className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
+                            className="p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
                             style={{ fontVariationSettings: "'wdth' 100" }}
                         >
                             Create New Album
@@ -168,7 +247,7 @@ export function Sidebar({
                                     ) : (
                                         <div className="size-full flex items-center justify-center">
                                             <svg className="size-[16px]" fill="none" viewBox="0 0 14 14">
-                                                <path d={dashboardSvgPaths.p2d909600} fill="#666666" />
+                                                <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
                                             </svg>
                                         </div>
                                     )}

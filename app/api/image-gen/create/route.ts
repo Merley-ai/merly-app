@@ -86,45 +86,51 @@ export async function POST(request: Request) {
 
             if (generationType === 'generate') {
                 // Text-to-Image Generation
-                backendResponse = await generateImage({
-                    model: modelConfig.model,
-                    sub_path: modelConfig.sub_path,
-                    prompt,
-                    user_id: user.sub,
-                    album_id,
-                    aspect_ratio,
-                    num_images,
-                    output_format,
-                    sync_mode: false,
-                })
+                backendResponse = await generateImage(
+                    {
+                        model: modelConfig.model,
+                        sub_path: modelConfig.sub_path,
+                        prompt,
+                        user_id: user.sub,
+                        album_id,
+                        aspect_ratio,
+                        num_images,
+                        output_format,
+                        sync_mode: false,
+                    }
+                )
             } else if (generationType === 'edit') {
                 // Image Editing
-                backendResponse = await editImage({
-                    model: modelConfig.model,
-                    sub_path: modelConfig.sub_path,
-                    prompt,
-                    user_id: user.sub,
-                    album_id,
-                    image_url: validImages[0], // Use the single image
-                    aspect_ratio,
-                    num_images,
-                    output_format,
-                    sync_mode: false,
-                })
+                backendResponse = await editImage(
+                    {
+                        model: modelConfig.model,
+                        sub_path: modelConfig.sub_path,
+                        prompt,
+                        user_id: user.sub,
+                        album_id,
+                        image_url: validImages[0], // Use the single image
+                        aspect_ratio,
+                        num_images,
+                        output_format,
+                        sync_mode: false,
+                    }
+                )
             } else {
                 // Image Remixing
-                backendResponse = await remixImages({
-                    model: modelConfig.model,
-                    sub_path: modelConfig.sub_path,
-                    prompt,
-                    user_id: user.sub,
-                    album_id,
-                    image_urls: validImages, // Use all images
-                    aspect_ratio,
-                    num_images,
-                    output_format,
-                    sync_mode: false,
-                })
+                backendResponse = await remixImages(
+                    {
+                        model: modelConfig.model,
+                        sub_path: modelConfig.sub_path,
+                        prompt,
+                        user_id: user.sub,
+                        album_id,
+                        image_urls: validImages, // Use all images
+                        aspect_ratio,
+                        num_images,
+                        output_format,
+                        sync_mode: false,
+                    }
+                )
             }
 
             // Add generation type to response for frontend tracking

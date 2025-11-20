@@ -60,7 +60,6 @@ export function ImageViewer({
                     </p>
                     <div className="flex items-center gap-2">
                         <svg className="size-[16px]" fill="none" viewBox="0 0 16 16">
-                            <path d={dashboardSvgPaths.p17f63800} fill="white" />
                         </svg>
                     </div>
                 </div>

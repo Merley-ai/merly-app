@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     formats: ['image/avif', 'image/webp'],
+    qualities: [50, 75, 85, 90, 95, 100],
     remotePatterns: [
       {
         protocol: 'https',

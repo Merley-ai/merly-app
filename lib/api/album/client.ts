@@ -30,14 +30,18 @@ import { apiFetch } from '../core'
  * Get all albums for a user
  * 
  * @param request - Contains user_id
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Array of albums belonging to the user
  */
 export async function getAllAlbums(
-    request: GetAllAlbumsRequest
+    request: GetAllAlbumsRequest,
+    accessToken?: string | null
 ): Promise<AlbumResponse[]> {
     const response = await apiFetch<{ message: string; data: AlbumResponse[] | null }>(
         `/v1/album/get-all/${request.user_id}`,
-        { method: 'GET' }
+        { method: 'GET' },
+        undefined,
+        accessToken
     )
 
     // Handle backend response structure: {message, data}
@@ -48,14 +52,18 @@ export async function getAllAlbums(
  * Get a specific album by ID
  * 
  * @param request - Contains user_id and album_id
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Single album details
  */
 export async function getAlbum(
-    request: GetAlbumRequest
+    request: GetAlbumRequest,
+    accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
         `/v1/album/get/${request.album_id}`,
-        { method: 'GET' }
+        { method: 'GET' },
+        undefined,
+        accessToken
     )
 
     return response.data
@@ -65,10 +73,12 @@ export async function getAlbum(
  * Get timeline events for an album
  * 
  * @param request - Contains albumId and optional query parameters (limit, offset, order_by, ascending)
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Array of timeline events for the album
  */
 export async function getAlbumTimeline(
-    request: GetAlbumTimelineRequest
+    request: GetAlbumTimelineRequest,
+    accessToken?: string | null
 ): Promise<TimelineEvent[]> {
     const { albumId, limit, offset, order_by, ascending } = request
 
@@ -84,7 +94,9 @@ export async function getAlbumTimeline(
 
     const response = await apiFetch<{ message: string; data: TimelineEvent[] }>(
         url,
-        { method: 'GET' }
+        { method: 'GET' },
+        undefined,
+        accessToken
     )
 
     return response.data
@@ -94,10 +106,12 @@ export async function getAlbumTimeline(
  * Get gallery images for an album
  * 
  * @param request - Contains albumId and optional query parameters (limit, offset, order_by, ascending)
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Array of gallery images for the album
  */
 export async function getAlbumGallery(
-    request: GetAlbumGalleryRequest
+    request: GetAlbumGalleryRequest,
+    accessToken?: string | null
 ): Promise<GalleryImageResponse[]> {
     const { albumId, limit, offset, order_by, ascending } = request
 
@@ -113,7 +127,9 @@ export async function getAlbumGallery(
 
     const response = await apiFetch<{ message: string; data: GalleryImageResponse[] }>(
         url,
-        { method: 'GET' }
+        { method: 'GET' },
+        undefined,
+        accessToken
     )
 
     return response.data
@@ -123,17 +139,22 @@ export async function getAlbumGallery(
  * Create a new album
  * 
  * @param request - Contains user_id, name, and optional description
+ * @param accessToken - Optional JWT access token for authentication
  * @returns The created album
  */
 export async function createAlbum(
-    request: CreateAlbumRequest
+    request: CreateAlbumRequest,
+    accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
         '/v1/album/create',
         {
             method: 'POST',
             body: JSON.stringify(request),
-        })
+        },
+        undefined,
+        accessToken
+    )
 
     return response.data
 }
@@ -142,17 +163,22 @@ export async function createAlbum(
  * Update an existing album
  * 
  * @param request - Contains user_id, album_id, name, and optional description
+ * @param accessToken - Optional JWT access token for authentication
  * @returns The updated album
  */
 export async function updateAlbum(
-    request: UpdateAlbumRequest
+    request: UpdateAlbumRequest,
+    accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
         '/v1/album/update',
         {
             method: 'PATCH',
             body: JSON.stringify(request),
-        })
+        },
+        undefined,
+        accessToken
+    )
 
     return response.data
 }
@@ -161,17 +187,22 @@ export async function updateAlbum(
  * Delete an album
  * 
  * @param request - Contains user_id and album_id
+ * @param accessToken - Optional JWT access token for authentication
  * @returns void on success
  */
 export async function deleteAlbum(
-    request: DeleteAlbumRequest
+    request: DeleteAlbumRequest,
+    accessToken?: string | null
 ): Promise<void> {
     await apiFetch<{ message: string; data: null }>(
         '/v1/album/delete',
         {
             method: 'DELETE',
             body: JSON.stringify(request),
-        })
+        },
+        undefined,
+        accessToken
+    )
 
     // Return void on success
     return

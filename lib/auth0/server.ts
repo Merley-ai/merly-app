@@ -51,10 +51,10 @@ export async function isAuthenticated(): Promise<boolean> {
 /**
  * Get access token for API calls
  */
-export async function getAccessToken() {
+export async function getAccessToken(): Promise<string | null> {
     try {
         const session = await auth0.getSession();
-        return session?.accessToken || null;
+        return (session?.accessToken as string | undefined) || null;
     } catch (_error) {
         return null;
     }

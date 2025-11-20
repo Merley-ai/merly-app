@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { useRef, useEffect } from "react";
+import { InputButtons } from "./InputButtons";
 import type { UploadedFile } from "@/types";
 
 interface InputAreaProps {
@@ -24,23 +23,22 @@ export function InputArea({
   onSubmit,
   hasScrolledContent = false,
 }: InputAreaProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if send button should be disabled
   const isSendDisabled = !inputValue.trim() && uploadedFiles.length === 0;
-
-  const handleAttachClick = () => {
-    // Reset the input value to allow selecting the same file again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    fileInputRef.current?.click();
-  };
 
   const handleSubmit = () => {
     if (isSendDisabled) return;
     onSubmit();
   };
+
+  // Reset textarea height when input is cleared
+  useEffect(() => {
+    if (inputValue === '' && textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  }, [inputValue]);
 
   return (
     <div
@@ -50,7 +48,7 @@ export function InputArea({
         }`}
     >
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-b from-white/20 to-transparent blur-[4px]" />
-      <div className="bg-[#2e2e2e] rounded-[29px] px-6 py-4 flex flex-col gap-3">
+      <div className="bg-[#2e2e2e] rounded-[29px] px-4 py-4 flex flex-col gap-2 transition-all duration-200 hover:bg-[#333333] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
         {/* Uploaded Image Thumbnails */}
         {uploadedFiles.length > 0 && (
           <div className="flex gap-2 flex-wrap">
@@ -119,9 +117,10 @@ export function InputArea({
           </div>
         )}
 
-        {/* Text Area and Buttons */}
-        <div className="flex items-center gap-3">
+        {/* Text Area - Full Width, Scrollable */}
+        <div className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-thumb-white scrollbar-track-transparent">
           <textarea
+            ref={textareaRef}
             value={inputValue}
             onChange={(e) => onInputChange(e.target.value)}
             onInput={(e) => {
@@ -137,57 +136,22 @@ export function InputArea({
             }}
             placeholder="Ask Merley"
             rows={1}
-            className="font-['Roboto:Regular',_sans-serif] text-white text-[16px] flex-1 bg-transparent border-none outline-none placeholder:text-white/40 resize-none min-h-[24px] overflow-hidden caret-white animate-[blink_1s_ease-in-out_infinite]"
+            className="font-['Roboto:Regular',_sans-serif] text-white text-[16px] w-full bg-transparent border-none outline-none placeholder:text-white/50 resize-none min-h-[16px] overflow-hidden caret-white animate-[blink_1s_ease-in-out_infinite]"
             style={{
               fontVariationSettings: "'wdth' 100",
-              lineHeight: '1.5'
+              lineHeight: '1.6'
             }}
           />
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Upload Button with Tooltip */}
-            <Tooltip text="Upload image" position="top">
-              <button
-                onClick={handleAttachClick}
-                type="button"
-                className="flex-none transition-all duration-200 hover:scale-110 cursor-pointer"
-                aria-label="Upload image"
-              >
-                <svg className="size-[18px]" fill="none" viewBox="0 0 18 18">
-                  <path d={dashboardSvgPaths.p110a4400} fill="#666666" />
-                </svg>
-              </button>
-            </Tooltip>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={onFileChange}
-              className="hidden"
-              accept="image/*"
-              multiple
-            />
-
-            {/* Send Button with Tooltip */}
-            <Tooltip text="Send" position="top" disabled={isSendDisabled}>
-              <button
-                onClick={handleSubmit}
-                type="button"
-                disabled={isSendDisabled}
-                className={`flex-none transition-all duration-200 ${isSendDisabled
-                  ? 'opacity-30 cursor-not-allowed'
-                  : 'hover:scale-110 cursor-pointer'
-                  }`}
-                aria-label="Send"
-              >
-                <svg className="size-[28px]" fill="none" viewBox="0 0 28 28">
-                  <path d={dashboardSvgPaths.p3865f100} fill="#666666" />
-                </svg>
-              </button>
-            </Tooltip>
-          </div>
         </div>
+
+        {/* CTA Component - Always at Bottom */}
+        <InputButtons
+          onAttachClick={() => { }}
+          onSendClick={handleSubmit}
+          isSendDisabled={isSendDisabled}
+          onFileChange={onFileChange}
+        />
       </div>
     </div>
   );
 }
-

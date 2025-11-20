@@ -18,44 +18,65 @@ import { apiFetch } from '../core'
  * Generate image from text prompt
  * 
  * @param request - Generation parameters
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Generation response with request_id or images
  */
 export async function generateImage(
-    request: GenerateImageRequest
+    request: GenerateImageRequest,
+    accessToken?: string | null
 ): Promise<GenerationResponse> {
-    return apiFetch<GenerationResponse>('/v1/image-gen/generate', {
-        method: 'POST',
-        body: JSON.stringify(request),
-    })
+    return apiFetch<GenerationResponse>(
+        '/v1/image-gen/generate',
+        {
+            method: 'POST',
+            body: JSON.stringify(request),
+        },
+        undefined,
+        accessToken
+    )
 }
 
 /**
  * Edit an existing image
  * 
  * @param request - Edit parameters including image URL
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Generation response with request_id or images
  */
 export async function editImage(
-    request: EditImageRequest
+    request: EditImageRequest,
+    accessToken?: string | null
 ): Promise<GenerationResponse> {
-    return apiFetch<GenerationResponse>('/v1/image-gen/edit', {
-        method: 'POST',
-        body: JSON.stringify(request),
-    })
+    return apiFetch<GenerationResponse>(
+        '/v1/image-gen/edit',
+        {
+            method: 'POST',
+            body: JSON.stringify(request),
+        },
+        undefined,
+        accessToken
+    )
 }
 
 /**
  * Remix multiple images
  * 
  * @param request - Remix parameters including image URLs
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Generation response with request_id or images
  */
 export async function remixImages(
-    request: RemixImageRequest
+    request: RemixImageRequest,
+    accessToken?: string | null
 ): Promise<GenerationResponse> {
-    return apiFetch<GenerationResponse>('/v1/image-gen/remix', {
-        method: 'POST',
-        body: JSON.stringify(request),
-    })
+    return apiFetch<GenerationResponse>(
+        '/v1/image-gen/remix',
+        {
+            method: 'POST',
+            body: JSON.stringify(request),
+        },
+        undefined,
+        accessToken
+    )
 }
 

@@ -3,7 +3,7 @@
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Album } from "@/types/album";
-import { useAlbums } from "@/hooks/useAlbums";
+import { useAlbumsContext } from "@/contexts/AlbumsContext";
 import { Sidebar } from "@/dashboard/sidebar/Sidebar";
 
 type DashboardLayoutChildren = ReactNode | ((selectedAlbum: Album | null) => ReactNode);
@@ -21,9 +21,9 @@ interface DashboardLayoutProps {
  */
 export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps) {
     const router = useRouter();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
 
-    // Albums hook - automatically fetches albums on mount
+    // Get albums from context - persists across route changes
     const {
         albums,
         selectedAlbum,
@@ -31,11 +31,7 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
         error: albumsError,
         createAlbum,
         selectAlbum,
-    } = useAlbums({
-        onError: () => {
-            // Error handled by hook
-        },
-    });
+    } = useAlbumsContext();
 
     // Handle create album
     const handleCreateAlbum = async () => {

@@ -56,12 +56,14 @@ export class SSEConnectionError extends Error {
  * @param endpoint - API endpoint path (e.g., '/v1/albums')
  * @param options - Fetch options (method, body, headers, etc.)
  * @param timeout - Request timeout in milliseconds
+ * @param accessToken - Optional JWT access token for authentication
  * @returns Parsed response data
  */
 export async function apiFetch<T>(
     endpoint: string,
     options: RequestInit = {},
-    timeout: number = API_TIMEOUT
+    timeout: number = API_TIMEOUT,
+    accessToken?: string | null
 ): Promise<T> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
@@ -69,13 +71,28 @@ export async function apiFetch<T>(
     try {
         const url = `${BACKEND_URL}${endpoint}`
 
+        // Build headers with optional Authorization
+        const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+
+        // Merge existing headers from options
+        if (options.headers) {
+            const existingHeaders = new Headers(options.headers)
+            existingHeaders.forEach((value, key) => {
+                headers[key] = value
+            })
+        }
+
+        // Add Authorization header if token is provided
+        if (accessToken) {
+            headers['Authorization'] = `Bearer ${accessToken}`
+        }
+
         const response = await fetch(url, {
             ...options,
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+            headers,
             signal: controller.signal,
         })
 

@@ -45,13 +45,15 @@ export async function GET(
 
         // Call Backend API
         try {
-            const images = await getAlbumGallery({
-                albumId,
-                limit: limit ? parseInt(limit, 10) : 20,
-                offset: offset ? parseInt(offset, 10) : 0,
-                order_by: order_by || 'created_at',
-                ascending: ascending === 'true',
-            })
+            const images = await getAlbumGallery(
+                {
+                    albumId,
+                    limit: limit ? parseInt(limit, 10) : 20,
+                    offset: offset ? parseInt(offset, 10) : 0,
+                    order_by: order_by || 'created_at',
+                    ascending: ascending === 'true',
+                }
+            )
 
             return NextResponse.json({
                 images,
