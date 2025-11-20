@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import Image from "next/image";
-import { PlaceholderImage } from "./PlaceholderImage";
+import { PlaceholderImage } from "../render-image/PlaceholderImage";
 import type { GalleryImage } from "@/types";
 
 interface GalleryProps {

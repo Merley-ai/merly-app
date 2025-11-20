@@ -1,6 +1,6 @@
 "use client";
 
-import { InputArea } from "./InputArea";
+import { InputArea } from "../input/InputArea";
 import type { UploadedFile } from "@/types";
 
 interface EmptyTimelineProps {

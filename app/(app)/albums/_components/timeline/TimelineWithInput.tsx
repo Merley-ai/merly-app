@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
-import { ThinkingAnimation } from "./ThinkingAnimation";
-import { InputArea } from "./InputArea";
+import { ThinkingAnimation } from "../render-image/ThinkingAnimation";
+import { InputArea } from "../input/InputArea";
 import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { TimelineEntry, UploadedFile } from "@/types";
 

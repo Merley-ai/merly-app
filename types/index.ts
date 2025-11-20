@@ -81,3 +81,10 @@ export type {
     SupabasePaginatedResult,
 } from './supabase';
 
+// Stripe types
+export type {
+    StripePricingTableProps,
+    StripeCustomerSession,
+    StripeCheckoutSession,
+} from './stripe';
+

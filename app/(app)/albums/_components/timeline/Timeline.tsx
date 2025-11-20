@@ -1,5 +1,5 @@
-import { ThinkingAnimation } from "./ThinkingAnimation";
-import { PlaceholderThumbnail } from "./PlaceholderImage";
+import { ThinkingAnimation } from "../render-image/ThinkingAnimation";
+import { PlaceholderThumbnail } from "../render-image/PlaceholderImage";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import type { TimelineEntry } from "@/types";
 

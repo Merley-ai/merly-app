@@ -28,6 +28,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto+Serif:ital,opsz,wght@0,8..144,100..900;1,8..144,100..900&family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+        {/* Stripe Pricing Table Script */}
+        <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
       </head>
       <body className="antialiased">
         <UserProvider>

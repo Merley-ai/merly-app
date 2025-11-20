@@ -1,50 +1,36 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/lib/auth0/client";
 import { downloadImage } from "@/lib/utils";
 import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
 import type { Album } from "@/types/album";
 import type { GeneratedImage } from "@/types/image-generation";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
-import { useAlbums } from "@/hooks/useAlbums";
 import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
 import { useAlbumTimeline } from "@/hooks/useAlbumTimeline";
 import { useAlbumGallery } from "@/hooks/useAlbumGallery";
-import { Sidebar } from "./Sidebar";
-import { HomePage } from "./HomePage";
-import { EmptyTimeline } from "./EmptyTimeline";
-import { TimelineWithInput } from "./TimelineWithInput";
-import { EmptyGallery } from "./EmptyGallery";
-import { Gallery } from "./Gallery";
-import { ImageViewer } from "./ImageViewer";
+import { EmptyTimeline } from "./timeline/EmptyTimeline";
+import { TimelineWithInput } from "./timeline/TimelineWithInput";
+import { EmptyGallery } from "./gallery/EmptyGallery";
+import { Gallery } from "./gallery/Gallery";
+import { ImageViewer } from "./imageview/ImageViewer";
 
-export function DashboardClient() {
-    const router = useRouter();
+interface AlbumsContentProps {
+    selectedAlbum: Album | null;
+}
+
+/**
+ * Albums Content Component
+ * 
+ * Displays timeline, gallery, and image generation interface for the selected album.
+ * Does not manage album selection - that's handled by DashboardLayout.
+ */
+export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const { user } = useUser();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [isHomeView, setIsHomeView] = useState(true);
 
     // Track current generation request ID for updating placeholders
     const currentGenerationRef = useRef<{ aiEntryId: string; numImages: number } | null>(null);
-
-    // Track newly created album to avoid race conditions
-    const newlyCreatedAlbumRef = useRef<Album | null>(null);
-
-    // Albums hook - automatically fetches albums on mount
-    const {
-        albums,
-        selectedAlbum,
-        isLoading: albumsLoading,
-        error: albumsError,
-        createAlbum,
-        selectAlbum,
-    } = useAlbums({
-        onError: () => {
-            // Error handled by hook
-        },
-    });
 
     // Image generation hook with WebSocket support
     const { create } = useImageGeneration({
@@ -109,31 +95,6 @@ export function DashboardClient() {
     const completeImages = galleryImages.filter(
         (img) => img.status === "complete"
     );
-
-    // Handle create album - uses placeholder values automatically
-    const handleCreateAlbum = async () => {
-        try {
-            const newAlbum = await createAlbum();
-            newlyCreatedAlbumRef.current = newAlbum;
-            setIsHomeView(false);
-
-        } catch {
-            newlyCreatedAlbumRef.current = null;
-        }
-    };
-
-    // Handle select album
-    const handleSelectAlbum = (album: Album) => {
-        selectAlbum(album);
-        setIsHomeView(false);
-        // Timeline and gallery will auto-load via hooks when selectedAlbum changes
-    };
-
-    // Handle go to home
-    const handleGoToHome = () => {
-        setIsHomeView(true);
-        // Don't clear selectedAlbum, just show home view
-    };
 
     const handleRemoveFile = (fileId: string) => {
         setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
@@ -268,11 +229,7 @@ export function DashboardClient() {
         setInputValue("");
         setUploadedFiles([]);
 
-        // Get album - use ref if state hasn't updated yet (race condition fix)
-        const albumToUse = selectedAlbum || newlyCreatedAlbumRef.current;
-
-        if (!albumToUse) {
-
+        if (!selectedAlbum) {
             updateTimelineEntry(aiEntryId, {
                 content: "Error: No album selected. Please select or create an album first.",
                 status: "complete",
@@ -282,7 +239,7 @@ export function DashboardClient() {
             return;
         }
 
-        if (!albumToUse.id) {
+        if (!selectedAlbum.id) {
             updateTimelineEntry(aiEntryId, {
                 content: "Error: Invalid album. Please try again.",
                 status: "complete",
@@ -292,18 +249,13 @@ export function DashboardClient() {
             return;
         }
 
-        // Clear the ref after using it
-        if (newlyCreatedAlbumRef.current && newlyCreatedAlbumRef.current.id === albumToUse.id) {
-            newlyCreatedAlbumRef.current = null;
-        }
-
         try {
             await create({
                 prompt,
                 input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
                 num_images: numImages,
                 aspect_ratio: "16:9",
-                album_id: albumToUse.id,
+                album_id: selectedAlbum.id,
             });
 
         } catch {
@@ -312,7 +264,6 @@ export function DashboardClient() {
     };
 
     // Handle generation completion
-    // Use ref to track generation info instead of searching timeline (which may have been replaced by backend data)
     const handleGenerationComplete = useCallback((images: GeneratedImage[]) => {
         const generationInfo = currentGenerationRef.current;
 
@@ -354,15 +305,6 @@ export function DashboardClient() {
                     thinkingText: undefined,
                 });
             }
-
-            // Remove placeholder images from gallery
-            const placeholderPrefix = `placeholder-${aiEntryId}-`;
-            galleryImages.forEach(img => {
-                if (img.id.startsWith(placeholderPrefix)) {
-                    // Note: We don't have a removeImage function, so placeholders will remain
-                    // They could be updated to show error state instead
-                }
-            });
 
             // Clear the ref
             currentGenerationRef.current = null;
@@ -416,29 +358,22 @@ export function DashboardClient() {
         galleryImages.slice(selectedImageIndex + 1).some(img => img.status === "complete");
 
     // Determine which view to show
-    const showHome = isHomeView || !selectedAlbum;
-    const showLoadingAlbum = !showHome && selectedAlbum && timelineEntries.length === 0 && (timelineLoading || galleryLoading);
-    const showEmptyAlbum = !showHome && selectedAlbum && timelineEntries.length === 0 && !timelineLoading && !galleryLoading;
-    const showLoadedAlbum = !showHome && selectedAlbum && timelineEntries.length > 0;
+    const showNoAlbumSelected = !selectedAlbum;
+    const showLoadingAlbum = selectedAlbum && timelineEntries.length === 0 && (timelineLoading || galleryLoading);
+    const showEmptyAlbum = selectedAlbum && timelineEntries.length === 0 && !timelineLoading && !galleryLoading;
+    const showLoadedAlbum = selectedAlbum && timelineEntries.length > 0;
 
     return (
-        <div className="bg-black h-screen w-full flex overflow-hidden">
-            <Sidebar
-                isCollapsed={isSidebarCollapsed}
-                onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                albums={albums}
-                selectedAlbum={selectedAlbum}
-                onSelectAlbum={handleSelectAlbum}
-                onCreateAlbum={handleCreateAlbum}
-                onGoToHome={handleGoToHome}
-                onBackToWebsite={() => router.push("/")}
-                isLoading={albumsLoading}
-                error={albumsError}
-                isHomeView={showHome}
-            />
-
-            {/* Home View - No album selected */}
-            {showHome && <HomePage />}
+        <>
+            {/* No Album Selected */}
+            {showNoAlbumSelected && (
+                <div className="flex-1 bg-black flex items-center justify-center">
+                    <div className="text-white/60 text-center">
+                        <p className="text-lg">No album selected</p>
+                        <p className="text-sm mt-2">Select an album or create a new one to get started</p>
+                    </div>
+                </div>
+            )}
 
             {/* Loading Album View - Fetching timeline and gallery */}
             {showLoadingAlbum && (
@@ -531,7 +466,6 @@ export function DashboardClient() {
                     )}
                 </>
             )}
-        </div>
+        </>
     );
 }
-
