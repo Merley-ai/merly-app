@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, ReactNode } from "react";
+import { useState, useRef, useCallback, ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 interface TooltipProps {
@@ -27,35 +27,38 @@ export function Tooltip({ children, text, position = "bottom", disabled = false 
     const [show, setShow] = useState(false);
     const [coords, setCoords] = useState({ top: 0, left: 0 });
     const triggerRef = useRef<HTMLDivElement>(null);
-    const [mounted, setMounted] = useState(false);
+    const [mounted] = useState(true);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    // Calculate tooltip position when showing
+    const calculatePosition = useCallback(() => {
+        if (!triggerRef.current) return;
 
-    useEffect(() => {
-        if (show && triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            const isTop = position === "top";
-            const isRight = position === "right";
+        const rect = triggerRef.current.getBoundingClientRect();
+        const isTop = position === "top";
+        const isRight = position === "right";
 
-            let top = 0;
-            let left = 0;
+        let top = 0;
+        let left = 0;
 
-            if (isRight) {
-                top = rect.top + rect.height / 2;
-                left = rect.right + 14;
-            } else if (isTop) {
-                top = rect.top - 8;
-                left = rect.left + rect.width / 2;
-            } else {
-                top = rect.bottom + 8;
-                left = rect.left + rect.width / 2;
-            }
-
-            setCoords({ top, left });
+        if (isRight) {
+            top = rect.top + rect.height / 2;
+            left = rect.right + 14;
+        } else if (isTop) {
+            top = rect.top - 8;
+            left = rect.left + rect.width / 2;
+        } else {
+            top = rect.bottom + 8;
+            left = rect.left + rect.width / 2;
         }
-    }, [show, position]);
+
+        setCoords({ top, left });
+    }, [position]);
+
+    const handleShow = useCallback(() => {
+        setShow(true);
+        // Use requestAnimationFrame to calculate position after state update
+        requestAnimationFrame(() => calculatePosition());
+    }, [calculatePosition]);
 
     if (disabled) {
         return <>{children}</>;
@@ -107,8 +110,12 @@ export function Tooltip({ children, text, position = "bottom", disabled = false 
             <div
                 ref={triggerRef}
                 className="inline-flex"
-                onMouseEnter={() => setShow(true)}
+                onMouseEnter={handleShow}
                 onMouseLeave={() => setShow(false)}
+                onFocus={handleShow}
+                onBlur={() => setShow(false)}
+                role="tooltip"
+                tabIndex={0}
             >
                 {children}
             </div>

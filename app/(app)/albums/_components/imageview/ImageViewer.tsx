@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
-import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { GalleryImage } from "@/types";
 

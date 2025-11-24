@@ -82,6 +82,31 @@ export function StripePricingTable({
     const tableId = pricingTableId || process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID;
     const pubKey = publishableKey || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
+    const stripePricingTableProps = useMemo(() => {
+        // Return empty props if configuration is missing (will show error below)
+        if (!tableId || !pubKey) {
+            return {} as StripePricingTableProps;
+        }
+
+        const props: StripePricingTableProps = {
+            'pricing-table-id': tableId,
+            'publishable-key': pubKey,
+        };
+
+        // Add customer session secret if available (takes precedence over email)
+        // Note: Stripe doesn't allow both customer-email and customer-session-client-secret
+        if (customerSessionSecret) {
+            props['customer-session-client-secret'] = customerSessionSecret;
+        }
+
+        // Add client reference ID (Auth0 user ID or custom ID)
+        if (clientReferenceId) {
+            props['client-reference-id'] = clientReferenceId;
+        }
+
+        return props;
+    }, [tableId, pubKey, customerSessionSecret, clientReferenceId]);
+
     // Fetch customer session for authenticated users
     useEffect(() => {
         if (!enableCustomerSession || !user || isLoading) {
@@ -145,27 +170,6 @@ export function StripePricingTable({
             </div>
         );
     }
-
-    // Build the props for the stripe-pricing-table web component
-    const stripePricingTableProps = useMemo(() => {
-        const props: StripePricingTableProps = {
-            'pricing-table-id': tableId,
-            'publishable-key': pubKey,
-        };
-
-        // Add customer session secret if available (takes precedence over email)
-        // Note: Stripe doesn't allow both customer-email and customer-session-client-secret
-        if (customerSessionSecret) {
-            props['customer-session-client-secret'] = customerSessionSecret;
-        }
-
-        // Add client reference ID (Auth0 user ID or custom ID)
-        if (clientReferenceId) {
-            props['client-reference-id'] = clientReferenceId;
-        }
-
-        return props;
-    }, [tableId, pubKey, customerSessionSecret, clientReferenceId]);
 
     return (
         <div className="w-full">

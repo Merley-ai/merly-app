@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { getUser, getAccessToken } from '@/lib/auth0/server';
 import { apiFetchService, Stripe as StripeEndpoints } from '@/lib/api';
 
+interface Auth0User {
+    sub: string;
+    email?: string;
+    name?: string;
+    [key: string]: unknown;
+}
+
 /**
  * API Route: /api/stripe/customer-session
  * 
@@ -98,7 +105,7 @@ interface StripeCustomerSessionResponse {
  * @param user - Auth0 user object
  * @returns Stripe customer client secret or null
  */
-async function getOrCreateStripeCustomer(user: any): Promise<string | null> {
+async function getOrCreateStripeCustomer(user: Auth0User): Promise<string | null> {
     try {
         console.log('Creating Stripe customer session for user:', user.sub);
 

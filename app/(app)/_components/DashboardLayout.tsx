@@ -36,7 +36,7 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
     // Handle create album
     const handleCreateAlbum = async () => {
         try {
-            const newAlbum = await createAlbum();
+            await createAlbum();
             // Navigate to albums route with new album selected
             router.push('/albums');
         } catch (error) {
