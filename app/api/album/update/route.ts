@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { updateAlbum } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
+import type { AlbumResponse } from '@/types/album'
 
 /**
  * PATCH /api/album/update
@@ -51,15 +52,27 @@ export async function PATCH(request: Request) {
 
         // Call Backend API
         try {
-            const album = await updateAlbum({
-                user_id: user.sub,
-                album_id: album_id.trim(),
-                name: name.trim(),
-                description: description?.trim(),
-            })
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
+
+            const response = await apiFetchService<{ message: string; data: AlbumResponse }>(
+                AlbumEndpoints.update(),
+                {
+                    method: 'PATCH',
+                    headers: {
+                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    },
+                    body: JSON.stringify({
+                        user_id: user.sub,
+                        album_id: album_id.trim(),
+                        name: name.trim(),
+                        description: description?.trim(),
+                    }),
+                }
+            )
 
             return NextResponse.json({
-                album,
+                album: response.data,
                 message: 'Album updated successfully',
             })
 

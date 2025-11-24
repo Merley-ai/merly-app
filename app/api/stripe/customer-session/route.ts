@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUser, getAccessToken } from '@/lib/auth0/server';
-import { Stripe as StripeEndpoints } from '@/lib/api/endpoints';
+import { apiFetchService, Stripe as StripeEndpoints } from '@/lib/api';
 
 /**
  * API Route: /api/stripe/customer-session
@@ -78,6 +78,16 @@ export async function POST() {
 }
 
 /**
+ * Stripe customer session response type
+ */
+interface StripeCustomerSessionResponse {
+    message?: string;
+    data: {
+        client_secret: string;
+    };
+}
+
+/**
  * Get or create a Stripe customer for the Auth0 user
  * 
  * This function calls your backend API which:
@@ -86,12 +96,11 @@ export async function POST() {
  * 3. If no, creates a new Stripe customer and stores the ID in your database
  * 
  * @param user - Auth0 user object
- * @returns Stripe customer ID or null
+ * @returns Stripe customer client secret or null
  */
 async function getOrCreateStripeCustomer(user: any): Promise<string | null> {
     try {
-        const url = StripeEndpoints.customerSession();
-        console.log('Backend API URL: getOrCreateStripeCustomer:', url);
+        console.log('Creating Stripe customer session for user:', user.sub);
 
         // Get Auth0 access token for backend authentication
         const accessToken = await getAccessToken();
@@ -100,36 +109,27 @@ async function getOrCreateStripeCustomer(user: any): Promise<string | null> {
             email: user.email,
             name: user.name,
         };
-        console.log('Backend API payload: getOrCreateStripeCustomer:', payload);
+        console.log('Backend API payload:', payload);
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
-            },
-            body: JSON.stringify(payload),
-        });
+        // Use apiFetchService for consistency with other routes
+        const response = await apiFetchService<StripeCustomerSessionResponse>(
+            StripeEndpoints.customerSession(),
+            {
+                method: 'POST',
+                headers: {
+                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                },
+                body: JSON.stringify(payload),
+            }
+        );
 
-        console.log('Backend API response: getOrCreateStripeCustomer:', response);
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Backend API error:', response.status, errorText);
-            throw new Error(`Backend API returned ${response.status}: ${errorText}`);
-        }
+        console.log('Successfully retrieved Stripe customer session from backend');
 
-        const responseData = await response.json();
-        console.log('Successfully retrieved Stripe customer ID from backend:', responseData);
-
-        // Backend returns data nested in a 'data' object
-        const data = responseData.data || responseData;
-
-        if (!data.client_secret) {
+        if (!response.data?.client_secret) {
             throw new Error('Backend API did not return client_secret');
         }
 
-        console.log('Successfully retrieved Stripe customer ID from backend:', data.client_secret);
-        return data.client_secret;
+        return response.data.client_secret;
     } catch (error) {
         console.error('Error calling backend API to get/create Stripe customer:', error);
         throw error;

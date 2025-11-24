@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { createAlbum } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
+import type { AlbumResponse } from '@/types/album'
 
 /**
  * POST /api/album/create
@@ -42,14 +43,25 @@ export async function POST(request: Request) {
 
         // Call Backend API
         try {
-            const albumResponse = await createAlbum({
-                user_id: user.sub,
-                name: name.trim(),
-                description: description?.trim(),
-            })
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
 
-            // Handle case where backend returns an array instead of a single object
-            const album = Array.isArray(albumResponse) ? albumResponse[0] : albumResponse
+            const response = await apiFetchService<{ message: string; data: AlbumResponse }>(
+                AlbumEndpoints.create(),
+                {
+                    method: 'POST',
+                    headers: {
+                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    },
+                    body: JSON.stringify({
+                        user_id: user.sub,
+                        name: name.trim(),
+                        description: description?.trim(),
+                    }),
+                }
+            )
+
+            const album = response.data
 
             if (!album || !album.id) {
                 return NextResponse.json(

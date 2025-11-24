@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { remixImages } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, ImageGen as ImageGenEndpoints } from '@/lib/api'
 import { GENERATION_MODELS } from '@/types/image-generation'
-import type { CreateGenerationRequest } from '@/types/image-generation'
+import type { CreateGenerationRequest, GenerationResponse } from '@/types/image-generation'
 
 /**
  * POST /api/image-gen/remix
@@ -73,18 +73,30 @@ export async function POST(request: Request) {
 
     // Call Backend API
     try {
+      // Get Auth0 access token for backend authentication
+      const accessToken = await getAccessToken()
+
       const modelConfig = GENERATION_MODELS.remix
-      const backendResponse = await remixImages({
-        model: modelConfig.model,
-        sub_path: modelConfig.sub_path,
-        prompt,
-        user_id: user.sub,
-        image_urls: input_images,
-        aspect_ratio,
-        num_images,
-        output_format,
-        sync_mode: false,
-      })
+      const backendResponse = await apiFetchService<GenerationResponse>(
+        ImageGenEndpoints.remix(),
+        {
+          method: 'POST',
+          headers: {
+            ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+          },
+          body: JSON.stringify({
+            model: modelConfig.model,
+            sub_path: modelConfig.sub_path,
+            prompt,
+            user_id: user.sub,
+            image_urls: input_images,
+            aspect_ratio,
+            num_images,
+            output_format,
+            sync_mode: false,
+          }),
+        }
+      )
 
       return NextResponse.json(backendResponse)
 

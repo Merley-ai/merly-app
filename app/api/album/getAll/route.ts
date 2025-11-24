@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { getAllAlbums } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
+import type { AlbumResponse } from '@/types/album'
 
 /**
  * GET /api/album/get-all
@@ -25,9 +26,20 @@ export async function GET() {
 
         // Call Backend API
         try {
-            const albums = await getAllAlbums({
-                user_id: user.sub,
-            })
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
+            console.log('Access Token:', accessToken)
+
+            const response = await apiFetchService<{ message: string; data: AlbumResponse[] | null }>(
+                AlbumEndpoints.getAllAlbums(user.sub),
+                {
+                    headers: {
+                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    },
+                }
+            )
+
+            const albums = response.data || []
 
             return NextResponse.json({
                 albums,

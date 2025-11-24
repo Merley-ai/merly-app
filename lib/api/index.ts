@@ -17,18 +17,12 @@ export type { ApiService } from './endpoints'
 // Core utilities
 export {
     apiFetch,
+    apiFetchService,
     API_TIMEOUT,
     BackendAPIError,
     BackendTimeoutError,
     SSEConnectionError,
 } from './core'
-
-// Image Generation API
-export {
-    generateImage,
-    editImage,
-    remixImages,
-} from './image-gen/client'
 
 // Image Generation SSE Client
 export {
@@ -45,13 +39,4 @@ export type {
     SSEConnectionOptions,
     SSEConnectionResult,
 } from './image-gen/sse-server-client'
-
-// Album Management API
-export {
-    getAllAlbums,
-    getAlbum,
-    createAlbum,
-    updateAlbum,
-    deleteAlbum,
-} from './album/client'
 

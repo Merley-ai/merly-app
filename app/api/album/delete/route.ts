@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { deleteAlbum } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
 
 /**
  * DELETE /api/album/delete
@@ -41,10 +41,22 @@ export async function DELETE(request: Request) {
 
         // Call Backend API
         try {
-            await deleteAlbum({
-                user_id: user.sub,
-                album_id: album_id.trim(),
-            })
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
+
+            await apiFetchService<{ message: string; data: null }>(
+                AlbumEndpoints.delete(),
+                {
+                    method: 'DELETE',
+                    headers: {
+                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    },
+                    body: JSON.stringify({
+                        user_id: user.sub,
+                        album_id: album_id.trim(),
+                    }),
+                }
+            )
 
             return NextResponse.json({
                 message: 'Album deleted successfully',

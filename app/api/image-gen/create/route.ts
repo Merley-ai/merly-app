@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { generateImage, editImage, remixImages, BackendAPIError } from '@/lib/api'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, ImageGen as ImageGenEndpoints, BackendAPIError } from '@/lib/api'
 import { GENERATION_MODELS } from '@/types/image-generation'
-import type { CreateGenerationRequest } from '@/types/image-generation'
+import type { CreateGenerationRequest, GenerationResponse } from '@/types/image-generation'
 
 /**
  * POST /api/image-gen/create
@@ -80,55 +80,79 @@ export async function POST(request: Request) {
             modelConfig = GENERATION_MODELS.remix
         }
 
-        // Call Backend API based on type
+        // Call Backend API directly based on type
         try {
-            let backendResponse
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
+
+            let backendResponse: GenerationResponse
 
             if (generationType === 'generate') {
                 // Text-to-Image Generation
-                backendResponse = await generateImage(
+                backendResponse = await apiFetchService<GenerationResponse>(
+                    ImageGenEndpoints.generate(),
                     {
-                        model: modelConfig.model,
-                        sub_path: modelConfig.sub_path,
-                        prompt,
-                        user_id: user.sub,
-                        album_id,
-                        aspect_ratio,
-                        num_images,
-                        output_format,
-                        sync_mode: false,
+                        method: 'POST',
+                        headers: {
+                            ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                        },
+                        body: JSON.stringify({
+                            model: modelConfig.model,
+                            sub_path: modelConfig.sub_path,
+                            prompt,
+                            user_id: user.sub,
+                            album_id,
+                            aspect_ratio,
+                            num_images,
+                            output_format,
+                            sync_mode: false,
+                        }),
                     }
                 )
             } else if (generationType === 'edit') {
                 // Image Editing
-                backendResponse = await editImage(
+                backendResponse = await apiFetchService<GenerationResponse>(
+                    ImageGenEndpoints.edit(),
                     {
-                        model: modelConfig.model,
-                        sub_path: modelConfig.sub_path,
-                        prompt,
-                        user_id: user.sub,
-                        album_id,
-                        image_url: validImages[0], // Use the single image
-                        aspect_ratio,
-                        num_images,
-                        output_format,
-                        sync_mode: false,
+                        method: 'POST',
+                        headers: {
+                            ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                        },
+                        body: JSON.stringify({
+                            model: modelConfig.model,
+                            sub_path: modelConfig.sub_path,
+                            prompt,
+                            user_id: user.sub,
+                            album_id,
+                            image_url: validImages[0], // Use the single image
+                            aspect_ratio,
+                            num_images,
+                            output_format,
+                            sync_mode: false,
+                        }),
                     }
                 )
             } else {
                 // Image Remixing
-                backendResponse = await remixImages(
+                backendResponse = await apiFetchService<GenerationResponse>(
+                    ImageGenEndpoints.remix(),
                     {
-                        model: modelConfig.model,
-                        sub_path: modelConfig.sub_path,
-                        prompt,
-                        user_id: user.sub,
-                        album_id,
-                        image_urls: validImages, // Use all images
-                        aspect_ratio,
-                        num_images,
-                        output_format,
-                        sync_mode: false,
+                        method: 'POST',
+                        headers: {
+                            ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                        },
+                        body: JSON.stringify({
+                            model: modelConfig.model,
+                            sub_path: modelConfig.sub_path,
+                            prompt,
+                            user_id: user.sub,
+                            album_id,
+                            image_urls: validImages, // Use all images
+                            aspect_ratio,
+                            num_images,
+                            output_format,
+                            sync_mode: false,
+                        }),
                     }
                 )
             }

@@ -131,6 +131,89 @@ export async function apiFetch<T>(
     }
 }
 
+/**
+ * Simplified fetch wrapper for server-side API routes
+ * Constructs full URL using buildUrl from endpoints and calls backend directly
+ * 
+ * @param url - Full API URL (use buildUrl() from endpoints.ts to construct)
+ * @param options - Fetch options (method, body, headers, etc.)
+ * @param timeout - Request timeout in milliseconds
+ * @returns Parsed response data
+ */
+export async function apiFetchService<T>(
+    url: string,
+    options: RequestInit = {},
+    timeout: number = API_TIMEOUT
+): Promise<T> {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+    try {
+        // Build headers
+        const headers: Record<string, string> = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+
+        // Merge existing headers from options
+        if (options.headers) {
+            const existingHeaders = new Headers(options.headers)
+            existingHeaders.forEach((value, key) => {
+                headers[key] = value
+            })
+        }
+
+        const response = await fetch(url, {
+            ...options,
+            headers,
+            signal: controller.signal,
+        })
+
+        clearTimeout(timeoutId)
+
+        // Parse response body
+        let data: unknown
+        const contentType = response.headers.get('content-type')
+
+        if (contentType?.includes('application/json')) {
+            data = await response.json()
+        } else {
+            data = await response.text()
+        }
+
+        // Handle non-OK responses
+        if (!response.ok) {
+            const dataObj = data as Record<string, unknown> | undefined
+            throw new BackendAPIError(
+                (dataObj?.error as string | undefined) || (dataObj?.message as string | undefined) || `API error: ${response.status}`,
+                response.status,
+                data
+            )
+        }
+        return data as T
+
+    } catch (error) {
+        clearTimeout(timeoutId)
+
+        // Handle abort/timeout
+        if (error instanceof Error && error.name === 'AbortError') {
+            throw new BackendTimeoutError()
+        }
+
+        // Custom errors
+        if (error instanceof BackendAPIError || error instanceof BackendTimeoutError) {
+            throw error
+        }
+
+        // Handle network errors
+        throw new BackendAPIError(
+            'Network error: Unable to connect to backend',
+            0,
+            error
+        )
+    }
+}
+
 export {
     API_TIMEOUT,
 }

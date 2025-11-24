@@ -50,12 +50,16 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Get access token for API calls
+ * 
+ * Requires AUTH0_AUDIENCE environment variable to be set.
+ * Returns an access token that can be used to authenticate with your backend API.
  */
 export async function getAccessToken(): Promise<string | null> {
     try {
-        const session = await auth0.getSession();
-        return (session?.accessToken as string | undefined) || null;
-    } catch (_error) {
+        const tokenResult = await auth0.getAccessToken();
+        return tokenResult?.token || null;
+    } catch (error) {
+        console.error('Failed to get access token:', error);
         return null;
     }
 }

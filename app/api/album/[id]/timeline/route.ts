@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUser } from '@/lib/auth0/server'
-import { getAlbumTimeline } from '@/lib/api/album/client'
+import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
+import type { TimelineEvent } from '@/types/timeline'
 
 /**
  * GET /api/album/[id]/timeline
@@ -45,15 +46,30 @@ export async function GET(
 
         // Call Backend API
         try {
-            const events = await getAlbumTimeline(
+            // Build query params
+            const params = new URLSearchParams()
+            params.set('limit', limit || '20')
+            params.set('offset', offset || '0')
+            params.set('order_by', order_by || 'created_at')
+            params.set('ascending', ascending || 'false')
+
+            const queryString = params.toString()
+            const baseUrl = AlbumEndpoints.getTimeline(albumId)
+            const url = queryString ? `${baseUrl}?${queryString}` : baseUrl
+
+            // Get Auth0 access token for backend authentication
+            const accessToken = await getAccessToken()
+
+            const response = await apiFetchService<{ message: string; data: TimelineEvent[] }>(
+                url,
                 {
-                    albumId,
-                    limit: limit ? parseInt(limit, 10) : 20,
-                    offset: offset ? parseInt(offset, 10) : 0,
-                    order_by: order_by || 'created_at',
-                    ascending: ascending === 'true',
+                    headers: {
+                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    },
                 }
             )
+
+            const events = response.data || []
 
             return NextResponse.json({
                 events,
