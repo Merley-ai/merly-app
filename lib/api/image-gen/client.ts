@@ -13,6 +13,7 @@ import type {
 
 // Import shared utilities
 import { apiFetch } from '../core'
+import { ImageGen as ImageGenEndpoints } from '../endpoints'
 
 /**
  * Generate image from text prompt
@@ -26,7 +27,7 @@ export async function generateImage(
     accessToken?: string | null
 ): Promise<GenerationResponse> {
     return apiFetch<GenerationResponse>(
-        '/v1/image-gen/generate',
+        ImageGenEndpoints.generate(),
         {
             method: 'POST',
             body: JSON.stringify(request),
@@ -48,7 +49,7 @@ export async function editImage(
     accessToken?: string | null
 ): Promise<GenerationResponse> {
     return apiFetch<GenerationResponse>(
-        '/v1/image-gen/edit',
+        ImageGenEndpoints.edit(),
         {
             method: 'POST',
             body: JSON.stringify(request),
@@ -70,7 +71,7 @@ export async function remixImages(
     accessToken?: string | null
 ): Promise<GenerationResponse> {
     return apiFetch<GenerationResponse>(
-        '/v1/image-gen/remix',
+        ImageGenEndpoints.remix(),
         {
             method: 'POST',
             body: JSON.stringify(request),

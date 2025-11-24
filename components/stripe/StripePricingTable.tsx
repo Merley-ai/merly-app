@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@auth0/nextjs-auth0/client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { StripePricingTableProps } from '@/types';
 
 /**
@@ -40,16 +40,21 @@ interface StripePricingTableComponentProps {
 
 /**
  * Reusable Stripe Pricing Table Component
+ 
+ * Users should be already logged in.
  * 
- * **IMPORTANT**: This component should only be used in authenticated contexts.
- * It is designed for use in the dashboard where users are already logged in.
+ * **Two-Phase Rendering Approach:**
+ * - Renders pricing table immediately without customer session
+ * - Silently fetches customer-session-client-secret in background
+ * - When session arrives, React automatically updates the pricing table props
+ * - Stripe's web component handles the update gracefully
  * 
  * Features:
- * - Automatically pre-fills email for authenticated users
- * - Fetches customer session to link existing Stripe customers
+ * - Instant page load - no blocking on API calls
+ * - Automatic customer linking when session is ready
  * - Passes Auth0 user ID as client reference ID for reconciliation
  * - Prevents duplicate customer creation
- * - Graceful error handling if customer session fails
+ * - Silent error handling - continues with standard checkout if session fails
  * 
  * @example
  * ```tsx
@@ -72,7 +77,6 @@ export function StripePricingTable({
 }: StripePricingTableComponentProps) {
     const { user, isLoading } = useUser();
     const [customerSessionSecret, setCustomerSessionSecret] = useState<string | null>(null);
-    const [sessionError, setSessionError] = useState<string | null>(null);
 
     // Get environment variables with fallbacks
     const tableId = pricingTableId || process.env.NEXT_PUBLIC_STRIPE_PRICING_TABLE_ID;
@@ -94,7 +98,7 @@ export function StripePricingTable({
                 });
 
                 if (!response.ok) {
-                    // If customer session fails, continue without it (graceful degradation)
+                    // Silent failure - continue without customer session (graceful degradation)
                     console.warn('Failed to fetch customer session:', response.statusText);
                     return;
                 }
@@ -105,8 +109,8 @@ export function StripePricingTable({
                     setCustomerSessionSecret(data.clientSecret);
                 }
             } catch (error) {
-                console.error('Error fetching customer session:', error);
-                setSessionError('Failed to load customer session');
+                // Silent failure - pricing table continues to work without customer session
+                console.warn('Error fetching customer session:', error);
             }
         };
 
@@ -143,54 +147,34 @@ export function StripePricingTable({
     }
 
     // Build the props for the stripe-pricing-table web component
-    const stripePricingTableProps: StripePricingTableProps = {
-        'pricing-table-id': tableId,
-        'publishable-key': pubKey,
-    };
+    const stripePricingTableProps = useMemo(() => {
+        const props: StripePricingTableProps = {
+            'pricing-table-id': tableId,
+            'publishable-key': pubKey,
+        };
 
-    // Add customer email if user is authenticated
-    if (user?.email) {
-        stripePricingTableProps['customer-email'] = user.email;
-    }
-
-    // Add customer session secret if available
-    if (customerSessionSecret) {
-        stripePricingTableProps['customer-session-client-secret'] = customerSessionSecret;
-    }
-
-    // Add client reference ID (Auth0 user ID or custom ID)
-    if (user?.sub || clientReferenceId) {
-        const sanitizedUserId = user?.sub?.replace(/[^a-zA-Z0-9\s\-_]/g, '_') || 'anonymous';
-        const referenceId = clientReferenceId
-            ? `${sanitizedUserId}_${clientReferenceId}`
-            : sanitizedUserId;
-
-        if (referenceId) {
-            stripePricingTableProps['client-reference-id'] = referenceId;
+        // Add customer session secret if available (takes precedence over email)
+        // Note: Stripe doesn't allow both customer-email and customer-session-client-secret
+        if (customerSessionSecret) {
+            props['customer-session-client-secret'] = customerSessionSecret;
         }
-    }
+
+        // Add client reference ID (Auth0 user ID or custom ID)
+        if (clientReferenceId) {
+            props['client-reference-id'] = clientReferenceId;
+        }
+
+        return props;
+    }, [tableId, pubKey, customerSessionSecret, clientReferenceId]);
 
     return (
         <div className="w-full">
-            {/* Show loading state while fetching customer session */}
-            {enableCustomerSession && isLoading && (
-                <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                    <span className="ml-3 text-gray-600">Loading pricing options...</span>
-                </div>
-            )}
-
-            {/* Show session error if any (non-blocking) */}
-            {sessionError && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                    <p>{sessionError}. Continuing with standard checkout flow.</p>
-                </div>
-            )}
-
-            {/* Render the Stripe pricing table */}
-            {!isLoading && (
-                <stripe-pricing-table {...stripePricingTableProps} />
-            )}
+            {/* 
+                Two-Phase Rendering:
+                Phase 1: Render pricing table immediately (0ms) - shows pricing to all users
+                Phase 2: Silently fetch and inject customer-session-client-secret (background)
+            */}
+            <stripe-pricing-table {...stripePricingTableProps} />
         </div>
     );
 }

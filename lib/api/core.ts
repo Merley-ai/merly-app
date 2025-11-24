@@ -6,15 +6,6 @@
  */
 
 // Config
-/**
- * Backend API base URL
- * Can be configured via environment variable
- */
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-if (!BACKEND_URL) {
-    throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
-}
-
 const API_TIMEOUT = 30000
 
 // Custom error for API-related failures
@@ -53,14 +44,14 @@ export class SSEConnectionError extends Error {
 /**
  * Fetch wrapper with timeout, error handling, and automatic JSON parsing
  * 
- * @param endpoint - API endpoint path (e.g., '/v1/albums')
+ * @param url - Full API URL (use buildUrl() from endpoints.ts to construct)
  * @param options - Fetch options (method, body, headers, etc.)
  * @param timeout - Request timeout in milliseconds
  * @param accessToken - Optional JWT access token for authentication
  * @returns Parsed response data
  */
 export async function apiFetch<T>(
-    endpoint: string,
+    url: string,
     options: RequestInit = {},
     timeout: number = API_TIMEOUT,
     accessToken?: string | null
@@ -69,7 +60,6 @@ export async function apiFetch<T>(
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
     try {
-        const url = `${BACKEND_URL}${endpoint}`
 
         // Build headers with optional Authorization
         const headers: Record<string, string> = {
@@ -141,43 +131,7 @@ export async function apiFetch<T>(
     }
 }
 
-/**
- * Get the configured backend URL
- * 
- * @returns Backend API base URL
- */
-export function getBackendURL(): string {
-    if (!BACKEND_URL) {
-        throw new Error('NEXT_PUBLIC_BACKEND_URL is not set')
-    }
-    return BACKEND_URL
-}
-
-/**
- * Get SSE endpoint URL for backend streaming
- * 
- * Constructs full URL for Server-Sent Events endpoints.
- * Uses the same backend URL configuration as HTTP APIs.
- * 
- * @param endpoint - SSE endpoint path (e.g., '/v1/image-gen/123/event-stream')
- * @returns Full SSE URL
- * @throws Error if BACKEND_URL is not configured
- * 
- * @example
- * ```typescript
- * const sseUrl = getBackendSSEUrl('/v1/image-gen/events?request_id=abc-123')
- * // Returns: 'https://api.merley.co/v1/image-gen/events?request_id=abc-123'
- * ```
- */
-export function getBackendSSEUrl(endpoint: string): string {
-    // Ensure endpoint starts with /
-    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
-
-    return `${BACKEND_URL}${normalizedEndpoint}`
-}
-
 export {
-    BACKEND_URL,
     API_TIMEOUT,
 }
 

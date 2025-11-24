@@ -23,10 +23,10 @@ const nextConfig = {
       },
     ],
   },
-  // Hardcoded environment variables for production
+  
   env: {
-    NEXT_PUBLIC_BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.merley.co',
-    BACKEND_URL: process.env.BACKEND_URL || 'https://api.merley.co',
+    NEXT_PUBLIC_SAURON_API_URL: process.env.NEXT_PUBLIC_SAURON_API_URL,
+    NEXT_PUBLIC_MELIAN_API_URL: process.env.NEXT_PUBLIC_MELIAN_API_URL,
   },
 
   // Logging configuration

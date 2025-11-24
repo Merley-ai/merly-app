@@ -4,12 +4,19 @@
  * Includes image generation (HTTP and SSE), album management, and core utilities.
  */
 
+// API Endpoints Library
+export {
+    Album,
+    ImageGen,
+    Stripe,
+    Proxy,
+    buildUrl,
+} from './endpoints'
+export type { ApiService } from './endpoints'
+
 // Core utilities
 export {
     apiFetch,
-    getBackendURL,
-    getBackendSSEUrl,
-    BACKEND_URL,
     API_TIMEOUT,
     BackendAPIError,
     BackendTimeoutError,

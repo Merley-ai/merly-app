@@ -25,6 +25,7 @@ import type {
 
 // Import shared utilities
 import { apiFetch } from '../core'
+import { Album as AlbumEndpoints } from '../endpoints'
 
 /**
  * Get all albums for a user
@@ -38,11 +39,12 @@ export async function getAllAlbums(
     accessToken?: string | null
 ): Promise<AlbumResponse[]> {
     const response = await apiFetch<{ message: string; data: AlbumResponse[] | null }>(
-        `/v1/album/get-all/${request.user_id}`,
+        AlbumEndpoints.getAllAlbums(request.user_id),
         { method: 'GET' },
         undefined,
         accessToken
     )
+    console.log("getAllAlbums api request: ", response)
 
     // Handle backend response structure: {message, data}
     return response.data || []
@@ -60,7 +62,7 @@ export async function getAlbum(
     accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
-        `/v1/album/get/${request.album_id}`,
+        AlbumEndpoints.getAlbum(request.album_id),
         { method: 'GET' },
         undefined,
         accessToken
@@ -90,7 +92,8 @@ export async function getAlbumTimeline(
     if (ascending !== undefined) params.append('ascending', ascending.toString())
 
     const queryString = params.toString()
-    const url = `/v1/album/get/${albumId}/timeline${queryString ? `?${queryString}` : ''}`
+    const baseUrl = AlbumEndpoints.getTimeline(albumId)
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl
 
     const response = await apiFetch<{ message: string; data: TimelineEvent[] }>(
         url,
@@ -123,7 +126,8 @@ export async function getAlbumGallery(
     if (ascending !== undefined) params.append('ascending', ascending.toString())
 
     const queryString = params.toString()
-    const url = `/v1/album/get/${albumId}/gallery${queryString ? `?${queryString}` : ''}`
+    const baseUrl = AlbumEndpoints.getGallery(albumId)
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl
 
     const response = await apiFetch<{ message: string; data: GalleryImageResponse[] }>(
         url,
@@ -147,7 +151,7 @@ export async function createAlbum(
     accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
-        '/v1/album/create',
+        AlbumEndpoints.create(),
         {
             method: 'POST',
             body: JSON.stringify(request),
@@ -171,7 +175,7 @@ export async function updateAlbum(
     accessToken?: string | null
 ): Promise<AlbumResponse> {
     const response = await apiFetch<{ message: string; data: AlbumResponse }>(
-        '/v1/album/update',
+        AlbumEndpoints.update(),
         {
             method: 'PATCH',
             body: JSON.stringify(request),
@@ -195,7 +199,7 @@ export async function deleteAlbum(
     accessToken?: string | null
 ): Promise<void> {
     await apiFetch<{ message: string; data: null }>(
-        '/v1/album/delete',
+        AlbumEndpoints.delete(),
         {
             method: 'DELETE',
             body: JSON.stringify(request),

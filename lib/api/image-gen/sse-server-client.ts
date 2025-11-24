@@ -10,7 +10,8 @@
  * - Designed for use in Next.js API routes (server-side only)
  */
 
-import { getBackendSSEUrl, SSEConnectionError } from '../core'
+import { SSEConnectionError } from '../core'
+import { ImageGen as ImageGenEndpoints } from '../endpoints'
 
 /**
  * Options for establishing an SSE connection to the backend
@@ -69,10 +70,9 @@ export async function connectToImageGenerationSSE(
         )
     }
 
-    // Construct the backend SSE URL using the centralized utility
+    // Construct the backend SSE URL using the endpoints utility
     // Backend endpoint format: /v1/image-gen/{requestId}/event-stream
-    const endpoint = `/v1/image-gen/${requestId}/event-stream`
-    const backendSSEUrl = getBackendSSEUrl(endpoint)
+    const backendSSEUrl = ImageGenEndpoints.eventStream(requestId)
 
     try {
         // Establish connection to backend SSE endpoint with timeout

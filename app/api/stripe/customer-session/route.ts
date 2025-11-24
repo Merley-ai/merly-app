@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getUser } from '@/lib/auth0/server';
-import Stripe from 'stripe';
+import { getUser, getAccessToken } from '@/lib/auth0/server';
+import { Stripe as StripeEndpoints } from '@/lib/api/endpoints';
 
 /**
  * API Route: /api/stripe/customer-session
@@ -17,9 +17,6 @@ import Stripe from 'stripe';
  * 
  * Note: Customer sessions expire after 30 minutes
  */
-
-// Initialize Stripe with secret key
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 /**
  * POST /api/stripe/customer-session
@@ -40,30 +37,21 @@ export async function POST() {
             );
         }
 
-        // 2. Get or create Stripe customer ID from backend API
-        // This calls your backend API which manages the Auth0 → Stripe customer mapping
-        const stripeCustomerId = await getOrCreateStripeCustomer(user);
+        // 2. Create a Customer Session
+        const clientSecret = await getOrCreateStripeCustomer(user);
 
-        if (!stripeCustomerId) {
+        if (!clientSecret) {
             return NextResponse.json(
-                { error: 'Failed to get Stripe customer from backend API' },
+                { error: 'Failed to create customer session' },
                 { status: 500 }
             );
         }
 
-        // 3. Create a Customer Session with Stripe
-        const customerSession = await stripe.customerSessions.create({
-            customer: stripeCustomerId,
-            components: {
-                pricing_table: {
-                    enabled: true,
-                },
-            },
-        });
+        console.log('💸.Customer session created:', clientSecret);
 
         // 4. Return the client secret
         return NextResponse.json({
-            clientSecret: customerSession.client_secret,
+            clientSecret: clientSecret,
         });
     } catch (error) {
         console.error('Error creating customer session:', error);
@@ -101,43 +89,47 @@ export async function POST() {
  * @returns Stripe customer ID or null
  */
 async function getOrCreateStripeCustomer(user: any): Promise<string | null> {
-    const backendApiUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-    // Backend API is required
-    if (!backendApiUrl) {
-        console.error('BACKEND_API_URL environment variable is not configured');
-        throw new Error('Backend API URL is not configured. Please set BACKEND_API_URL environment variable.');
-    }
-
     try {
-        const response = await fetch(`${backendApiUrl}/api/stripe/customers`, {
+        const url = StripeEndpoints.customerSession();
+        console.log('Backend API URL: getOrCreateStripeCustomer:', url);
+
+        // Get Auth0 access token for backend authentication
+        const accessToken = await getAccessToken();
+        const payload = {
+            user_id: user.sub,
+            email: user.email,
+            name: user.name,
+        };
+        console.log('Backend API payload: getOrCreateStripeCustomer:', payload);
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Add any authentication headers your backend requires
-                // Example: 'Authorization': `Bearer ${token}`
+                ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
             },
-            body: JSON.stringify({
-                userId: user.sub,
-                email: user.email,
-                name: user.name,
-            }),
+            body: JSON.stringify(payload),
         });
 
+        console.log('Backend API response: getOrCreateStripeCustomer:', response);
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Backend API error:', response.status, errorText);
             throw new Error(`Backend API returned ${response.status}: ${errorText}`);
         }
 
-        const data = await response.json();
+        const responseData = await response.json();
+        console.log('Successfully retrieved Stripe customer ID from backend:', responseData);
 
-        if (!data.stripeCustomerId) {
-            throw new Error('Backend API did not return stripeCustomerId');
+        // Backend returns data nested in a 'data' object
+        const data = responseData.data || responseData;
+
+        if (!data.client_secret) {
+            throw new Error('Backend API did not return client_secret');
         }
 
-        console.log('Successfully retrieved Stripe customer ID from backend:', data.stripeCustomerId);
-        return data.stripeCustomerId;
+        console.log('Successfully retrieved Stripe customer ID from backend:', data.client_secret);
+        return data.client_secret;
     } catch (error) {
         console.error('Error calling backend API to get/create Stripe customer:', error);
         throw error;

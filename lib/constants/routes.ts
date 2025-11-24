@@ -9,16 +9,14 @@
  * Users will be redirected to login if not authenticated
  */
 export const PROTECTED_ROUTES = [
-    '/dashboard',
-    // Add more protected routes here as your app grows
-    // '/settings',
-    // '/profile',
-    // '/projects',
+    '/home',
+    '/albums',
+    '/accounts',
 ] as const
 
 /**
  * Authentication routes
- * Authenticated users will be redirected to dashboard
+ * Authenticated users will be redirected to home
  */
 export const AUTH_ROUTES = [
     '/login',
@@ -53,13 +51,13 @@ export const AUTH_CALLBACK_ROUTES = [
  */
 export const DEFAULT_PATHS = {
     // Where to redirect after successful login
-    AFTER_LOGIN: '/dashboard',
+    AFTER_LOGIN: '/home',
 
     // Where to redirect when authentication is required
     LOGIN: '/login',
 
     // Where to redirect after successful signup
-    AFTER_SIGNUP: '/dashboard',
+    AFTER_SIGNUP: '/home',
 
     // Where to redirect after logout
     AFTER_LOGOUT: '/',
