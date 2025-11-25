@@ -29,12 +29,20 @@ export function buildUrl(service: ApiService, endpoint: string): string {
     const config = SERVICE_CONFIG[service];
 
     if (!config.url) {
-        console.error(`${config.envVar} is not set`);
+        const errorMsg = `${config.envVar} is not set. Available env vars: ${Object.keys(process.env).filter(k => k.includes('API')).join(', ')}`;
+        console.error(errorMsg);
         throw new Error(`${config.envVar} is not set`);
     }
 
     const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    return `${config.url}${path}`;
+    const fullUrl = `${config.url}${path}`;
+
+    // Log in server-side context only (when window is undefined)
+    if (typeof window === 'undefined') {
+        console.log(`[buildUrl] Building URL for ${service}: ${fullUrl}`);
+    }
+
+    return fullUrl;
 }
 
 /**

@@ -74,6 +74,11 @@ export async function connectToImageGenerationSSE(
 
     const backendSSEUrl = ImageGenEndpoints.eventStream(requestId)
 
+    // Log the URL being called (server-side only)
+    console.log(`[SSE Server Client] Connecting to: ${backendSSEUrl}`)
+    console.log(`[SSE Server Client] Request ID: ${requestId}`)
+    console.log(`[SSE Server Client] Has Auth Token: ${!!options.accessToken}`)
+
     try {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
@@ -87,14 +92,19 @@ export async function connectToImageGenerationSSE(
         if (options.accessToken) {
             headers['Authorization'] = `Bearer ${options.accessToken}`
         } else {
-            // TODO: Kuria - implement error handling
+            console.warn('[SSE Server Client] No access token provided for authentication')
         }
+
+        console.log(`[SSE Server Client] Fetching with headers:`, Object.keys(headers))
 
         const response = await fetch(backendSSEUrl, {
             method: 'GET',
             headers,
             signal: controller.signal,
         })
+
+        console.log(`[SSE Server Client] Response status: ${response.status}`)
+        console.log(`[SSE Server Client] Response headers:`, Object.fromEntries(response.headers.entries()))
 
         clearTimeout(timeoutId)
 
