@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Album } from "@/types/album";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
@@ -13,31 +13,16 @@ interface DashboardLayoutProps {
     currentRoute: 'home' | 'albums' | 'accounts';
 }
 
-const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed';
-
 /**
  * Shared Dashboard Layout
  * 
  * Provides consistent sidebar navigation across all dashboard routes.
- * Manages album state and sidebar collapse state.
+ * Manages album state and sidebar state from context (persists across routes).
  */
 export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps) {
     const router = useRouter();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-        // Initialize from localStorage if available
-        if (typeof window !== 'undefined') {
-            const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-            return stored ? JSON.parse(stored) : true;
-        }
-        return true;
-    });
 
-    // Persist sidebar state to localStorage
-    useEffect(() => {
-        localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isSidebarCollapsed));
-    }, [isSidebarCollapsed]);
-
-    // Get albums from context - persists across route changes
+    // Get albums and sidebar state from context
     const {
         albums,
         selectedAlbum,
@@ -45,6 +30,8 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
         error: albumsError,
         createAlbum,
         selectAlbum,
+        isSidebarCollapsed,
+        toggleSidebar,
     } = useAlbumsContext();
 
     // Handle create album
@@ -74,7 +61,7 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
         <div className="bg-black h-screen w-full flex overflow-hidden">
             <Sidebar
                 isCollapsed={isSidebarCollapsed}
-                onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                onToggleCollapse={toggleSidebar}
                 albums={albums}
                 selectedAlbum={selectedAlbum}
                 onSelectAlbum={handleSelectAlbum}

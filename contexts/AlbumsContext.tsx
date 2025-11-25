@@ -1,8 +1,10 @@
 'use client'
 
-import { createContext, useContext, ReactNode } from 'react'
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
 import { useAlbums } from '@/hooks/useAlbums'
 import type { Album } from '@/types'
+
+const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed'
 
 interface AlbumsContextType {
     albums: Album[]
@@ -15,6 +17,8 @@ interface AlbumsContextType {
     deleteAlbum: (albumId: string) => Promise<void>
     selectAlbum: (album: Album) => void
     refreshAlbum: (albumId: string) => Promise<void>
+    isSidebarCollapsed: boolean
+    toggleSidebar: () => void
 }
 
 const AlbumsContext = createContext<AlbumsContextType | undefined>(undefined)
@@ -27,8 +31,36 @@ export function AlbumsProvider({ children }: { children: ReactNode }) {
         },
     })
 
+    // Sidebar state - always initialize with true for SSR consistency
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
+    const [isHydrated, setIsHydrated] = useState(false)
+
+    // Hydrate from localStorage after mount to avoid hydration mismatch
+    useEffect(() => {
+        const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+        if (stored !== null) {
+            setIsSidebarCollapsed(JSON.parse(stored))
+        }
+        setIsHydrated(true)
+    }, [])
+
+    // Persist sidebar state to localStorage (only after hydration)
+    useEffect(() => {
+        if (isHydrated) {
+            localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isSidebarCollapsed))
+        }
+    }, [isSidebarCollapsed, isHydrated])
+
+    const toggleSidebar = () => {
+        setIsSidebarCollapsed(prev => !prev)
+    }
+
     return (
-        <AlbumsContext.Provider value={albumsState}>
+        <AlbumsContext.Provider value={{
+            ...albumsState,
+            isSidebarCollapsed,
+            toggleSidebar,
+        }}>
             {children}
         </AlbumsContext.Provider>
     )
