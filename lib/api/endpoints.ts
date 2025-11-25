@@ -73,6 +73,7 @@ export const ImageGen = {
  */
 export const Stripe = {
     customerSession: () => buildUrl('melian', 'v1/subscriptions/customer-session'),
+    subscriptionPlan: (userId: string) => buildUrl('melian', `v1/subscriptions/plan/${userId}`),
 } as const;
 
 /**

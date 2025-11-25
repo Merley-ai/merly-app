@@ -10,11 +10,13 @@ import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
 import { useAlbumTimeline } from "@/hooks/useAlbumTimeline";
 import { useAlbumGallery } from "@/hooks/useAlbumGallery";
+import { useSubscriptionStatus } from "@/hooks";
 import { EmptyTimeline } from "./timeline/EmptyTimeline";
 import { TimelineWithInput } from "./timeline/TimelineWithInput";
 import { EmptyGallery } from "./gallery/EmptyGallery";
 import { Gallery } from "./gallery/Gallery";
 import { ImageViewer } from "./imageview/ImageViewer";
+import { shouldDisableSending } from "@/components/subscription/subscriptionUtils";
 
 interface AlbumsContentProps {
     selectedAlbum: Album | null;
@@ -28,6 +30,7 @@ interface AlbumsContentProps {
  */
 export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const { user } = useUser();
+    const { subscriptionStatus } = useSubscriptionStatus();
 
     // Track current generation request ID for updating placeholders
     const currentGenerationRef = useRef<{ aiEntryId: string; numImages: number } | null>(null);
@@ -95,6 +98,9 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const completeImages = galleryImages.filter(
         (img) => img.status === "complete"
     );
+
+    const disableSendEnv = process.env.NEXT_PUBLIC_SUBSCRIPTION_DISABLE_GENERATE === "true";
+    const forceDisableSend = disableSendEnv && shouldDisableSending(subscriptionStatus);
 
     const handleRemoveFile = (fileId: string) => {
         setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
@@ -386,6 +392,8 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             onFileChange={handleFileChange}
                             onRemoveFile={handleRemoveFile}
                             onSubmit={handleSubmit}
+                            subscriptionStatus={subscriptionStatus}
+                            forceDisableSend={forceDisableSend}
                         />
                     ) : (
                         <TimelineWithInput
@@ -400,6 +408,8 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             onLoadMore={loadMoreTimeline}
                             isLoadingMore={timelineLoadingMore}
                             hasMore={timelineHasMore}
+                            subscriptionStatus={subscriptionStatus}
+                            forceDisableSend={forceDisableSend}
                         />
                     )}
 

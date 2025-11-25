@@ -2,7 +2,8 @@ import { useRef, useEffect, useState } from "react";
 import { ThinkingAnimation } from "../render-image/ThinkingAnimation";
 import { InputArea } from "../input/InputArea";
 import { humanizeDate, isSameDay } from "@/lib/utils";
-import type { TimelineEntry, UploadedFile } from "@/types";
+import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
+import { SubscriptionBanner } from "@/components/subscription";
 
 interface TimelineWithInputProps {
     albumName: string;
@@ -16,6 +17,8 @@ interface TimelineWithInputProps {
     onLoadMore?: () => void;
     isLoadingMore?: boolean;
     hasMore?: boolean;
+    subscriptionStatus: SubscriptionStatus | null;
+    forceDisableSend?: boolean;
 }
 
 export function TimelineWithInput({
@@ -30,6 +33,8 @@ export function TimelineWithInput({
     onLoadMore,
     isLoadingMore = false,
     hasMore = false,
+    subscriptionStatus,
+    forceDisableSend = false,
 }: TimelineWithInputProps) {
     const timelineRef = useRef<HTMLDivElement>(null);
     const scrollPositionRef = useRef<number>(0);
@@ -179,6 +184,9 @@ export function TimelineWithInput({
                 </div>
             </div>
 
+            {/* Subscription Status */}
+            <SubscriptionBanner subscriptionStatus={subscriptionStatus} />
+
             {/* Input Area */}
             <InputArea
                 inputValue={inputValue}
@@ -188,6 +196,7 @@ export function TimelineWithInput({
                 onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
                 hasScrolledContent={hasScrolledContent}
+                forceDisableSend={forceDisableSend}
             />
         </main>
     );

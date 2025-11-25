@@ -1,7 +1,8 @@
 "use client";
 
 import { InputArea } from "../input/InputArea";
-import type { UploadedFile } from "@/types";
+import { SubscriptionBanner } from "@/components/subscription";
+import type { SubscriptionStatus, UploadedFile } from "@/types";
 
 interface EmptyTimelineProps {
     albumName: string;
@@ -11,6 +12,8 @@ interface EmptyTimelineProps {
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
+    subscriptionStatus: SubscriptionStatus | null;
+    forceDisableSend?: boolean;
 }
 
 /**
@@ -27,6 +30,8 @@ export function EmptyTimeline({
     onFileChange,
     onRemoveFile,
     onSubmit,
+    subscriptionStatus,
+    forceDisableSend = false,
 }: EmptyTimelineProps) {
     return (
         <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
@@ -55,6 +60,8 @@ export function EmptyTimeline({
                 </div>
             </div>
 
+            <SubscriptionBanner subscriptionStatus={subscriptionStatus} />
+
             {/* Input Area */}
             <InputArea
                 inputValue={inputValue}
@@ -63,6 +70,7 @@ export function EmptyTimeline({
                 onFileChange={onFileChange}
                 onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
+                forceDisableSend={forceDisableSend}
             />
         </main>
     );

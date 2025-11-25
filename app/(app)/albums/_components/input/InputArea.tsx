@@ -12,6 +12,7 @@ interface InputAreaProps {
   onRemoveFile: (fileId: string) => void;
   onSubmit: () => void;
   hasScrolledContent?: boolean;
+  forceDisableSend?: boolean;
 }
 
 export function InputArea({
@@ -22,11 +23,12 @@ export function InputArea({
   onRemoveFile,
   onSubmit,
   hasScrolledContent = false,
+  forceDisableSend = false,
 }: InputAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Check if send button should be disabled
-  const isSendDisabled = !inputValue.trim() && uploadedFiles.length === 0;
+  const isSendDisabled = forceDisableSend || (!inputValue.trim() && uploadedFiles.length === 0);
 
   const handleSubmit = () => {
     if (isSendDisabled) return;
