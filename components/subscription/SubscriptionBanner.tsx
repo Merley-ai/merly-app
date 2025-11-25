@@ -36,9 +36,9 @@ export function SubscriptionBanner({
 
     // Determine message based on subscription status
     const messages = {
-        select_package: "You do not have an active subscription. Click purchase to activate your Merley account.", //1.
-        cancelled: "Your subscription has been cancelled. Purchase a subscription to continue Merley.", //2. 
-        lowCredits: "You're running low on credits. Purchase more credits to continue using premium models.",
+        select_package: "You don’t have an active subscription. Activate your account to continue using Merley.",
+        cancelled: "Your subscription has ended. Reactivate your account to keep using Merley.",
+        lowCredits: "You’re running low on credits. Add more credits to continue enjoying Merley.",
     }
 
     const warningType = getSubscriptionWarningType(subscriptionStatus);
