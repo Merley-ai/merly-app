@@ -28,7 +28,6 @@ export async function GET() {
         try {
             // Get Auth0 access token for backend authentication
             const accessToken = await getAccessToken()
-            console.log('Access Token:', accessToken)
 
             const response = await apiFetchService<{ message: string; data: AlbumResponse[] | null }>(
                 AlbumEndpoints.getAllAlbums(user.sub),

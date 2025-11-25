@@ -359,7 +359,6 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
     // Determine which view to show
     const showNoAlbumSelected = !selectedAlbum;
-    const hasTimelineEntries = timelineEntries.length > 0;
     const isTimelineEmpty = !timelineLoading && timelineEntries.length === 0;
 
     return (

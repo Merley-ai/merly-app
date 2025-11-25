@@ -206,24 +206,18 @@ export const runtime = 'nodejs'
  * GET /api/events?requestId=abc-123-def
  */
 export async function GET(request: NextRequest) {
-  console.log('🔵 [SSE Route] Received request:', request.url)
 
   const searchParams = request.nextUrl.searchParams
   const streamId = searchParams.get('stream') || searchParams.get('requestId')
 
-  console.log('🔵 [SSE Route] Stream ID:', streamId)
-
   if (!streamId) {
-    console.log('❌ [SSE Route] Missing stream/requestId parameter')
     return new Response('Missing stream or requestId parameter', { status: 400 })
   }
 
   try {
-    console.log('🔵 [SSE Route] Attempting to connect to backend SSE...')
 
     // Get access token for authentication
     const accessToken = await getAccessToken()
-    console.log('🔵 [SSE Route] Access token retrieved:', accessToken ? 'Yes' : 'No')
 
     // Use the dedicated SSE server client to establish backend connection
     const { response: backendResponse } = await connectToImageGenerationSSE({
@@ -231,7 +225,6 @@ export async function GET(request: NextRequest) {
       timeout: 30000,
       accessToken: accessToken || undefined,
     })
-    console.log('✅ [SSE Route] Connected to backend SSE successfully')
 
     // Create a readable stream that proxies backend SSE events
     const encoder = new TextEncoder()
@@ -299,10 +292,6 @@ export async function GET(request: NextRequest) {
       headers: createSSEHeaders(),
     })
   } catch (error) {
-    console.error('❌ [SSE Route] Error caught:', error)
-    console.error('❌ [SSE Route] Error type:', error?.constructor?.name)
-    console.error('❌ [SSE Route] Error message:', error instanceof Error ? error.message : 'Unknown error')
-    console.error('❌ [SSE Route] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
 
     // Handle SSE connection errors with proper error class
     const sseError = error instanceof SSEConnectionError
@@ -313,8 +302,6 @@ export async function GET(request: NextRequest) {
         500,
         error
       )
-
-    console.log('❌ [SSE Route] Returning error response with status:', sseError.statusCode)
 
     return new Response(
       JSON.stringify({

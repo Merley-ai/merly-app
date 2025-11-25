@@ -54,8 +54,6 @@ export async function POST() {
             );
         }
 
-        console.log('💸.Customer session created:', clientSecret);
-
         // 4. Return the client secret
         return NextResponse.json({
             clientSecret: clientSecret,
@@ -107,18 +105,13 @@ interface StripeCustomerSessionResponse {
  */
 async function getOrCreateStripeCustomer(user: Auth0User): Promise<string | null> {
     try {
-        console.log('Creating Stripe customer session for user:', user.sub);
-
-        // Get Auth0 access token for backend authentication
         const accessToken = await getAccessToken();
         const payload = {
             user_id: user.sub,
             email: user.email,
             name: user.name,
         };
-        console.log('Backend API payload:', payload);
 
-        // Use apiFetchService for consistency with other routes
         const response = await apiFetchService<StripeCustomerSessionResponse>(
             StripeEndpoints.customerSession(),
             {
@@ -129,8 +122,6 @@ async function getOrCreateStripeCustomer(user: Auth0User): Promise<string | null
                 body: JSON.stringify(payload),
             }
         );
-
-        console.log('Successfully retrieved Stripe customer session from backend');
 
         if (!response.data?.client_secret) {
             throw new Error('Backend API did not return client_secret');

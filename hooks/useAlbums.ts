@@ -121,27 +121,21 @@ export function useAlbums({
             }
 
             const data = await response.json()
-            console.log('[useAlbums] Create Album Response Data:', data)
 
             if (!data.album) {
-                console.error('[useAlbums] ❌ No album in response:', data)
                 throw new Error('Invalid response: album data missing')
             }
 
             // Validate album has required fields
             const albumData = data.album as AlbumResponse
             if (!albumData.id) {
-                console.error('[useAlbums] ❌ Album missing ID:', albumData)
                 throw new Error('Invalid album: missing ID')
             }
 
-            console.log('[useAlbums] 📦 Album data before transform:', albumData)
             const newAlbum = transformAlbumResponse(albumData)
-            console.log('[useAlbums] ✅ Transformed album:', newAlbum)
 
             // Validate transformed album
             if (!newAlbum.id) {
-                console.error('[useAlbums] ❌ Transformed album missing ID:', newAlbum)
                 throw new Error('Transformation failed: album missing ID')
             }
 
