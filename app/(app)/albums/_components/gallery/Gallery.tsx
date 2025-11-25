@@ -119,18 +119,6 @@ export function Gallery({
             onImageClick={onImageClick}
           />
         ))}
-
-        {/* Loading indicator at bottom */}
-        {isLoadingMore && (
-          <div className="col-span-3 flex items-center justify-center py-6">
-            <p
-              className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
-              style={{ fontVariationSettings: "'wdth' 100" }}
-            >
-              ....loading
-            </p>
-          </div>
-        )}
       </div>
     </section>
   );

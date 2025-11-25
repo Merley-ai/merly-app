@@ -82,7 +82,7 @@ export function TimelineWithInput({
     }, [entries.length]);
 
     return (
-        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r border-[#6b6b6b] flex flex-col">
+        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
             {/* Header */}
             <header className="flex items-center justify-between p-4 border-b border-[#6b6b6b]/30">
                 <p
@@ -95,18 +95,6 @@ export function TimelineWithInput({
 
             {/* Timeline Feed */}
             <div ref={timelineRef} className="flex-1 overflow-y-auto px-4 py-6 scrollbar-minimal">
-                {/* Loading indicator at top */}
-                {isLoadingMore && (
-                    <div className="flex items-center justify-center py-4">
-                        <p
-                            className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[12px]"
-                            style={{ fontVariationSettings: "'wdth' 100" }}
-                        >
-                            ....loading
-                        </p>
-                    </div>
-                )}
-
                 <div className="space-y-8">
                     {entries.map((entry, index) => {
                         // Show date only if it's the first entry OR if the date is different from the previous entry

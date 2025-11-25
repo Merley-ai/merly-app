@@ -254,7 +254,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                 prompt,
                 input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
                 num_images: numImages,
-                aspect_ratio: "16:9",
+                aspect_ratio: "9:16",
                 album_id: selectedAlbum.id,
             });
 
@@ -359,9 +359,8 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
     // Determine which view to show
     const showNoAlbumSelected = !selectedAlbum;
-    const showLoadingAlbum = selectedAlbum && timelineEntries.length === 0 && (timelineLoading || galleryLoading);
-    const showEmptyAlbum = selectedAlbum && timelineEntries.length === 0 && !timelineLoading && !galleryLoading;
-    const showLoadedAlbum = selectedAlbum && timelineEntries.length > 0;
+    const hasTimelineEntries = timelineEntries.length > 0;
+    const isTimelineEmpty = !timelineLoading && timelineEntries.length === 0;
 
     return (
         <>
@@ -375,80 +374,48 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                 </div>
             )}
 
-            {/* Loading Album View - Fetching timeline and gallery */}
-            {showLoadingAlbum && (
+            {/* Album Selected - Always show timeline and gallery structure */}
+            {selectedAlbum && (
                 <>
-                    <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r border-[#6b6b6b] flex flex-col">
-                        {/* Header */}
-                        <header className="flex items-center justify-between p-4 border-b border-[#6b6b6b]/30">
-                            <p
-                                className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                                style={{ fontVariationSettings: "'wdth' 100" }}
-                            >
-                                {selectedAlbum.name}
-                            </p>
-                        </header>
-                        {/* Loading Indicator */}
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="w-10 h-10 border-4 border-white/20 border-t-white/80 rounded-full animate-spin" />
-                                <p className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[14px]">
-                                    Loading timeline...
-                                </p>
-                            </div>
-                        </div>
-                    </main>
-                    <section className="bg-[#1a1a1a] flex-1 border-l border-[#6b6b6b] flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="w-10 h-10 border-4 border-white/20 border-t-white/80 rounded-full animate-spin" />
-                            <p className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[14px]">
-                                Loading gallery...
-                            </p>
-                        </div>
-                    </section>
-                </>
-            )}
+                    {/* Show EmptyTimeline only if confirmed empty after loading */}
+                    {isTimelineEmpty ? (
+                        <EmptyTimeline
+                            albumName={selectedAlbum.name}
+                            inputValue={inputValue}
+                            onInputChange={setInputValue}
+                            uploadedFiles={uploadedFiles}
+                            onFileChange={handleFileChange}
+                            onRemoveFile={handleRemoveFile}
+                            onSubmit={handleSubmit}
+                        />
+                    ) : (
+                        <TimelineWithInput
+                            albumName={selectedAlbum.name}
+                            entries={timelineEntries}
+                            inputValue={inputValue}
+                            onInputChange={setInputValue}
+                            uploadedFiles={uploadedFiles}
+                            onFileChange={handleFileChange}
+                            onRemoveFile={handleRemoveFile}
+                            onSubmit={handleSubmit}
+                            onLoadMore={loadMoreTimeline}
+                            isLoadingMore={timelineLoadingMore}
+                            hasMore={timelineHasMore}
+                        />
+                    )}
 
-            {/* Empty Album View - New album with no timeline */}
-            {showEmptyAlbum && (
-                <>
-                    <EmptyTimeline
-                        albumName={selectedAlbum.name}
-                        inputValue={inputValue}
-                        onInputChange={setInputValue}
-                        uploadedFiles={uploadedFiles}
-                        onFileChange={handleFileChange}
-                        onRemoveFile={handleRemoveFile}
-                        onSubmit={handleSubmit}
-                    />
-                    <EmptyGallery onFileChange={handleFileChange} />
-                </>
-            )}
-
-            {/* Loaded Album View - Album with timeline and gallery */}
-            {showLoadedAlbum && (
-                <>
-                    <TimelineWithInput
-                        albumName={selectedAlbum.name}
-                        entries={timelineEntries}
-                        inputValue={inputValue}
-                        onInputChange={setInputValue}
-                        uploadedFiles={uploadedFiles}
-                        onFileChange={handleFileChange}
-                        onRemoveFile={handleRemoveFile}
-                        onSubmit={handleSubmit}
-                        onLoadMore={loadMoreTimeline}
-                        isLoadingMore={timelineLoadingMore}
-                        hasMore={timelineHasMore}
-                    />
-
-                    <Gallery
-                        images={galleryImages}
-                        onImageClick={setSelectedImageIndex}
-                        onLoadMore={loadMoreGallery}
-                        isLoadingMore={galleryLoadingMore}
-                        hasMore={galleryHasMore}
-                    />
+                    {/* Show EmptyGallery only if confirmed empty after loading */}
+                    {!galleryLoading && galleryImages.length === 0 ? (
+                        <EmptyGallery onFileChange={handleFileChange} />
+                    ) : (
+                        <Gallery
+                            images={galleryImages}
+                            onImageClick={setSelectedImageIndex}
+                            onLoadMore={loadMoreGallery}
+                            isLoadingMore={galleryLoadingMore}
+                            hasMore={galleryHasMore}
+                        />
+                    )}
 
                     {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
                         <ImageViewer

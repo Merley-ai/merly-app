@@ -21,6 +21,8 @@ export interface SSEConnectionOptions {
     requestId: string
     /** Optional timeout in milliseconds (default: 30000) */
     timeout?: number
+    /** Optional access token for authentication */
+    accessToken?: string
 }
 
 /**
@@ -61,8 +63,11 @@ export async function connectToImageGenerationSSE(
 ): Promise<SSEConnectionResult> {
     const { requestId, timeout = 30000 } = options
 
+    console.log('🔵 [SSE Server Client] Connecting to backend SSE for requestId:', requestId)
+
     // Validate inputs
     if (!requestId || !requestId.trim()) {
+        console.error('❌ [SSE Server Client] Invalid requestId')
         throw new SSEConnectionError(
             'Request ID is required for SSE connection',
             requestId,
@@ -73,26 +78,42 @@ export async function connectToImageGenerationSSE(
     // Construct the backend SSE URL using the endpoints utility
     // Backend endpoint format: /v1/image-gen/{requestId}/event-stream
     const backendSSEUrl = ImageGenEndpoints.eventStream(requestId)
+    console.log('🔵 [SSE Server Client] Backend URL:', backendSSEUrl)
 
     try {
         // Establish connection to backend SSE endpoint with timeout
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeout)
 
+        console.log('🔵 [SSE Server Client] Fetching from backend...')
+        const headers: Record<string, string> = {
+            'Accept': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+        }
+
+        // Add authentication if token is provided
+        if (options.accessToken) {
+            headers['Authorization'] = `Bearer ${options.accessToken}`
+            console.log('🔵 [SSE Server Client] Authentication token added')
+        } else {
+            console.log('⚠️ [SSE Server Client] No authentication token provided')
+        }
+
         const response = await fetch(backendSSEUrl, {
             method: 'GET',
-            headers: {
-                'Accept': 'text/event-stream',
-                'Cache-Control': 'no-cache',
-            },
+            headers,
             signal: controller.signal,
         })
 
         clearTimeout(timeoutId)
 
+        console.log('🔵 [SSE Server Client] Backend response status:', response.status)
+        console.log('🔵 [SSE Server Client] Backend response ok:', response.ok)
+
         // Check if connection was successful
         if (!response.ok) {
             const errorText = await response.text().catch(() => 'Unknown error')
+            console.error('❌ [SSE Server Client] Backend returned error:', errorText)
             throw new SSEConnectionError(
                 `Backend SSE connection failed: ${response.status} - ${errorText}`,
                 requestId,
@@ -114,12 +135,17 @@ export async function connectToImageGenerationSSE(
             requestId,
         }
     } catch (error) {
+        console.error('❌ [SSE Server Client] Caught error:', error)
+        console.error('❌ [SSE Server Client] Error type:', error?.constructor?.name)
+
         // Handle specific error types
         if (error instanceof SSEConnectionError) {
+            console.error('❌ [SSE Server Client] Re-throwing SSEConnectionError')
             throw error
         }
 
         if (error instanceof Error && error.name === 'AbortError') {
+            console.error('❌ [SSE Server Client] Connection timeout')
             throw new SSEConnectionError(
                 `SSE connection timeout after ${timeout}ms`,
                 requestId,
@@ -129,6 +155,7 @@ export async function connectToImageGenerationSSE(
         }
 
         // Wrap unknown errors
+        console.error('❌ [SSE Server Client] Unknown error, wrapping in SSEConnectionError')
         throw new SSEConnectionError(
             error instanceof Error ? error.message : 'Unknown SSE connection error',
             requestId,

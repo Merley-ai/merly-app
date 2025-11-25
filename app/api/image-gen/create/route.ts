@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         const {
             prompt,
             input_images = [],
-            aspect_ratio = '16:9',
+            aspect_ratio = '9:16',
             num_images = 2,
             output_format = 'png',
             album_id,

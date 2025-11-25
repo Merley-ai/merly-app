@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Album } from "@/types/album";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
@@ -13,6 +13,8 @@ interface DashboardLayoutProps {
     currentRoute: 'home' | 'albums' | 'accounts';
 }
 
+const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed';
+
 /**
  * Shared Dashboard Layout
  * 
@@ -21,7 +23,19 @@ interface DashboardLayoutProps {
  */
 export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps) {
     const router = useRouter();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        // Initialize from localStorage if available
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+            return stored ? JSON.parse(stored) : true;
+        }
+        return true;
+    });
+
+    // Persist sidebar state to localStorage
+    useEffect(() => {
+        localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isSidebarCollapsed));
+    }, [isSidebarCollapsed]);
 
     // Get albums from context - persists across route changes
     const {

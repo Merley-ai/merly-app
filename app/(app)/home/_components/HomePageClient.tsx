@@ -16,7 +16,8 @@ export function HomePageClient() {
                 <p className="text-lg">Welcome to your Dashboard</p>
                 <p className="text-sm mt-2">Select an album or create a new one to get started</p>
 
-                {/* Account & Billing link */}
+                {/* TODO: Kuria - Remove this test button */}
+                {/* 
                 <div className="mt-8">
                     <Link
                         href="/accounts"
@@ -27,7 +28,7 @@ export function HomePageClient() {
                         </svg>
                         Test Pricing Page
                     </Link>
-                </div>
+                </div> */}
             </div>
         </div>
     );

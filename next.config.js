@@ -21,9 +21,13 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.supabase.in',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
     ],
   },
-  
+
   env: {
     NEXT_PUBLIC_SAURON_API_URL: process.env.NEXT_PUBLIC_SAURON_API_URL,
     NEXT_PUBLIC_MELIAN_API_URL: process.env.NEXT_PUBLIC_MELIAN_API_URL,

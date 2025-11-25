@@ -6,6 +6,7 @@ import Image from "next/image";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { UserMenu } from "@/components/auth";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useUser } from "@/lib/auth0/client";
 import type { Album } from "@/types";
 
 interface SidebarProps {
@@ -35,6 +36,8 @@ export function Sidebar({
     error = null,
     isHomeView = false,
 }: SidebarProps) {
+    const { user } = useUser();
+
     return (
         <aside
             className={`bg-black flex-shrink-0 border-r-[0.5px] border-white/20 flex flex-col transition-all duration-300 overflow-visible ${isCollapsed ? 'w-[66px]' : 'w-[260px]'
@@ -139,9 +142,21 @@ export function Sidebar({
 
                     {/* User Info - Collapsed */}
                     <div className="p-3 flex justify-center">
-                        <Tooltip text="Account Profile" position="right">
+                        <Tooltip
+                            text={
+                                user ? (
+                                    <div className="whitespace-nowrap">
+                                        <p className="font-semibold">{user.name || user.nickname || 'User'}</p>
+                                        <p className="text-[12px] text-black/70">{user.email}</p>
+                                    </div>
+                                ) : (
+                                    "Account Profile"
+                                )
+                            }
+                            position="right"
+                        >
                             <div>
-                                <UserMenu />
+                                <UserMenu isCollapsed={true} />
                             </div>
                         </Tooltip>
                     </div>
@@ -264,7 +279,7 @@ export function Sidebar({
 
                     {/* User Info */}
                     <div className="p-7">
-                        <UserMenu />
+                        <UserMenu isCollapsed={false} />
                     </div>
                 </>
             )}

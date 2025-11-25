@@ -10,7 +10,7 @@ interface TimelineProps {
 
 export function Timeline({ albumName, entries }: TimelineProps) {
     return (
-        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r border-[#6b6b6b] flex flex-col">
+        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
             {/* Header */}
             <header className="flex items-center justify-between p-4 border-b border-[#6b6b6b]/30">
                 <p

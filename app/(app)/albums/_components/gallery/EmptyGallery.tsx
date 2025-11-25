@@ -37,7 +37,7 @@ export function EmptyGallery({ onFileChange }: EmptyGalleryProps) {
     };
 
     return (
-        <section className="bg-black flex-1 border-l border-[#6b6b6b] flex items-center justify-center">
+        <section className="bg-black flex-1 border-l-[0.5px] border-white/20 flex items-center justify-center">
             <div
                 className="border-2 border-dashed border-white/20 rounded-lg p-12 flex flex-col items-center justify-center gap-4 hover:border-white/40 transition-colors cursor-pointer"
                 onDrop={handleDrop}

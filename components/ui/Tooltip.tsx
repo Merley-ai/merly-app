@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 interface TooltipProps {
     children: ReactNode;
-    text: string;
+    text: string | ReactNode;
     position?: "top" | "bottom" | "right";
     disabled?: boolean;
 }
@@ -98,9 +98,13 @@ export function Tooltip({ children, text, position = "bottom", disabled = false 
                     />
                 </div>
                 {/* Text */}
-                <p className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal whitespace-nowrap">
-                    {text}
-                </p>
+                <div className="font-['Roboto',_sans-serif] text-black text-[14px] font-normal">
+                    {typeof text === 'string' ? (
+                        <p className="whitespace-nowrap">{text}</p>
+                    ) : (
+                        text
+                    )}
+                </div>
             </div>
         </div>
     ) : null;

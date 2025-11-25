@@ -57,7 +57,6 @@ export const ImageGen = {
     generate: () => buildUrl('sauron', '/v1/image-gen/generate'),
     edit: () => buildUrl('sauron', '/v1/image-gen/edit'),
     remix: () => buildUrl('sauron', '/v1/image-gen/remix'),
-    events: (requestId: string) => buildUrl('sauron', `/v1/image-gen/events?request_id=${encodeURIComponent(requestId)}`),
     eventStream: (requestId: string) => buildUrl('sauron', `/v1/image-gen/${requestId}/event-stream`),
 } as const;
 
