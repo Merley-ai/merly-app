@@ -46,7 +46,7 @@ export async function POST(request: Request) {
             // Get Auth0 access token for backend authentication
             const accessToken = await getAccessToken()
 
-            const response = await apiFetchService<{ message: string; data: AlbumResponse }>(
+            const response = await apiFetchService<{ message: string; data: AlbumResponse[] }>(
                 AlbumEndpoints.create(),
                 {
                     method: 'POST',
@@ -61,7 +61,8 @@ export async function POST(request: Request) {
                 }
             )
 
-            const album = response.data
+            const albums = response.data
+            const album = Array.isArray(albums) ? albums[0] : undefined
 
             if (!album || !album.id) {
                 return NextResponse.json(
