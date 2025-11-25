@@ -27,14 +27,11 @@ export async function GET() {
             }
         );
 
-        console.log("subscription status : ", response.data)
-
         const status = response.data ?? {
             isExpired: false,
             isActive: false,
             isLowCredits: false,
         };
-        console.log("subscription status : ", status)
 
         return NextResponse.json(status);
     } catch (error) {

@@ -12,7 +12,6 @@
  * const eventSource = createImageGenerationSSE('request-id-123')
  * eventSource.onmessage = (event) => {
  *   const data = JSON.parse(event.data)
- *   console.log('Status update:', data)
  * }
  * ```
  */
@@ -67,16 +66,10 @@ export function getSSEUrl(requestId: string): string {
  * ```typescript
  * const eventSource = createImageGenerationSSE('abc-123-def')
  * 
- * eventSource.onopen = () => {
- *   console.log('SSE connection opened')
- * }
- * 
  * eventSource.onmessage = (event) => {
  *   const data: ImageSSEStatus = JSON.parse(event.data)
- *   console.log('Progress:', data.progress, '%')
  *   
  *   if (data.status === 'complete') {
- *     console.log('Images:', data.images)
  *     eventSource.close()
  *   }
  * }

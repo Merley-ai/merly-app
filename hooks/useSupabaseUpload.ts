@@ -36,17 +36,6 @@ interface UseSupabaseUploadReturn {
 
 /**
  * useSupabaseUpload Hook
- * 
- * Handles file uploads to Supabase storage bucket 'PromptRequestImages'
- * Generates signed URLs with 24-hour expiry
- * 
- * @example
- * ```typescript
- * const { uploadFile, uploadStates, isUploading } = useSupabaseUpload()
- * 
- * const result = await uploadFile(file, userId)
- * console.log('Signed URL:', result.url)
- * ```
  */
 export function useSupabaseUpload(): UseSupabaseUploadReturn {
     const [uploadStates, setUploadStates] = useState<Map<string, FileUploadState>>(new Map())

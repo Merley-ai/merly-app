@@ -40,23 +40,6 @@ interface UseImageGenerationReturn {
 
 /**
  * useImageGeneration Hook
- * 
- * Hook for submitting image generation requests with real-time SSE updates
- * 
- * @example
- * ```typescript
- * const { generate, isGenerating, progress, images, error } = useImageGeneration({
- *   onSuccess: (requestId) => console.log('Request submitted:', requestId),
- *   onComplete: (images) => console.log('Generation complete:', images),
- *   onError: (error) => console.error('Generation failed:', error),
- * })
- * 
- * // Generate
- * await generate({
- *   type: 'generate',
- *   prompt: 'A beautiful landscape',
- * })
- * ```
  */
 export function useImageGeneration({
     onSuccess,

@@ -39,7 +39,7 @@ export function buildUrl(service: ApiService, endpoint: string): string {
 
     // Log in server-side context only (when window is undefined)
     if (typeof window === 'undefined') {
-        console.log(`[buildUrl] Building URL for ${service}: ${fullUrl}`);
+        // TODO: Kuria - handle errors
     }
 
     return fullUrl;
