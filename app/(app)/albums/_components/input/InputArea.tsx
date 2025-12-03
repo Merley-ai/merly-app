@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { InputButtons } from "./InputButtons";
 import type { UploadedFile } from "@/types";
+import type { PreferencesState } from "@/components/ui/PreferencesPopover";
 
 interface InputAreaProps {
   inputValue: string;
@@ -13,6 +14,7 @@ interface InputAreaProps {
   onSubmit: () => void;
   hasScrolledContent?: boolean;
   forceDisableSend?: boolean;
+  onPreferencesChange?: (preferences: PreferencesState) => void;
 }
 
 export function InputArea({
@@ -24,6 +26,7 @@ export function InputArea({
   onSubmit,
   hasScrolledContent = false,
   forceDisableSend = false,
+  onPreferencesChange,
 }: InputAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -152,6 +155,7 @@ export function InputArea({
           onSendClick={handleSubmit}
           isSendDisabled={isSendDisabled}
           onFileChange={onFileChange}
+          onPreferencesChange={onPreferencesChange}
         />
       </div>
     </div>

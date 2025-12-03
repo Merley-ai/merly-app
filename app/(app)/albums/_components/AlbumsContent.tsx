@@ -6,6 +6,11 @@ import { downloadImage } from "@/lib/utils";
 import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
 import type { Album } from "@/types/album";
 import type { GeneratedImage } from "@/types/image-generation";
+import {
+    type PreferencesState,
+    DEFAULT_PREFERENCES,
+    resolvePreferences
+} from "@/components/ui/PreferencesPopover";
 import { useImageGeneration } from "@/hooks/useImageGeneration";
 import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
 import { useAlbumTimeline } from "@/hooks/useAlbumTimeline";
@@ -88,6 +93,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     // Input state
     const [inputValue, setInputValue] = useState("");
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+    const [preferences, setPreferences] = useState<PreferencesState>(DEFAULT_PREFERENCES);
 
     // Gallery & viewer state
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
@@ -183,6 +189,9 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
             .map(f => f.signedUrl)
             .filter((url): url is string => !!url);
 
+        // Resolve preferences to actual values
+        const resolvedPrefs = resolvePreferences(preferences);
+
         const userEntry: TimelineEntry = {
             id: Date.now().toString(),
             type: "user",
@@ -195,7 +204,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
         appendTimelineEntry(userEntry);
 
-        const numImages = 2;
+        const numImages = resolvedPrefs.count;
         const aiEntryId = (Date.now() + 1).toString();
 
         // Add AI entry with thinking state (NO images in timeline per new design)
@@ -260,7 +269,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                 prompt,
                 input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
                 num_images: numImages,
-                aspect_ratio: "9:16",
+                aspect_ratio: resolvedPrefs.aspectRatio,
                 album_id: selectedAlbum.id,
             });
 
@@ -394,6 +403,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             onSubmit={handleSubmit}
                             subscriptionStatus={subscriptionStatus}
                             forceDisableSend={forceDisableSend}
+                            onPreferencesChange={setPreferences}
                         />
                     ) : (
                         <TimelineWithInput
@@ -410,6 +420,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             hasMore={timelineHasMore}
                             subscriptionStatus={subscriptionStatus}
                             forceDisableSend={forceDisableSend}
+                            onPreferencesChange={setPreferences}
                         />
                     )}
 

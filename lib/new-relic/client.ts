@@ -19,7 +19,7 @@ export interface ErrorContext {
 export function captureError(error: Error | string, context?: ErrorContext): void {
     const errorObj = typeof error === 'string' ? new Error(error) : error
 
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'production') {
         console.error('[ErrorCapture]', errorObj.message, context)
     }
 

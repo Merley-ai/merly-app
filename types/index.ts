@@ -46,12 +46,17 @@ export type {
     GenerationOptions,
     AnyGenerationRequest,
     TypedGenerationRequest,
+    aspectRatio,
+    imageCount,
+    models,
 } from './image-generation';
 
 export {
     DEFAULT_GENERATION_OPTIONS,
     GENERATION_MODELS,
-    ASPECT_RATIOS,
+    ASPECT_RATIO_LABELS,
+    IMAGE_COUNT_LABELS,
+    MODEL_OPTIONS_LABELS,
     OUTPUT_FORMATS,
     isGenerationComplete,
     isGenerationFailed,

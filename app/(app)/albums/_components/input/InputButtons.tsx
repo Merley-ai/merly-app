@@ -3,12 +3,17 @@
 import { useRef } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { Tooltip } from "@/components/ui/Tooltip";
+import {
+    PreferencesPopover,
+    type PreferencesState
+} from "@/components/ui/PreferencesPopover";
 
 interface InputButtonsProps {
     onAttachClick: () => void;
     onSendClick: () => void;
     isSendDisabled: boolean;
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onPreferencesChange?: (preferences: PreferencesState) => void;
 }
 
 /**
@@ -22,6 +27,7 @@ export function InputButtons({
     onSendClick,
     isSendDisabled,
     onFileChange,
+    onPreferencesChange,
 }: InputButtonsProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,6 +42,9 @@ export function InputButtons({
 
     return (
         <div className="flex items-center justify-end gap-3 pt-3">
+            {/* Preferences Popover */}
+            <PreferencesPopover onPreferencesChange={onPreferencesChange} />
+
             {/* Upload Button with Tooltip */}
             <Tooltip text="Upload image" position="top">
                 <button

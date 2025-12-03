@@ -227,7 +227,7 @@ export interface GenerationDisplay extends Generation {
 export interface GenerationOptions {
     model?: string
     sub_path?: string
-    aspect_ratio?: '1:1' | '16:9' | '9:16' | '4:3' | '3:4'
+    aspect_ratio?: '16:9' | '5:4' | '3:2' | '4:3' | '1:1' | '3:4' | '2:3' | '4:5' | '9:16'
     num_images?: number
     output_format?: 'png' | 'jpg' | 'webp'
     sync_mode?: boolean
@@ -242,7 +242,7 @@ export const DEFAULT_GENERATION_OPTIONS: GenerationOptions = {
     aspect_ratio: '16:9',
     num_images: 2,
     output_format: 'png',
-    sync_mode: false, // Always use async for better UX
+    sync_mode: false,
 }
 
 /**
@@ -275,13 +275,40 @@ export function getModelPath(type: GenerationType): string {
 /**
  * Aspect ratio options with display names
  */
-export const ASPECT_RATIOS = [
-    { value: '1:1', label: 'Square (1:1)' },
+export type aspectRatio = "Default" | "16:9" | "5:4" | "3:2" | "4:3" | "1:1" | "3:4" | "2:3" | "4:5" | "9:16";
+
+export const ASPECT_RATIO_LABELS = [
     { value: '16:9', label: 'Landscape (16:9)' },
+    { value: '5:4', label: '5:4' },
+    { value: '3:2', label: '3:2' },
+    { value: '4:3', label: '4:3' },
+    { value: '1:1', label: 'Square (1:1)' },
+    { value: '3:4', label: '3:4' },
+    { value: '2:3', label: '2:3' },
+    { value: '4:5', label: '4:5' },
     { value: '9:16', label: 'Portrait (9:16)' },
-    { value: '4:3', label: 'Standard (4:3)' },
-    { value: '3:4', label: 'Portrait (3:4)' },
 ] as const
+
+/**
+ * Image count options with display names
+ */
+export type imageCount = "Default" | "2" | "4" | "6" | "8";
+
+export const IMAGE_COUNT_LABELS = [
+    { value: 2, label: '2' },
+    { value: 4, label: '4' },
+    { value: 6, label: '6' },
+    { value: 8, label: '8' },
+] as const
+
+/**
+ * Image count options with display names
+ */
+export type models = "Default" | "Fast" | "Quality" | "Creative"; // TODO: Add more image generation model options
+
+export const MODEL_OPTIONS_LABELS = [
+] as const
+
 
 /**
  * Output format options

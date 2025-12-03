@@ -4,6 +4,7 @@ import { InputArea } from "../input/InputArea";
 import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
+import type { PreferencesState } from "@/components/ui/PreferencesPopover";
 
 interface TimelineWithInputProps {
     albumName: string;
@@ -19,6 +20,7 @@ interface TimelineWithInputProps {
     hasMore?: boolean;
     subscriptionStatus: SubscriptionStatus | null;
     forceDisableSend?: boolean;
+    onPreferencesChange?: (preferences: PreferencesState) => void;
 }
 
 export function TimelineWithInput({
@@ -35,6 +37,7 @@ export function TimelineWithInput({
     hasMore = false,
     subscriptionStatus,
     forceDisableSend = false,
+    onPreferencesChange,
 }: TimelineWithInputProps) {
     const timelineRef = useRef<HTMLDivElement>(null);
     const scrollPositionRef = useRef<number>(0);
@@ -197,6 +200,7 @@ export function TimelineWithInput({
                 onSubmit={onSubmit}
                 hasScrolledContent={hasScrolledContent}
                 forceDisableSend={forceDisableSend}
+                onPreferencesChange={onPreferencesChange}
             />
         </main>
     );

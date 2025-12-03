@@ -3,6 +3,7 @@
 import { InputArea } from "../input/InputArea";
 import { SubscriptionBanner } from "@/components/subscription";
 import type { SubscriptionStatus, UploadedFile } from "@/types";
+import type { PreferencesState } from "@/components/ui/PreferencesPopover";
 
 interface EmptyTimelineProps {
     albumName: string;
@@ -14,6 +15,7 @@ interface EmptyTimelineProps {
     onSubmit: () => void;
     subscriptionStatus: SubscriptionStatus | null;
     forceDisableSend?: boolean;
+    onPreferencesChange?: (preferences: PreferencesState) => void;
 }
 
 /**
@@ -32,6 +34,7 @@ export function EmptyTimeline({
     onSubmit,
     subscriptionStatus,
     forceDisableSend = false,
+    onPreferencesChange,
 }: EmptyTimelineProps) {
     return (
         <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
@@ -71,6 +74,7 @@ export function EmptyTimeline({
                 onRemoveFile={onRemoveFile}
                 onSubmit={onSubmit}
                 forceDisableSend={forceDisableSend}
+                onPreferencesChange={onPreferencesChange}
             />
         </main>
     );
