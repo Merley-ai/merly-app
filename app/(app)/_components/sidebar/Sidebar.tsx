@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { ChevronLeft, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,6 +8,7 @@ import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { UserMenu } from "@/components/auth";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useUser } from "@/lib/auth0/client";
+import { toast } from "@/lib/notifications";
 import type { Album } from "@/types";
 
 interface SidebarProps {
@@ -37,6 +39,15 @@ export function Sidebar({
     isHomeView = false,
 }: SidebarProps) {
     const { user } = useUser();
+
+    // Show toast when album loading fails
+    useEffect(() => {
+        if (error) {
+            toast.apiError(error, {
+                context: 'sidebar.albums',
+            })
+        }
+    }, [error])
 
     return (
         <aside

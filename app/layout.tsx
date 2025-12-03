@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { UserProvider } from "@/components/auth";
+import { NewRelicScript } from "@/components/new-relic/NewRelicScript";
+import { Toast } from "@/components/ui/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -32,9 +34,13 @@ export default function RootLayout({
         <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
       </head>
       <body className="antialiased">
+        {/* New Relic Browser Agent - RUM for client-side monitoring */}
+        <NewRelicScript />
         <UserProvider>
           {children}
         </UserProvider>
+        {/* Toast notifications container */}
+        <Toast />
       </body>
     </html>
   );
