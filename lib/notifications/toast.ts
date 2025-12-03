@@ -1,5 +1,5 @@
 import { toast as sonnerToast } from 'sonner'
-import { reportError } from '@/lib/new-relic/error-reporter'
+import { captureError } from '@/lib/new-relic/error-reporter'
 import { BackendAPIError, BackendTimeoutError, SSEConnectionError } from '@/lib/api/core'
 
 /**
@@ -134,7 +134,7 @@ function success(message: string, options?: ToastOptions) {
 function error(message: string, options?: ToastOptions & { error?: Error }) {
     // Report to New Relic
     const errorObj = options?.error || new Error(message)
-    reportError(errorObj, {
+    captureError(errorObj, {
         context: options?.context || 'toast',
         toastMessage: message,
         ...options?.attributes,
@@ -204,7 +204,7 @@ function promise<T>(
         success: messages.success,
         error: (err: Error) => {
             // Report error to New Relic
-            reportError(err, {
+            captureError(err, {
                 context: options?.context || 'promiseToast',
                 ...options?.attributes,
             })
@@ -253,7 +253,7 @@ function apiError(
     const { title, description } = getErrorMessage(errorObj)
 
     // Report to New Relic
-    reportError(errorObj, {
+    captureError(errorObj, {
         context: options?.context || 'apiError',
         ...options?.attributes,
     })

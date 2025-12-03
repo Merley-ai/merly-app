@@ -5,7 +5,7 @@
  * used by all API clients
  */
 
-import { reportServerError } from '@/lib/new-relic/error-reporter'
+import { captureServerError } from '@/lib/new-relic/error-reporter'
 
 // Config
 const API_TIMEOUT = 30000
@@ -110,7 +110,7 @@ export async function apiFetch<T>(
             )
 
             // Report API errors to New Relic
-            reportServerError(apiError, {
+            captureServerError(apiError, {
                 context: 'apiFetch',
                 url,
                 statusCode: response.status,
@@ -127,7 +127,7 @@ export async function apiFetch<T>(
         // Handle abort/timeout
         if (error instanceof Error && error.name === 'AbortError') {
             const timeoutError = new BackendTimeoutError()
-            reportServerError(timeoutError, {
+            captureServerError(timeoutError, {
                 context: 'apiFetch',
                 url,
                 timeout,
@@ -147,7 +147,7 @@ export async function apiFetch<T>(
             0,
             error
         )
-        reportServerError(networkError, {
+        captureServerError(networkError, {
             context: 'apiFetch',
             url,
             method: options.method || 'GET',
@@ -217,7 +217,7 @@ export async function apiFetchService<T>(
             )
 
             // Report API errors to New Relic
-            reportServerError(apiError, {
+            captureServerError(apiError, {
                 context: 'apiFetchService',
                 url,
                 statusCode: response.status,
@@ -234,7 +234,7 @@ export async function apiFetchService<T>(
         // Handle abort/timeout
         if (error instanceof Error && error.name === 'AbortError') {
             const timeoutError = new BackendTimeoutError()
-            reportServerError(timeoutError, {
+            captureServerError(timeoutError, {
                 context: 'apiFetchService',
                 url,
                 timeout,
@@ -254,7 +254,7 @@ export async function apiFetchService<T>(
             0,
             error
         )
-        reportServerError(networkError, {
+        captureServerError(networkError, {
             context: 'apiFetchService',
             url,
             method: options.method || 'GET',

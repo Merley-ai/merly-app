@@ -60,7 +60,7 @@ const RESET_COLOR = '\x1b[0m'
  * Defaults to 'info' in production, 'debug' in development
  */
 function getCurrentLogLevel(): LogLevel {
-    const envLevel = process.env.LOG_LEVEL || process.env.NEW_RELIC_LOG_LEVEL
+    const envLevel = process.env.NEW_RELIC_LOG_LEVEL
     if (envLevel && envLevel in LOG_LEVEL_PRIORITY) {
         return envLevel as LogLevel
     }

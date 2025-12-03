@@ -45,7 +45,7 @@ exports.config = {
          * - debug: Detailed debugging info (recommended for development)
          * - trace: Most granular - function calls, variable states (temporary debugging only)
          */
-        level: process.env.NEW_RELIC_LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
+        level: process.env.NEW_RELIC_LOG_LEVEL,
 
         /**
          * Log to stdout for containerized environments

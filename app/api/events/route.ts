@@ -3,6 +3,7 @@ import type { ImageSSEStatus, GeneratedImage } from '@/types/image-generation'
 import { SSEConnectionError } from '@/lib/api/core'
 import { connectToImageGenerationSSE, createSSEHeaders } from '@/lib/api/image-gen/sse-server-client'
 import { getAccessToken } from '@/lib/auth0/server'
+import { createSSESpan, setAttributes, captureServerError } from '@/lib/new-relic'
 
 /**
  * Backend SSE event types
@@ -214,6 +215,15 @@ export async function GET(request: NextRequest) {
     return new Response('Missing stream or requestId parameter', { status: 400 })
   }
 
+  // Initialize SSE performance tracker
+  const sseTracker = createSSESpan(streamId, 'imageGeneration')
+
+  // Add transaction attributes for APM
+  setAttributes({
+    sseStreamId: streamId,
+    sseType: 'imageGeneration',
+  })
+
   try {
 
     // Get access token for authentication
@@ -225,6 +235,9 @@ export async function GET(request: NextRequest) {
       timeout: 30000,
       accessToken: accessToken || undefined,
     })
+
+    // Mark connection as established
+    sseTracker.connected()
 
     // Create a readable stream that proxies backend SSE events
     const encoder = new TextEncoder()
@@ -252,6 +265,9 @@ export async function GET(request: NextRequest) {
               // Parse backend event data (wrapped structure)
               const eventWrapper: BackendEventWrapper = JSON.parse(data)
 
+              // Track SSE event
+              sseTracker.event(event, eventWrapper)
+
               // Transform to frontend format
               const frontendEvent = transformBackendEvent(event, eventWrapper)
 
@@ -261,7 +277,14 @@ export async function GET(request: NextRequest) {
               )
 
               // Close stream on completion or error
-              if (frontendEvent.status === 'complete' || frontendEvent.status === 'error') {
+              if (frontendEvent.status === 'complete') {
+                sseTracker.complete({ imageCount: frontendEvent.images?.length })
+                controller.close()
+                break
+              }
+
+              if (frontendEvent.status === 'error') {
+                sseTracker.error(frontendEvent.message || 'Unknown error')
                 controller.close()
                 break
               }
@@ -270,6 +293,9 @@ export async function GET(request: NextRequest) {
             }
           }
         } catch (error) {
+          // Track stream error
+          sseTracker.error(error instanceof Error ? error : 'Stream error')
+
           // Send error to client
           const errorEvent: ImageSSEStatus = {
             status: 'error',
@@ -292,6 +318,8 @@ export async function GET(request: NextRequest) {
       headers: createSSEHeaders(),
     })
   } catch (error) {
+    // Track connection error
+    sseTracker.error(error instanceof Error ? error : 'Connection failed')
 
     // Handle SSE connection errors with proper error class
     const sseError = error instanceof SSEConnectionError
@@ -302,6 +330,12 @@ export async function GET(request: NextRequest) {
         500,
         error
       )
+
+    // Report to New Relic
+    captureServerError(sseError, {
+      context: 'sse.connection',
+      streamId,
+    })
 
     return new Response(
       JSON.stringify({

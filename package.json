@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS='--require newrelic' next dev",
+    "dev": "node -r ./scripts/load-env.js -r newrelic node_modules/.bin/next dev",
     "dev:no-nr": "next dev",
     "build": "next build",
     "start": "NODE_OPTIONS='--require newrelic' next start",
@@ -28,6 +28,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "dotenv": "^17.2.3",
     "eslint": "^9.38.0",
     "eslint-config-next": "^16.0.0",
     "eslint-config-prettier": "^10.1.8",

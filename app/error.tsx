@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { reportError } from '@/lib/new-relic/error-reporter'
+import { captureError } from '@/lib/new-relic/error-reporter'
 
 /**
  * Error Boundary for App Routes
@@ -19,8 +19,8 @@ export default function Error({
     reset: () => void
 }) {
     useEffect(() => {
-        // Report error to New Relic browser agent
-        reportError(error, {
+        // Capture error to New Relic browser agent
+        captureError(error, {
             context: 'errorBoundary',
             digest: error.digest,
             componentStack: (error as Error & { componentStack?: string }).componentStack,

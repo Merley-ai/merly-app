@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { GenerationType, GeneratedImage, ImageSSEStatus } from '@/types/image-generation'
 import { createImageGenerationSSE } from '@/lib/api'
+import { createImageGenSpan, recordPageAction, captureError } from '@/lib/new-relic/client'
 
 /**
  * Generation request parameters
@@ -68,11 +69,20 @@ export function useImageGeneration({
                     requestId ? 'processing' :
                         'idle'
 
+    // Image generation tracker ref
+    const imageGenTrackerRef = useRef<ReturnType<typeof createImageGenSpan> | null>(null)
+
     // Submit generation request
     const submitGeneration = useCallback(async (
         endpoint: string,
         request: GenerationRequest
     ) => {
+        // Track generation start
+        recordPageAction('imageGen:start', {
+            type: request.type,
+            ...(request.model && { model: request.model }),
+            hasInputImages: (request.input_images?.length || 0) > 0,
+        })
 
         try {
             setIsGenerating(true)
@@ -101,6 +111,13 @@ export function useImageGeneration({
                 setRequestId(requestIdValue)
                 setIsGenerating(false)
                 onSuccess?.(requestIdValue)
+
+                // Initialize image generation tracker
+                imageGenTrackerRef.current = createImageGenSpan(requestIdValue, {
+                    type: request.type,
+                    model: request.model,
+                })
+                imageGenTrackerRef.current.queued()
 
                 // Close existing connection if any
                 if (eventSourceRef.current) {
@@ -136,6 +153,9 @@ export function useImageGeneration({
                             setSSEStatus('completed')
                             setProgress(100)
 
+                            // Track completion
+                            imageGenTrackerRef.current?.completed(completedImages.length)
+
                             // Trigger onComplete callback with images
                             if (completedImages.length > 0) {
                                 onComplete?.(completedImages)
@@ -146,18 +166,26 @@ export function useImageGeneration({
                             // Handle error
                             setError(data.message)
                             setSSEStatus('failed')
+
+                            // Track failure
+                            imageGenTrackerRef.current?.failed(data.message)
+                            captureError(new Error(data.message), { context: 'imageGen.sse' })
+
                             onError?.(data.message)
                             eventSource.close()
                         } else if (data.status === 'processing') {
                             setSSEStatus('processing')
+                            imageGenTrackerRef.current?.processing(data.progress)
                         }
                     } catch (parseError) {
-                        // TODO: KURIA - Handle error
+                        captureError(parseError as Error, { context: 'imageGen.parse' })
                     }
                 }
 
-                eventSource.onerror = (error) => {
-                    // TODO: KURIA - Handle error
+                eventSource.onerror = () => {
+                    const errorMsg = 'SSE connection error'
+                    imageGenTrackerRef.current?.failed(errorMsg)
+                    captureError(new Error(errorMsg), { context: 'imageGen.sseConnection' })
                     eventSource.close()
                 }
             } else {
@@ -166,7 +194,11 @@ export function useImageGeneration({
 
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Unknown error'
-            // TODO: KURIA - Handle error
+
+            // Track and report error
+            imageGenTrackerRef.current?.failed(errorMsg)
+            captureError(err as Error, { context: 'imageGen.submit' })
+
             setError(errorMsg)
             setIsGenerating(false)
             setSSEStatus('failed')

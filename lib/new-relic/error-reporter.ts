@@ -1,17 +1,17 @@
 /**
- * New Relic Error Reporter
+ * New Relic Error & Context Utilities
  * 
- * Centralized error reporting utility for both client and server-side errors.
+ * Centralized error capture and user context utilities.
  * Integrates with New Relic APM (server) and Browser Agent (client).
  * 
  * @example
  * // Client-side
- * import { reportError } from '@/lib/new-relic/error-reporter'
- * reportError(error, { context: 'imageGeneration', albumId: '123' })
+ * import { captureError } from '@/lib/new-relic'
+ * captureError(error, { context: 'imageGeneration', albumId: '123' })
  * 
  * // Server-side (API routes)
- * import { reportServerError } from '@/lib/new-relic/error-reporter'
- * reportServerError(error, { endpoint: '/api/image-gen', userId: user.sub })
+ * import { captureServerError } from '@/lib/new-relic'
+ * captureServerError(error, { endpoint: '/api/image-gen', userId: user.sub })
  */
 
 export interface ErrorContext {
@@ -28,19 +28,19 @@ export interface ErrorContext {
 }
 
 /**
- * Report an error to New Relic (client-side)
+ * Capture an error to New Relic (client-side)
  * Uses the browser agent's noticeError API
  * 
- * @param error - The error to report
+ * @param error - The error to capture
  * @param context - Additional context/attributes
  */
-export function reportError(error: Error | string, context?: ErrorContext): void {
+export function captureError(error: Error | string, context?: ErrorContext): void {
     // Normalize error to Error object
     const errorObj = typeof error === 'string' ? new Error(error) : error
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-        console.error('[ErrorReporter]', errorObj.message, context)
+        console.error('[Error Capture :]', errorObj.message, context)
     }
 
     // Report to New Relic browser agent
@@ -55,18 +55,18 @@ export function reportError(error: Error | string, context?: ErrorContext): void
 }
 
 /**
- * Report an error to New Relic (server-side)
+ * Capture an error to New Relic (server-side)
  * Uses the Node.js APM agent's noticeError API
  * 
- * @param error - The error to report
+ * @param error - The error to capture
  * @param context - Additional context/attributes
  */
-export function reportServerError(error: Error | string, context?: ErrorContext): void {
+export function captureServerError(error: Error | string, context?: ErrorContext): void {
     // Normalize error to Error object
     const errorObj = typeof error === 'string' ? new Error(error) : error
 
     // Log to console
-    console.error('[ServerError]', errorObj.message, context)
+    console.error('[Server Error :]', errorObj.message, context)
 
     // Report to New Relic APM agent (server-side only)
     if (typeof window === 'undefined') {
@@ -92,40 +92,40 @@ export function reportServerError(error: Error | string, context?: ErrorContext)
 }
 
 /**
- * Create an error reporter with preset context
+ * Create an error handler with preset context
  * Useful for scoping errors to a specific feature/module
  * 
  * @example
- * const imageGenReporter = createErrorReporter({ context: 'imageGeneration' })
- * imageGenReporter.report(error, { albumId: '123' })
+ * const imageGenHandler = createErrorHandler({ context: 'imageGeneration' })
+ * imageGenHandler.capture(error, { albumId: '123' })
  */
-export function createErrorReporter(defaultContext: ErrorContext) {
+export function createErrorHandler(defaultContext: ErrorContext) {
     return {
         /**
-         * Report client-side error with preset context
+         * Capture client-side error with preset context
          */
-        report: (error: Error | string, additionalContext?: ErrorContext) => {
-            reportError(error, { ...defaultContext, ...additionalContext })
+        capture: (error: Error | string, additionalContext?: ErrorContext) => {
+            captureError(error, { ...defaultContext, ...additionalContext })
         },
 
         /**
-         * Report server-side error with preset context
+         * Capture server-side error with preset context
          */
-        reportServer: (error: Error | string, additionalContext?: ErrorContext) => {
-            reportServerError(error, { ...defaultContext, ...additionalContext })
+        captureServer: (error: Error | string, additionalContext?: ErrorContext) => {
+            captureServerError(error, { ...defaultContext, ...additionalContext })
         },
     }
 }
 
 /**
- * Wrap an async function with automatic error reporting
- * Catches and reports errors, then re-throws them
+ * Wrap an async function with automatic error capture
+ * Catches and captures errors, then re-throws them
  * 
  * @example
- * const safeGenerateImage = withErrorReporting(generateImage, { context: 'imageGen' })
- * await safeGenerateImage(prompt) // Errors automatically reported
+ * const safeGenerateImage = withErrorBoundary(generateImage, { context: 'imageGen' })
+ * await safeGenerateImage(prompt) // Errors automatically captured
  */
-export function withErrorReporting<T extends (...args: unknown[]) => Promise<unknown>>(
+export function withErrorBoundary<T extends (...args: unknown[]) => Promise<unknown>>(
     fn: T,
     context?: ErrorContext
 ): T {
@@ -135,11 +135,11 @@ export function withErrorReporting<T extends (...args: unknown[]) => Promise<unk
         } catch (error) {
             const errorObj = error instanceof Error ? error : new Error(String(error))
 
-            // Report based on environment
+            // Capture based on environment
             if (typeof window !== 'undefined') {
-                reportError(errorObj, context)
+                captureError(errorObj, context)
             } else {
-                reportServerError(errorObj, context)
+                captureServerError(errorObj, context)
             }
 
             throw error
@@ -148,13 +148,13 @@ export function withErrorReporting<T extends (...args: unknown[]) => Promise<unk
 }
 
 /**
- * Track a user action in New Relic
+ * Record a user action in New Relic
  * Creates a PageAction event for analytics
  * 
  * @example
- * trackAction('generateImage', { albumId: '123', model: 'flux' })
+ * recordAction('generateImage', { albumId: '123', model: 'flux' })
  */
-export function trackAction(name: string, attributes?: Record<string, unknown>): void {
+export function recordAction(name: string, attributes?: Record<string, unknown>): void {
     if (typeof window !== 'undefined' && window.newrelic) {
         window.newrelic.addPageAction(name, {
             ...attributes,
@@ -168,9 +168,9 @@ export function trackAction(name: string, attributes?: Record<string, unknown>):
  * Call after user authentication
  * 
  * @example
- * setUserIdentity(user.sub, { email: user.email, plan: 'premium' })
+ * setUser(user.sub, { email: user.email, plan: 'premium' })
  */
-export function setUserIdentity(
+export function setUser(
     userId: string,
     attributes?: Record<string, string | number | boolean>
 ): void {
@@ -186,10 +186,10 @@ export function setUserIdentity(
 }
 
 export default {
-    reportError,
-    reportServerError,
-    createErrorReporter,
-    withErrorReporting,
-    trackAction,
-    setUserIdentity,
+    captureError,
+    captureServerError,
+    createErrorHandler,
+    withErrorBoundary,
+    recordAction,
+    setUser,
 }
