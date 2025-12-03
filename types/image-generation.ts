@@ -307,6 +307,7 @@ export const IMAGE_COUNT_LABELS = [
 export type models = "Default" | "Fast" | "Quality" | "Creative"; // TODO: Add more image generation model options
 
 export const MODEL_OPTIONS_LABELS = [
+    { value: 'Default', label: 'Default' },
 ] as const
 
 

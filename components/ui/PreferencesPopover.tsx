@@ -55,7 +55,6 @@ const aspectRatioOptions: OptionItem<aspectRatio>[] = [
 ];
 
 const modelOptions: OptionItem<models>[] = [
-    { value: "Default", label: "Default" },
     ...MODEL_OPTIONS_LABELS.map((model) => ({
         value: model.value as models,
         label: model.label,
