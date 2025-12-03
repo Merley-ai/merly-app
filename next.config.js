@@ -1,3 +1,11 @@
+'use strict'
+
+/**
+ * New Relic webpack externals loader
+ * Ensures New Relic modules are not bundled by webpack
+ */
+const nrExternals = require('newrelic/load-externals')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -38,6 +46,21 @@ const nextConfig = {
     fetches: {
       fullUrl: process.env.NODE_ENV === 'development',
     },
+  },
+
+  /**
+   * New Relic: Mark newrelic as external package for server components
+   * Required for proper instrumentation in Next.js App Router
+   */
+  serverExternalPackages: ['newrelic'],
+
+  /**
+   * Webpack configuration for New Relic
+   * Externalizes New Relic modules to prevent bundling issues
+   */
+  webpack: (config) => {
+    nrExternals(config)
+    return config
   },
 }
 

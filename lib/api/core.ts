@@ -5,6 +5,8 @@
  * used by all API clients
  */
 
+import { reportServerError } from '@/lib/new-relic/error-reporter'
+
 // Config
 const API_TIMEOUT = 30000
 
@@ -101,11 +103,21 @@ export async function apiFetch<T>(
         // Handle non-OK responses
         if (!response.ok) {
             const dataObj = data as Record<string, unknown> | undefined
-            throw new BackendAPIError(
+            const apiError = new BackendAPIError(
                 (dataObj?.error as string | undefined) || (dataObj?.message as string | undefined) || `API error: ${response.status}`,
                 response.status,
                 data
             )
+
+            // Report API errors to New Relic
+            reportServerError(apiError, {
+                context: 'apiFetch',
+                url,
+                statusCode: response.status,
+                method: options.method || 'GET',
+            })
+
+            throw apiError
         }
         return data as T
 
@@ -114,7 +126,14 @@ export async function apiFetch<T>(
 
         // Handle abort/timeout
         if (error instanceof Error && error.name === 'AbortError') {
-            throw new BackendTimeoutError()
+            const timeoutError = new BackendTimeoutError()
+            reportServerError(timeoutError, {
+                context: 'apiFetch',
+                url,
+                timeout,
+                method: options.method || 'GET',
+            })
+            throw timeoutError
         }
 
         // Custom errors
@@ -123,11 +142,18 @@ export async function apiFetch<T>(
         }
 
         // Handle network errors
-        throw new BackendAPIError(
+        const networkError = new BackendAPIError(
             'Network error: Unable to connect to backend',
             0,
             error
         )
+        reportServerError(networkError, {
+            context: 'apiFetch',
+            url,
+            method: options.method || 'GET',
+            originalError: error instanceof Error ? error.message : String(error),
+        })
+        throw networkError
     }
 }
 
@@ -184,11 +210,21 @@ export async function apiFetchService<T>(
         // Handle non-OK responses
         if (!response.ok) {
             const dataObj = data as Record<string, unknown> | undefined
-            throw new BackendAPIError(
+            const apiError = new BackendAPIError(
                 (dataObj?.error as string | undefined) || (dataObj?.message as string | undefined) || `API error: ${response.status}`,
                 response.status,
                 data
             )
+
+            // Report API errors to New Relic
+            reportServerError(apiError, {
+                context: 'apiFetchService',
+                url,
+                statusCode: response.status,
+                method: options.method || 'GET',
+            })
+
+            throw apiError
         }
         return data as T
 
@@ -197,7 +233,14 @@ export async function apiFetchService<T>(
 
         // Handle abort/timeout
         if (error instanceof Error && error.name === 'AbortError') {
-            throw new BackendTimeoutError()
+            const timeoutError = new BackendTimeoutError()
+            reportServerError(timeoutError, {
+                context: 'apiFetchService',
+                url,
+                timeout,
+                method: options.method || 'GET',
+            })
+            throw timeoutError
         }
 
         // Custom errors
@@ -206,11 +249,18 @@ export async function apiFetchService<T>(
         }
 
         // Handle network errors
-        throw new BackendAPIError(
+        const networkError = new BackendAPIError(
             'Network error: Unable to connect to backend',
             0,
             error
         )
+        reportServerError(networkError, {
+            context: 'apiFetchService',
+            url,
+            method: options.method || 'GET',
+            originalError: error instanceof Error ? error.message : String(error),
+        })
+        throw networkError
     }
 }
 
