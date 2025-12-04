@@ -78,16 +78,16 @@ function GalleryImageItem({
             unoptimized={!hasValidImageExtension(image.url)}
           />
 
-          {/* Gradient overlay at bottom - fades out on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0" />
+          {/* Gradient overlay at bottom - shows on hover */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/30 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Top left circle icon */}
           {/* <div className="absolute top-3 left-3 z-10">
             <div className="w-10 h-10 rounded-full border-2 border-white/40 backdrop-blur-sm" />
           </div> */}
 
-          {/* Top right icons */}
-          <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+          {/* Top right icons - shows on hover */}
+          <div className="absolute top-3 right-3 flex items-center gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -110,8 +110,8 @@ function GalleryImageItem({
             </button>
           </div>
 
-          {/* Bottom info overlay - zooms in on hover */}
-          <div className="absolute bottom-0 left-0 right-0 p-3 z-10 transition-transform duration-300 group-hover:scale-105 origin-bottom-center">
+          {/* Bottom info overlay - shows and zooms in on hover */}
+          <div className="absolute bottom-0 left-0 right-0 p-3 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:scale-105 origin-bottom-center">
             <h3 className="text-white text-sm font-semibold line-clamp-2">
               {image.description}
             </h3>
