@@ -2,6 +2,7 @@
 
 import { useRef, useEffect } from "react";
 import { InputButtons } from "./InputButtons";
+import { ImageThumbnail } from "./ImageThumbnail";
 import type { UploadedFile } from "@/types";
 import type { PreferencesState } from "@/components/ui/PreferencesPopover";
 
@@ -56,68 +57,14 @@ export function InputArea({
       <div className="bg-[#2e2e2e] rounded-[29px] px-4 py-4 flex flex-col gap-2 transition-all duration-200 hover:bg-[#333333] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.1)]">
         {/* Uploaded Image Thumbnails */}
         {uploadedFiles.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-4 flex-wrap">
             {uploadedFiles.map((uploadedFile, idx) => (
-              <div
+              <ImageThumbnail
                 key={uploadedFile.id}
-                className="w-[71px] h-[71px] bg-black rounded overflow-hidden relative flex-shrink-0 group"
-              >
-                <img
-                  src={uploadedFile.previewUrl}
-                  alt={`Upload ${idx + 1}`}
-                  className="w-full h-full object-cover"
-                />
-
-                {/* Loading spinner for uploading state */}
-                {uploadedFile.status === 'uploading' && (
-                  <div className="absolute top-1 right-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center">
-                    <div className="w-[10px] h-[10px] border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  </div>
-                )}
-
-                {/* Error indicator with remove button */}
-                {uploadedFile.status === 'error' && (
-                  <button
-                    onClick={() => onRemoveFile(uploadedFile.id)}
-                    className="absolute top-1 right-1 w-[16px] h-[16px] bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors cursor-pointer"
-                    aria-label="Remove failed upload"
-                  >
-                    <span className="text-white text-[12px] font-bold leading-none">×</span>
-                  </button>
-                )}
-
-                {/* Success indicator with number and remove button */}
-                {uploadedFile.status === 'completed' && (
-                  <>
-                    <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
-                      <p
-                        className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
-                        style={{ fontVariationSettings: "'wdth' 100" }}
-                      >
-                        {idx + 1}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => onRemoveFile(uploadedFile.id)}
-                      className="absolute top-1 left-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                      aria-label="Remove image"
-                    >
-                      <span className="text-white text-[12px] font-bold leading-none">×</span>
-                    </button>
-                  </>
-                )}
-
-                {/* Pending state - show remove button on hover */}
-                {uploadedFile.status === 'pending' && (
-                  <button
-                    onClick={() => onRemoveFile(uploadedFile.id)}
-                    className="absolute top-1 right-1 w-[16px] h-[16px] bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                    aria-label="Remove image"
-                  >
-                    <span className="text-white text-[12px] font-bold leading-none">×</span>
-                  </button>
-                )}
-              </div>
+                uploadedFile={uploadedFile}
+                index={idx}
+                onRemove={() => onRemoveFile(uploadedFile.id)}
+              />
             ))}
           </div>
         )}

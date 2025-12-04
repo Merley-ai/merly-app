@@ -69,7 +69,7 @@ export const DEFAULT_PREFERENCES: PreferencesState = {
 
 // Default values when "Default" is selected
 export const DEFAULT_COUNT = 2;
-export const DEFAULT_ASPECT_RATIO = "5:4";
+export const DEFAULT_ASPECT_RATIO = "4:3";
 export const DEFAULT_MODEL = "fal-ai/reve";
 
 /**

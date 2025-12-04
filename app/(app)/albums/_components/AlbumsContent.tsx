@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useUser } from "@/lib/auth0/client";
-import { downloadImage } from "@/lib/utils";
+import { downloadImage, validateImageDimensions } from "@/lib/utils";
+import { toast } from "@/lib/notifications";
 import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
 import type { Album } from "@/types/album";
 import type { GeneratedImage } from "@/types/image-generation";
@@ -116,8 +117,30 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         const files = Array.from(e.target.files || []);
         if (!user) return;
 
+        // Validate each image's dimensions before processing
+        const validFiles: File[] = [];
+        for (const file of files) {
+            const validation = await validateImageDimensions(file);
+            if (!validation.isValid && validation.message) {
+                toast.error(validation.message, {
+                    context: 'imageUpload',
+                    attributes: {
+                        fileName: file.name,
+                        fileSize: file.size,
+                        dimensions: validation.dimensions,
+                        errorType: validation.error,
+                    },
+                });
+            } else {
+                validFiles.push(file);
+            }
+        }
+
+        // Only proceed with valid files
+        if (validFiles.length === 0) return;
+
         // Create UploadedFile objects with pending state
-        const newUploadedFiles: UploadedFile[] = files.map(file => ({
+        const newUploadedFiles: UploadedFile[] = validFiles.map(file => ({
             file,
             id: `${file.name}-${file.size}-${file.lastModified}`,
             status: 'pending' as const,

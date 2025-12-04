@@ -227,7 +227,7 @@ export interface GenerationDisplay extends Generation {
 export interface GenerationOptions {
     model?: string
     sub_path?: string
-    aspect_ratio?: '16:9' | '5:4' | '3:2' | '4:3' | '1:1' | '3:4' | '2:3' | '4:5' | '9:16'
+    aspect_ratio?: '16:9' | '3:2' | '4:3' | '1:1' | '3:4' | '2:3' | '9:16'
     num_images?: number
     output_format?: 'png' | 'jpg' | 'webp'
     sync_mode?: boolean
@@ -275,17 +275,15 @@ export function getModelPath(type: GenerationType): string {
 /**
  * Aspect ratio options with display names
  */
-export type aspectRatio = "Default" | "16:9" | "5:4" | "3:2" | "4:3" | "1:1" | "3:4" | "2:3" | "4:5" | "9:16";
+export type aspectRatio = "Default" | "16:9" | "3:2" | "4:3" | "1:1" | "3:4" | "2:3" | "9:16";
 
 export const ASPECT_RATIO_LABELS = [
     { value: '16:9', label: 'Landscape (16:9)' },
-    { value: '5:4', label: '5:4' },
     { value: '3:2', label: '3:2' },
     { value: '4:3', label: '4:3' },
     { value: '1:1', label: 'Square (1:1)' },
     { value: '3:4', label: '3:4' },
     { value: '2:3', label: '2:3' },
-    { value: '4:5', label: '4:5' },
     { value: '9:16', label: 'Portrait (9:16)' },
 ] as const
 

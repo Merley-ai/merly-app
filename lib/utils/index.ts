@@ -11,4 +11,12 @@ export {
     groupTimelineEventsByDate,
     mergeTimelineEvents
 } from './timeline';
+export {
+    validateImageDimensions,
+    validateMultipleImages,
+    getImageDimensions,
+    IMAGE_DIMENSION_LIMITS,
+    type ImageValidationResult,
+    type ImageDimensionLimits,
+} from './imageValidation';
 
