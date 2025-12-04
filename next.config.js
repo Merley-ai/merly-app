@@ -19,6 +19,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.fal.media',
+      },
+      {
+        protocol: 'https',
         hostname: '**.fal.ai',
       },
       {

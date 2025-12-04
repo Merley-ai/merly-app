@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { UserProvider } from "@/components/auth";
+import { FacebookPixel } from "@/components/meta-pixel";
 import { NewRelicScript } from "@/components/new-relic/NewRelicScript";
 import { Toast } from "@/components/ui/Toast";
 import "./globals.css";
@@ -36,6 +38,10 @@ export default async function RootLayout({
       <body className="antialiased">
         {/* New Relic Browser Agent - RUM for client-side monitoring */}
         <NewRelicScript />
+        {/* Meta Pixel for conversion tracking */}
+        <Suspense fallback={null}>
+          <FacebookPixel />
+        </Suspense>
         <UserProvider>
           {children}
         </UserProvider>
