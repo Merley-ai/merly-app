@@ -6,6 +6,12 @@ import { ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
 import { Tooltip } from "@/components/ui/Tooltip";
 import type { GalleryImage } from "@/types";
 
+function hasValidImageExtension(url: string): boolean {
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.svg'];
+    const urlPath = url.split('?')[0].toLowerCase();
+    return validExtensions.some(ext => urlPath.endsWith(ext));
+}
+
 interface ImageViewerProps {
     image: GalleryImage;
     imageIndex: number;
@@ -133,7 +139,7 @@ export function ImageViewer({
                     sizes="90vw"
                     quality={95}
                     priority
-                    unoptimized={image.url.includes('fal.media') || image.url.includes('fal.ai')}
+                    unoptimized={!hasValidImageExtension(image.url)}
                 />
             </div>
         </div>

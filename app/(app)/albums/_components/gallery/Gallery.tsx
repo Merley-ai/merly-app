@@ -3,6 +3,12 @@ import Image from "next/image";
 import { PlaceholderImage } from "../render-image/PlaceholderImage";
 import type { GalleryImage } from "@/types";
 
+function hasValidImageExtension(url: string): boolean {
+  const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.avif', '.svg'];
+  const urlPath = url.split('?')[0].toLowerCase();
+  return validExtensions.some(ext => urlPath.endsWith(ext));
+}
+
 interface GalleryProps {
   images: GalleryImage[];
   onImageClick: (index: number) => void;
@@ -62,7 +68,7 @@ function GalleryImageItem({
             loading="lazy"
             sizes="(max-width: 768px) 50vw, 33vw"
             quality={85}
-            unoptimized={image.url.includes('fal.media') || image.url.includes('fal.ai')}
+            unoptimized={!hasValidImageExtension(image.url)}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-200">
             <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
