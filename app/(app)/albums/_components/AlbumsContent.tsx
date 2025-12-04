@@ -20,7 +20,7 @@ import { useSubscriptionStatus } from "@/hooks";
 import { EmptyTimeline } from "./timeline/EmptyTimeline";
 import { TimelineWithInput } from "./timeline/TimelineWithInput";
 import { EmptyGallery } from "./gallery/EmptyGallery";
-import { Gallery } from "./gallery/Gallery";
+import { Gallery, type GalleryRef } from "./gallery/Gallery";
 import { ImageViewer } from "./imageview/ImageViewer";
 import { shouldDisableSending } from "@/components/subscription/subscriptionUtils";
 
@@ -40,6 +40,9 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
     // Track current generation request ID for updating placeholders
     const currentGenerationRef = useRef<{ aiEntryId: string; numImages: number } | null>(null);
+
+    // Gallery ref for scrolling to bottom when placeholders are added
+    const galleryRef = useRef<GalleryRef>(null);
 
     // Image generation hook with WebSocket support
     const { create } = useImageGeneration({
@@ -253,6 +256,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         const placeholders: GalleryImage[] = Array.from({ length: numImages }, (_, i) => ({
             id: `placeholder-${aiEntryId}-${i}`,
             url: "",
+            name: "",
             description: prompt,
             status: "rendering" as const,
             addedAt: new Date(),
@@ -262,6 +266,11 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
         // Append placeholders to the end of the gallery (newest at bottom)
         placeholders.forEach(placeholder => appendGalleryImage(placeholder));
+
+        // Auto-scroll gallery to bottom to show placeholders
+        setTimeout(() => {
+            galleryRef.current?.scrollToBottom();
+        }, 100);
 
         // Clear input
         setInputValue("");
@@ -452,6 +461,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                         <EmptyGallery onFileChange={handleFileChange} />
                     ) : (
                         <Gallery
+                            ref={galleryRef}
                             images={galleryImages}
                             onImageClick={setSelectedImageIndex}
                             onLoadMore={loadMoreGallery}

@@ -52,7 +52,7 @@ interface UseAlbumTimelineReturn {
  */
 export function useAlbumTimeline({
     albumId,
-    limit = 20,
+    limit = 9,
     autoFetch = true,
     onError,
 }: UseAlbumTimelineOptions): UseAlbumTimelineReturn {
@@ -193,23 +193,13 @@ export function useAlbumTimeline({
     useEffect(() => {
         if (autoFetch && albumId && albumId !== currentAlbumId.current) {
             currentAlbumId.current = albumId
-            setTimelineEntries([])
-            setIsLoading(false)
-            setIsLoadingMore(false)
-            setError(null)
-            setHasMore(true)
-            setOffset(0)
+            reset()
             fetchTimeline()
         } else if (!albumId && currentAlbumId.current !== null) {
             currentAlbumId.current = null
-            setTimelineEntries([])
-            setIsLoading(false)
-            setIsLoadingMore(false)
-            setError(null)
-            setHasMore(true)
-            setOffset(0)
+            reset()
         }
-    }, [albumId, autoFetch])
+    }, [albumId, autoFetch, fetchTimeline, reset])
 
     return {
         timelineEntries,

@@ -12,6 +12,7 @@
 export interface GalleryImage {
     id: string;
     url: string;
+    name: string;
     description: string;
     status: 'rendering' | 'complete';
     addedAt: Date;

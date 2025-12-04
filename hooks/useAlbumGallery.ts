@@ -43,7 +43,6 @@ interface UseAlbumGalleryReturn {
     fetchGallery: () => Promise<void>
     loadMore: () => Promise<void>
     appendImage: (image: GalleryImage) => void
-    prependImage: (image: GalleryImage) => void
     updateImage: (id: string, updates: Partial<GalleryImage>) => void
     reset: () => void
 }
@@ -51,21 +50,26 @@ interface UseAlbumGalleryReturn {
 /**
  * useAlbumGallery Hook
  * 
- * Fetches and manages gallery images for a specific album
- * Supports infinite scroll (load more by scrolling down)
+ * Fetches and manages gallery images for a specific album.
+ * 
+ * Order Strategy:
+ * - Initial fetch: Gets newest images first (descending), then reverses for display
+ *   so oldest appears at top, newest at bottom (chat-like order)
+ * - Load more (scroll down): Fetches older images and prepends them to the top
+ * - New placeholders: Appended to bottom (newest position)
  * 
  * @example
  * ```typescript
  * const { galleryImages, loadMore, isLoadingMore } = useAlbumGallery({
  *   albumId: '123',
- *   limit: 20,
+ *   limit: 9,
  *   autoFetch: true,
  * })
  * ```
  */
 export function useAlbumGallery({
     albumId,
-    limit = 20,
+    limit = 9,
     autoFetch = true,
     onError,
 }: UseAlbumGalleryOptions): UseAlbumGalleryReturn {
@@ -79,7 +83,7 @@ export function useAlbumGallery({
     // Track the current albumId to detect changes
     const currentAlbumId = useRef<string | null>(null)
 
-    // Fetch initial gallery
+    // Fetch initial gallery (newest images first, reversed for display)
     const fetchGallery = useCallback(async () => {
         if (!albumId) {
             setGalleryImages([])
@@ -91,9 +95,9 @@ export function useAlbumGallery({
             setIsLoading(true)
             setError(null)
 
-            // TODO: Use getAlbumGallery client function
+            // Fetch newest images first (descending order)
             const response = await fetch(
-                `/api/album/${albumId}/gallery?limit=${limit}&offset=0&order_by=created_at&ascending=true`,
+                `/api/album/${albumId}/gallery?limit=${limit}&offset=0&order_by=created_at&ascending=false`,
                 {
                     method: 'GET',
                     headers: {
@@ -110,7 +114,8 @@ export function useAlbumGallery({
             const data = await response.json()
             const images = (data.images as GalleryImageResponse[]).map(transformGalleryImage)
 
-            setGalleryImages(images)
+            // Reverse so oldest is at top, newest at bottom (chat-like order)
+            setGalleryImages(images.reverse())
             setOffset(images.length)
             setHasMore(images.length === limit)
 
@@ -124,7 +129,7 @@ export function useAlbumGallery({
         }
     }, [albumId, limit, onError])
 
-    // Load more images (for scroll down)
+    // Load more older images (for scroll down - reveals older content)
     const loadMore = useCallback(async () => {
         if (!albumId || isLoadingMore || !hasMore) {
             return
@@ -134,9 +139,9 @@ export function useAlbumGallery({
             setIsLoadingMore(true)
             setError(null)
 
-            // TODO: Use getAlbumGallery client function
+            // Fetch next batch of older images (descending order, higher offset)
             const response = await fetch(
-                `/api/album/${albumId}/gallery?limit=${limit}&offset=${offset}&order_by=created_at&ascending=true`,
+                `/api/album/${albumId}/gallery?limit=${limit}&offset=${offset}&order_by=created_at&ascending=false`,
                 {
                     method: 'GET',
                     headers: {
@@ -153,8 +158,9 @@ export function useAlbumGallery({
             const data = await response.json()
             const newImages = (data.images as GalleryImageResponse[]).map(transformGalleryImage)
 
-            // Append newer images (scroll down gets newer items)
-            setGalleryImages(prev => [...prev, ...newImages])
+            // Prepend older images to top (reversed so oldest of batch is at top)
+            // Order: [older batch reversed] + [existing images]
+            setGalleryImages(prev => [...newImages.reverse(), ...prev])
             setOffset(prev => prev + newImages.length)
             setHasMore(newImages.length === limit)
 
@@ -168,14 +174,9 @@ export function useAlbumGallery({
         }
     }, [albumId, limit, offset, isLoadingMore, hasMore, onError])
 
-    // Append new image (for real-time updates)
+    // Append new image to bottom (for placeholders and real-time updates)
     const appendImage = useCallback((image: GalleryImage) => {
         setGalleryImages(prev => [...prev, image])
-    }, [])
-
-    // Prepend image (for new images at the top)
-    const prependImage = useCallback((image: GalleryImage) => {
-        setGalleryImages(prev => [image, ...prev])
     }, [])
 
     // Update existing image
@@ -205,12 +206,7 @@ export function useAlbumGallery({
             fetchGallery()
         } else if (!albumId && currentAlbumId.current !== null) {
             currentAlbumId.current = null
-            setGalleryImages([])
-            setIsLoading(false)
-            setIsLoadingMore(false)
-            setError(null)
-            setHasMore(true)
-            setOffset(0)
+            reset()
         }
     }, [albumId, autoFetch, fetchGallery, reset])
 
@@ -223,7 +219,6 @@ export function useAlbumGallery({
         fetchGallery,
         loadMore,
         appendImage,
-        prependImage,
         updateImage,
         reset,
     }

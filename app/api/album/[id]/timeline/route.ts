@@ -9,7 +9,7 @@ import type { TimelineEvent } from '@/types/timeline'
  * Fetch timeline events for a specific album
  * 
  * Query Parameters:
- * - limit: Number of events to fetch (default: 20)
+ * - limit: Number of events to fetch (default: 9)
  * - offset: Offset for pagination (default: 0)
  * - order_by: Field to order by (default: 'created_at')
  * - ascending: Sort order (default: false - newest first)
@@ -48,7 +48,7 @@ export async function GET(
         try {
             // Build query params
             const params = new URLSearchParams()
-            params.set('limit', limit || '20')
+            params.set('limit', limit || '9')
             params.set('offset', offset || '0')
             params.set('order_by', order_by || 'created_at')
             params.set('ascending', ascending || 'false')

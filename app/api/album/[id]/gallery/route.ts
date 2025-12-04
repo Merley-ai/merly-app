@@ -48,7 +48,7 @@ export async function GET(
         try {
             // Build query params
             const params = new URLSearchParams()
-            params.set('limit', limit || '20')
+            params.set('limit', limit || '9')
             params.set('offset', offset || '0')
             params.set('order_by', order_by || 'created_at')
             params.set('ascending', ascending || 'false')

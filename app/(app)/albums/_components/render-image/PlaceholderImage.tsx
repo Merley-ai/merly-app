@@ -2,7 +2,6 @@
 
 interface PlaceholderImageProps {
     index?: number;
-    delay?: number;
     className?: string;
 }
 
@@ -61,7 +60,6 @@ export function PlaceholderImage({
 export function PlaceholderThumbnail({
     className = ""
 }: {
-    delay?: number;
     className?: string;
 }) {
     return (
