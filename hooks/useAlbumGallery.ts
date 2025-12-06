@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { clientFetch } from '@/lib/api'
 import type { GalleryImage, GalleryImageResponse } from '@/types'
 
 /**
@@ -11,6 +12,7 @@ function transformGalleryImage(image: GalleryImageResponse): GalleryImage {
         id: image.id,
         // Prefer storage_url over fal_url for consistency
         url: image.storage_url || image.fal_url,
+        name: image.file_name,
         description: image.file_name,
         status: 'complete',
         addedAt: new Date(image.created_at),
@@ -96,7 +98,7 @@ export function useAlbumGallery({
             setError(null)
 
             // Fetch newest images first (descending order)
-            const response = await fetch(
+            const response = await clientFetch(
                 `/api/album/${albumId}/gallery?limit=${limit}&offset=0&order_by=created_at&ascending=false`,
                 {
                     method: 'GET',
@@ -140,7 +142,7 @@ export function useAlbumGallery({
             setError(null)
 
             // Fetch next batch of older images (descending order, higher offset)
-            const response = await fetch(
+            const response = await clientFetch(
                 `/api/album/${albumId}/gallery?limit=${limit}&offset=${offset}&order_by=created_at&ascending=false`,
                 {
                     method: 'GET',

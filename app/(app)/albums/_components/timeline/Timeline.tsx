@@ -92,7 +92,7 @@ export function Timeline({ albumName, entries }: TimelineProps) {
                                         {entry.outputImages.map((img, idx) => (
                                             <div key={idx} className="space-y-1">
                                                 {img.isPlaceholder ? (
-                                                    <PlaceholderThumbnail delay={0.1 * idx} />
+                                                    <PlaceholderThumbnail delay={0.3 * idx} />
                                                 ) : (
                                                     <div className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0">
                                                         <AnimatedImage

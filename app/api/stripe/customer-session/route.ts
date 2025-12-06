@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { getUser, getAccessToken } from '@/lib/auth0/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getUser, getAccessToken, withAuth } from '@/lib/auth0';
 import { apiFetchService, Stripe as StripeEndpoints } from '@/lib/api';
 
 interface Auth0User {
@@ -32,55 +32,25 @@ interface Auth0User {
  * 
  * @returns {object} { clientSecret: string } or error
  */
-export async function POST() {
-    try {
-        // 1. Authenticate user with Auth0
-        const user = await getUser();
+export const POST = withAuth(async (_request: NextRequest) => {
+    const user = await getUser();
 
-        if (!user) {
-            return NextResponse.json(
-                { error: 'Not authenticated' },
-                { status: 401 }
-            );
-        }
-
-        // 2. Create a Customer Session
-        const clientSecret = await getOrCreateStripeCustomer(user);
-
-        if (!clientSecret) {
-            return NextResponse.json(
-                { error: 'Failed to create customer session' },
-                { status: 500 }
-            );
-        }
-
-        // 4. Return the client secret
-        return NextResponse.json({
-            clientSecret: clientSecret,
-        });
-    } catch (error) {
-        console.error('Error creating customer session:', error);
-
-        // Provide specific error message if backend API is not configured
-        if (error instanceof Error && error.message.includes('Backend API URL is not configured')) {
-            return NextResponse.json(
-                {
-                    error: 'Backend API not configured',
-                    details: 'BACKEND_API_URL environment variable must be set'
-                },
-                { status: 503 }
-            );
-        }
-
-        return NextResponse.json(
-            {
-                error: 'Failed to create customer session',
-                details: error instanceof Error ? error.message : 'Unknown error'
-            },
-            { status: 500 }
-        );
+    if (!user?.sub) {
+        throw new Error('User ID not found');
     }
-}
+
+    // Create a Customer Session
+    const clientSecret = await getOrCreateStripeCustomer(user);
+
+    if (!clientSecret) {
+        throw new Error('Failed to create customer session');
+    }
+
+    // Return the client secret
+    return NextResponse.json({
+        clientSecret: clientSecret,
+    });
+});
 
 /**
  * Stripe customer session response type
@@ -117,7 +87,7 @@ async function getOrCreateStripeCustomer(user: Auth0User): Promise<string | null
             {
                 method: 'POST',
                 headers: {
-                    ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
+                    'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify(payload),
             }

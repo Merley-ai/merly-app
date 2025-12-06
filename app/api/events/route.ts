@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server'
 import type { ImageSSEStatus, GeneratedImage } from '@/types/image-generation'
 import { SSEConnectionError } from '@/lib/api/core'
 import { connectToImageGenerationSSE, createSSEHeaders } from '@/lib/api/image-gen/sse-server-client'
-import { getAccessToken } from '@/lib/auth0/server'
+import { getAccessToken } from '@/lib/auth0'
+import { AuthTokenError } from '@/lib/auth0/errors'
 import { createSSESpan, setAttributes, captureServerError } from '@/lib/new-relic'
 
 /**
@@ -207,7 +208,6 @@ export const runtime = 'nodejs'
  * GET /api/events?requestId=abc-123-def
  */
 export async function GET(request: NextRequest) {
-
   const searchParams = request.nextUrl.searchParams
   const streamId = searchParams.get('stream') || searchParams.get('requestId')
 
@@ -225,9 +225,23 @@ export async function GET(request: NextRequest) {
   })
 
   try {
-
-    // Get access token for authentication
+    // Get access token for authentication (throws AuthTokenError on failure)
     const accessToken = await getAccessToken()
+
+    // Auth check - if no token, return 401
+    if (!accessToken) {
+      return new Response(
+        JSON.stringify({
+          error: 'Authentication required',
+          code: 'NO_TOKEN',
+          shouldLogout: true,
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    }
 
     // Use the dedicated SSE server client to establish backend connection
     const { response: backendResponse } = await connectToImageGenerationSSE({
@@ -318,6 +332,21 @@ export async function GET(request: NextRequest) {
       headers: createSSEHeaders(),
     })
   } catch (error) {
+    // Handle auth errors specifically
+    if (error instanceof AuthTokenError) {
+      return new Response(
+        JSON.stringify({
+          error: error.message,
+          code: error.code,
+          shouldLogout: true,
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
     // Track connection error
     sseTracker.error(error instanceof Error ? error : 'Connection failed')
 

@@ -58,12 +58,17 @@ export function PlaceholderImage({
  * Smaller version for timeline thumbnails
  */
 export function PlaceholderThumbnail({
-    className = ""
+    className = "",
+    delay = 0
 }: {
     className?: string;
+    delay?: number;
 }) {
     return (
-        <div className={`w-[71px] h-[71px] rounded overflow-hidden relative ${className}`}>
+        <div
+            className={`w-[71px] h-[71px] rounded overflow-hidden relative ${className}`}
+            style={{ animationDelay: `${delay}s` }}
+        >
             {/* Animated gradient background */}
             <div className="w-full h-full bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 animate-pulse" />
 

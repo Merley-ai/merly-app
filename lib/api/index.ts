@@ -24,6 +24,9 @@ export {
     SSEConnectionError,
 } from './core'
 
+// Client-side fetch wrapper
+export { clientFetch } from './client-fetch'
+
 // Image Generation SSE Client
 export {
     createImageGenerationSSE,

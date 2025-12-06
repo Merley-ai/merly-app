@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getUser, getAccessToken, withAuth } from '@/lib/auth0'
 import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
 
 /**
@@ -16,75 +16,38 @@ import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
  * 3. Call backend API with user_id and album_id
  * 4. Return success confirmation
  */
-export async function DELETE(request: Request) {
-    try {
-        // Authenticate User
-        const user = await getUser()
-        if (!user) {
-            return NextResponse.json(
-                { error: 'Not authenticated' },
-                { status: 401 }
-            )
-        }
+export const DELETE = withAuth(async (request: NextRequest) => {
+    const user = await getUser()
+    const accessToken = await getAccessToken()
 
-        // Parse and Validate Request Body
-        const body = await request.json()
-        const { album_id } = body
-
-        // Validate album_id
-        if (!album_id || !album_id.trim()) {
-            return NextResponse.json(
-                { error: 'Album ID is required' },
-                { status: 400 }
-            )
-        }
-
-        // Call Backend API
-        try {
-            // Get Auth0 access token for backend authentication
-            const accessToken = await getAccessToken()
-
-            await apiFetchService<{ message: string; data: null }>(
-                AlbumEndpoints.delete(),
-                {
-                    method: 'DELETE',
-                    headers: {
-                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
-                    },
-                    body: JSON.stringify({
-                        user_id: user.sub,
-                        album_id: album_id.trim(),
-                    }),
-                }
-            )
-
-            return NextResponse.json({
-                message: 'Album deleted successfully',
-                album_id,
-            })
-
-        } catch (backendError) {
-            const errorMessage = backendError instanceof Error
-                ? backendError.message
-                : 'Unknown backend error'
-
-            return NextResponse.json(
-                {
-                    error: 'Failed to delete album in backend',
-                    details: errorMessage,
-                },
-                { status: 500 }
-            )
-        }
-
-    } catch (error) {
-        return NextResponse.json(
-            {
-                error: 'Failed to delete album',
-                details: error instanceof Error ? error.message : 'Unknown error',
-            },
-            { status: 500 }
-        )
+    if (!user?.sub) {
+        throw new Error('User ID not found')
     }
-}
+
+    const body = await request.json()
+    const { album_id } = body
+
+    if (!album_id || !album_id.trim()) {
+        throw new Error('Album ID is required')
+    }
+
+    await apiFetchService<{ message: string; data: null }>(
+        AlbumEndpoints.delete(),
+        {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+                user_id: user.sub,
+                album_id: album_id.trim(),
+            }),
+        }
+    )
+
+    return NextResponse.json({
+        message: 'Album deleted successfully',
+        album_id,
+    })
+})
 

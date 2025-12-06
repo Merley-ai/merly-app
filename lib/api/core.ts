@@ -6,6 +6,7 @@
  */
 
 import { captureServerError } from '@/lib/new-relic/error-reporter'
+import type { AuthErrorResponse } from '@/lib/auth0'
 
 // Config
 const API_TIMEOUT = 30000
@@ -103,6 +104,26 @@ export async function apiFetch<T>(
         // Handle non-OK responses
         if (!response.ok) {
             const dataObj = data as Record<string, unknown> | undefined
+
+            // Check for authentication errors (401 with shouldLogout flag)
+            if (response.status === 401 && dataObj) {
+                const authError = dataObj as Partial<AuthErrorResponse>
+
+                if (authError.shouldLogout) {
+                    // Redirect to logout immediately
+                    if (typeof window !== 'undefined') {
+                        window.location.href = '/auth/logout'
+                    }
+
+                    // Still throw error for proper error handling
+                    throw new BackendAPIError(
+                        authError.message || 'Authentication required. Redirecting to login...',
+                        401,
+                        data
+                    )
+                }
+            }
+
             const apiError = new BackendAPIError(
                 (dataObj?.error as string | undefined) || (dataObj?.message as string | undefined) || `API error: ${response.status}`,
                 response.status,

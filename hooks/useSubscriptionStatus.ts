@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { clientFetch } from "@/lib/api";
 import type { SubscriptionStatus } from "@/types";
 
 interface UseSubscriptionStatusOptions {
@@ -37,7 +38,7 @@ export function useSubscriptionStatus(
         setError(null);
 
         try {
-            const response = await fetch("/api/subscription/status");
+            const response = await clientFetch("/api/subscription/status");
 
             if (!response.ok) {
                 throw new Error(`Failed to fetch subscription status: ${response.statusText}`);

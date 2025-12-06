@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { GenerationType, GeneratedImage, ImageSSEStatus } from '@/types/image-generation'
-import { createImageGenerationSSE } from '@/lib/api'
+import { createImageGenerationSSE, clientFetch } from '@/lib/api'
 import { createImageGenSpan, recordPageAction, captureError } from '@/lib/new-relic/client'
 
 /**
@@ -89,7 +89,7 @@ export function useImageGeneration({
             setError(null)
             setRequestId(null)
 
-            const response = await fetch(endpoint, {
+            const response = await clientFetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

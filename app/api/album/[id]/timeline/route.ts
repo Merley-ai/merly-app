@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getUser, getAccessToken } from '@/lib/auth0/server'
+import { NextResponse } from 'next/server'
+import { getAccessToken, withAuthParams } from '@/lib/auth0'
 import { apiFetchService, Album as AlbumEndpoints } from '@/lib/api'
 import type { TimelineEvent } from '@/types/timeline'
 
@@ -13,91 +13,49 @@ import type { TimelineEvent } from '@/types/timeline'
  * - offset: Offset for pagination (default: 0)
  * - order_by: Field to order by (default: 'created_at')
  * - ascending: Sort order (default: false - newest first)
- * 
- * Flow:
- * 1. Authenticate user via Auth0
- * 2. Extract albumId from URL params
- * 3. Call backend API with query parameters
- * 4. Return timeline events
  */
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        // Authenticate User
-        const user = await getUser()
-        if (!user) {
-            return NextResponse.json(
-                { error: 'Not authenticated' },
-                { status: 401 }
-            )
-        }
+export const GET = withAuthParams<
+    { events: TimelineEvent[]; count: number },
+    Promise<{ id: string }>
+>(async (request, { params }) => {
+    // Await params (Next.js 15+)
+    const { id: albumId } = await params
 
-        // Await params (Next.js 15+)
-        const { id: albumId } = await params
+    // Extract query parameters
+    const searchParams = request.nextUrl.searchParams
+    const limit = searchParams.get('limit')
+    const offset = searchParams.get('offset')
+    const order_by = searchParams.get('order_by')
+    const ascending = searchParams.get('ascending')
 
-        // Extract query parameters
-        const searchParams = request.nextUrl.searchParams
-        const limit = searchParams.get('limit')
-        const offset = searchParams.get('offset')
-        const order_by = searchParams.get('order_by')
-        const ascending = searchParams.get('ascending')
+    // Build query params
+    const queryParams = new URLSearchParams()
+    queryParams.set('limit', limit || '9')
+    queryParams.set('offset', offset || '0')
+    queryParams.set('order_by', order_by || 'created_at')
+    queryParams.set('ascending', ascending || 'false')
 
-        // Call Backend API
-        try {
-            // Build query params
-            const params = new URLSearchParams()
-            params.set('limit', limit || '9')
-            params.set('offset', offset || '0')
-            params.set('order_by', order_by || 'created_at')
-            params.set('ascending', ascending || 'false')
+    const queryString = queryParams.toString()
+    const baseUrl = AlbumEndpoints.getTimeline(albumId)
+    const url = queryString ? `${baseUrl}?${queryString}` : baseUrl
 
-            const queryString = params.toString()
-            const baseUrl = AlbumEndpoints.getTimeline(albumId)
-            const url = queryString ? `${baseUrl}?${queryString}` : baseUrl
+    // Get Auth0 access token
+    const accessToken = await getAccessToken()
 
-            // Get Auth0 access token for backend authentication
-            const accessToken = await getAccessToken()
-
-            const response = await apiFetchService<{ message: string; data: TimelineEvent[] }>(
-                url,
-                {
-                    headers: {
-                        ...(accessToken && { 'Authorization': `Bearer ${accessToken}` }),
-                    },
-                }
-            )
-
-            const events = response.data || []
-
-            return NextResponse.json({
-                events,
-                count: events.length,
-            })
-
-        } catch (backendError) {
-            const errorMessage = backendError instanceof Error
-                ? backendError.message
-                : 'Unknown backend error'
-
-            return NextResponse.json(
-                {
-                    error: 'Failed to fetch timeline from backend',
-                    details: errorMessage,
-                },
-                { status: 500 }
-            )
-        }
-
-    } catch (error) {
-        return NextResponse.json(
-            {
-                error: 'Failed to fetch timeline',
-                details: error instanceof Error ? error.message : 'Unknown error',
+    const response = await apiFetchService<{ message: string; data: TimelineEvent[] }>(
+        url,
+        {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
             },
-            { status: 500 }
-        )
-    }
-}
+        }
+    )
+
+    const events = response.data || []
+
+    return NextResponse.json({
+        events,
+        count: events.length,
+    })
+})
 

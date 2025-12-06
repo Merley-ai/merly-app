@@ -8,15 +8,11 @@
 export { auth0 } from './Auth0';
 
 // Server-side utilities
-export {
-    getSession,
-    getUser,
-    requireAuth,
-    isAuthenticated,
-    getAccessToken,
-} from './server';
+export { getSession, getUser, requireAuth, isAuthenticated, getAccessToken } from './server'
+export { AuthTokenError, AuthErrorCode, handleAuthError, isAuthError } from './errors'
+export type { AuthErrorResponse } from './errors'
+export { withAuth, withAuthParams } from './api-handler'
 
 // Client-side utilities (use only in Client Components)
 export { useUser } from './client';
 export type { Auth0User } from './client';
-

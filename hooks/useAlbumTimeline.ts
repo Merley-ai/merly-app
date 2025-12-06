@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { TimelineEntry, TimelineEvent } from '@/types'
+import { clientFetch } from '@/lib/api'
 import { transformTimelineEvents, mergeTimelineEvents } from '@/lib/utils'
+import type { TimelineEntry, TimelineEvent } from '@/types'
 
 /**
  * Hook options
@@ -78,7 +79,7 @@ export function useAlbumTimeline({
             setIsLoading(true)
             setError(null)
 
-            const response = await fetch(
+            const response = await clientFetch(
                 `/api/album/${albumId}/timeline?limit=${limit}&offset=0&order_by=created_at&ascending=true`,
                 {
                     method: 'GET',
@@ -121,7 +122,7 @@ export function useAlbumTimeline({
             setIsLoadingMore(true)
             setError(null)
 
-            const response = await fetch(
+            const response = await clientFetch(
                 `/api/album/${albumId}/timeline?limit=${limit}&offset=${offset}&order_by=created_at&ascending=true`,
                 {
                     method: 'GET',

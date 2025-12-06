@@ -110,7 +110,7 @@ interface PreferenceRowProps {
     children?: React.ReactNode;
 }
 
-function PreferenceRow({
+function _PreferenceRow({
     label,
     value,
     disabled = false,

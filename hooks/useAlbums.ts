@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { clientFetch } from '@/lib/api'
 import { transformAlbumResponse } from '@/types'
 import type { Album, AlbumResponse } from '@/types'
 
@@ -62,7 +63,7 @@ export function useAlbums({
             setIsLoading(true)
             setError(null)
 
-            const response = await fetch('/api/album/getAll', {
+            const response = await clientFetch('/api/album/getAll', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ export function useAlbums({
             const albumName = name || `New Album ${timestamp}`
             const albumDescription = description || `Created on ${new Date().toLocaleDateString()}`
 
-            const response = await fetch('/api/album/create', {
+            const response = await clientFetch('/api/album/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ export function useAlbums({
         try {
             setError(null)
 
-            const response = await fetch('/api/album/update', {
+            const response = await clientFetch('/api/album/update', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ export function useAlbums({
         try {
             setError(null)
 
-            const response = await fetch('/api/album/delete', {
+            const response = await clientFetch('/api/album/delete', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -261,7 +262,7 @@ export function useAlbums({
         try {
             setError(null)
 
-            const response = await fetch(`/api/album/get/${albumId}`, {
+            const response = await clientFetch(`/api/album/get/${albumId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
