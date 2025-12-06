@@ -17,11 +17,11 @@ import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
 import { useAlbumTimeline } from "@/hooks/useAlbumTimeline";
 import { useAlbumGallery } from "@/hooks/useAlbumGallery";
 import { useSubscriptionStatus } from "@/hooks";
-import { EmptyTimeline } from "./timeline/EmptyTimeline";
-import { TimelineWithInput } from "./timeline/TimelineWithInput";
-import { EmptyGallery } from "./gallery/EmptyGallery";
-import { Gallery, type GalleryRef } from "./gallery/Gallery";
-import { ImageViewer } from "./imageview/ImageViewer";
+import { EmptyTimeline } from "../timeline/EmptyTimeline";
+import { TimelineWithInput } from "../timeline/TimelineWithInput";
+import { EmptyGallery } from "../gallery/EmptyGallery";
+import { Gallery, type GalleryRef } from "../gallery/Gallery";
+import { ImageViewer } from "../imageview/ImageViewer";
 import { shouldDisableSending } from "@/components/subscription/subscriptionUtils";
 
 interface AlbumsContentProps {

@@ -2,6 +2,8 @@
 
 import { InputArea } from "../input/InputArea";
 import { SubscriptionBanner } from "@/components/subscription";
+import { TypedMessage } from "@/components/ui/TypedMessage";
+import { TimelineLayout } from "./TimelineLayout";
 import type { SubscriptionStatus, UploadedFile } from "@/types";
 import type { PreferencesState } from "@/components/ui/PreferencesPopover";
 
@@ -37,27 +39,19 @@ export function EmptyTimeline({
     onPreferencesChange,
 }: EmptyTimelineProps) {
     return (
-        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
-            {/* Header */}
-            <header className="flex items-center justify-between p-4 border-b border-[#6b6b6b]/30">
-                <p
-                    className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                    style={{ fontVariationSettings: "'wdth' 100" }}
-                >
-                    {albumName}
-                </p>
-            </header>
-
-            {/* Empty State Message */}
+        <TimelineLayout albumName={albumName}>
             <div className="flex-1 overflow-y-auto px-4 py-6">
                 <div className="space-y-4">
-                    {/* Welcome Message */}
                     <div className="px-6 py-4">
                         <p
                             className="font-['Roboto:Regular',_sans-serif] text-white/80 text-[16px] leading-relaxed"
                             style={{ fontVariationSettings: "'wdth' 100" }}
                         >
-                            Fresh album — describe what you want to see, or let&apos;s brainstorm about where to start.
+                            <TypedMessage
+                                message="Fresh album — describe what you want to see, or let's brainstorm about where to start."
+                                typingSpeed={7}
+                                startDelay={100}
+                            />
                         </p>
                     </div>
                 </div>
@@ -65,7 +59,6 @@ export function EmptyTimeline({
 
             <SubscriptionBanner subscriptionStatus={subscriptionStatus} />
 
-            {/* Input Area */}
             <InputArea
                 inputValue={inputValue}
                 onInputChange={onInputChange}
@@ -76,7 +69,7 @@ export function EmptyTimeline({
                 forceDisableSend={forceDisableSend}
                 onPreferencesChange={onPreferencesChange}
             />
-        </main>
+        </TimelineLayout>
     );
 }
 

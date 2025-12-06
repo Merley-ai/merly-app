@@ -43,6 +43,7 @@ export async function POST(request: Request) {
         num_images = 1,
         output_format = 'png',
         album_id: _album_id,
+        new_album = false,
       } = body
 
       // Add generation parameters to transaction
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
         imageGenNumImages: num_images,
         imageGenOutputFormat: output_format,
         imageGenHasInputImages: input_images.length > 0,
+        isNewAlbum: new_album,
       })
 
       // Validate prompt
@@ -93,6 +95,7 @@ export async function POST(request: Request) {
               num_images,
               output_format,
               sync_mode: false,
+              new_album,
             }),
           }
         )

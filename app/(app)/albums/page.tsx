@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { AlbumsPageClient } from './_components/AlbumsPageClient';
+import { AlbumsPageClient } from './_components/album/AlbumsPageClient';
 
 export const metadata: Metadata = {
     title: 'Albums - Merley Dashboard',

@@ -1,6 +1,9 @@
 import { useRef, useEffect, useState } from "react";
 import { ThinkingAnimation } from "../render-image/ThinkingAnimation";
 import { InputArea } from "../input/InputArea";
+import { TimelineLayout } from "./TimelineLayout";
+import { InputImageThumbnail } from "./InputImageThumbnail";
+import { UserPromptBubble } from "./UserPromptBubble";
 import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
@@ -90,17 +93,7 @@ export function TimelineWithInput({
     }, [entries.length]);
 
     return (
-        <main className="bg-[#1a1a1a] w-[538px] flex-shrink-0 border-r-[1px] border-white/20 flex flex-col">
-            {/* Header */}
-            <header className="flex items-center justify-between p-4 border-b border-[#6b6b6b]/30">
-                <p
-                    className="font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                    style={{ fontVariationSettings: "'wdth' 100" }}
-                >
-                    {albumName}
-                </p>
-            </header>
-
+        <TimelineLayout albumName={albumName}>
             {/* Timeline Feed */}
             <div ref={timelineRef} className="flex-1 overflow-y-auto px-4 py-6 scrollbar-minimal">
                 <div className="space-y-8">
@@ -128,38 +121,18 @@ export function TimelineWithInput({
                                         {entry.inputImages.length > 0 && (
                                             <div className="flex gap-2">
                                                 {entry.inputImages.map((img, idx) => (
-                                                    <div
+                                                    <InputImageThumbnail
                                                         key={idx}
-                                                        className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0"
-                                                    >
-                                                        <img
-                                                            src={img}
-                                                            alt={`Input ${idx + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                        <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
-                                                            <p
-                                                                className="font-['Roboto:Regular',_sans-serif] text-black text-[10px]"
-                                                                style={{ fontVariationSettings: "'wdth' 100" }}
-                                                            >
-                                                                {idx + 1}
-                                                            </p>
-                                                        </div>
-                                                    </div>
+                                                        src={img}
+                                                        index={idx}
+                                                    />
                                                 ))}
                                             </div>
                                         )}
 
                                         {/* User Prompt */}
                                         {entry.prompt && (
-                                            <div className="bg-[#2e2e2e] rounded-[40px] px-6 py-4 max-w-[80%]">
-                                                <p
-                                                    className="font-['Roboto:Regular',_sans-serif] text-white text-[16px]"
-                                                    style={{ fontVariationSettings: "'wdth' 100" }}
-                                                >
-                                                    {entry.prompt}
-                                                </p>
-                                            </div>
+                                            <UserPromptBubble prompt={entry.prompt} />
                                         )}
                                     </div>
                                 ) : (
@@ -202,7 +175,7 @@ export function TimelineWithInput({
                 forceDisableSend={forceDisableSend}
                 onPreferencesChange={onPreferencesChange}
             />
-        </main>
+        </TimelineLayout>
     );
 }
 

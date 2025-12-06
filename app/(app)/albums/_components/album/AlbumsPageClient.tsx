@@ -1,6 +1,6 @@
 "use client";
 
-import { DashboardLayout } from "../../_components/DashboardLayout";
+import { DashboardLayout } from "../../../_components/DashboardLayout";
 import { AlbumsContent } from "./AlbumsContent";
 
 /**

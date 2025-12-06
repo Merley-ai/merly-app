@@ -28,21 +28,14 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
         selectedAlbum,
         isLoading: albumsLoading,
         error: albumsError,
-        createAlbum,
         selectAlbum,
         isSidebarCollapsed,
         toggleSidebar,
     } = useAlbumsContext();
 
     // Handle create album
-    const handleCreateAlbum = async () => {
-        try {
-            await createAlbum();
-            // Navigate to albums route with new album selected
-            router.push('/albums');
-        } catch (error) {
-            console.error('Failed to create album:', error);
-        }
+    const handleCreateAlbum = () => {
+        router.push('/albums/new');
     };
 
     // Handle select album
