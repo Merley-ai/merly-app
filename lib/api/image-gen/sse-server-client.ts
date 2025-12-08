@@ -123,6 +123,8 @@ export async function connectToImageGenerationSSE(
             )
         }
 
+        console.log('SSE response:', response)
+
         return {
             response,
             requestId,

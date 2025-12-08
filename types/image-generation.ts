@@ -26,6 +26,7 @@ export interface GenerateImageRequest {
     prompt: string
     user_id: string
     album_id?: string
+    new_album?: boolean
     image_url?: string
     aspect_ratio?: string
     num_images?: number
@@ -43,6 +44,7 @@ export interface EditImageRequest {
     prompt: string
     user_id: string
     album_id?: string
+    new_album?: boolean
     image_url: string
     aspect_ratio?: string
     num_images?: number
@@ -60,6 +62,7 @@ export interface RemixImageRequest {
     prompt: string
     user_id: string
     album_id?: string
+    new_album?: boolean
     image_urls: string[]
     aspect_ratio?: string
     num_images?: number
@@ -187,7 +190,7 @@ export interface CreateGenerationRequest {
     num_images?: number
     output_format?: string
     album_id?: string
-    new_album?: boolean 
+    new_album?: boolean
 }
 
 /**
@@ -197,6 +200,8 @@ export interface CreateGenerationResponse {
     generation: Generation
     request_id?: string
     results?: GeneratedImage[] // If sync mode
+    system_message?: string // System message to display in timeline (e.g., "Album created", "Generation started")
+    album?: any // Album data when new_album=true
 }
 
 /**

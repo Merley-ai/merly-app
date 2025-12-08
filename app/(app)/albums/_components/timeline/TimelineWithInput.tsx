@@ -3,7 +3,9 @@ import { ThinkingAnimation } from "../render-image/ThinkingAnimation";
 import { InputArea } from "../input/InputArea";
 import { TimelineLayout } from "./TimelineLayout";
 import { InputImageThumbnail } from "./InputImageThumbnail";
-import { UserPromptBubble } from "./UserPromptBubble";
+import { UserPromptBubble } from "./UserMessage";
+import { ErrorMessage } from "./ErrorMessage";
+import { SystemMessage } from "./SystemMessage";
 import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
@@ -113,8 +115,14 @@ export function TimelineWithInput({
                                     </p>
                                 )}
 
-                                {/* Conversation Flow - User on right, AI on left */}
-                                {entry.type === 'user' ? (
+                                {/* Conversation Flow - User on right, AI on left, System/Error left-aligned */}
+                                {entry.type === 'system' ? (
+                                    /* System Message - Left-aligned */
+                                    <SystemMessage message={entry.systemMessage || entry.content} />
+                                ) : entry.type === 'error' ? (
+                                    /* Error Message - Centered */
+                                    <ErrorMessage message={entry.errorMessage || entry.content} />
+                                ) : entry.type === 'user' ? (
                                     /* User Message - Right aligned */
                                     <div className="flex flex-col items-end space-y-2">
                                         {/* Input Images */}

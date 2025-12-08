@@ -20,11 +20,11 @@
  */
 export interface TimelineEntry {
     id: string;
-    type: 'user' | 'ai';
+    type: 'user' | 'ai' | 'system' | 'error';
     content: string;
     inputImages: string[];
     prompt: string;
-    status: 'thinking' | 'complete';
+    status: 'thinking' | 'complete' | 'error';
     thinkingText?: string;
     outputImages?: Array<{ url: string; description: string; isPlaceholder?: boolean }>;
     outputLabel?: string;
@@ -32,6 +32,9 @@ export interface TimelineEntry {
     isGenerating?: boolean;
     requestId?: string;
     numImages?: number;
+    systemMessage?: string; // System message for type='system'
+    errorMessage?: string; // Error message for type='error'
+    suggested_actions?: Array<{ id: string, label: string, action: string }>;
 }
 
 /**
@@ -57,16 +60,17 @@ export interface PromptRequest {
 export interface TimelineEvent {
     album_id: string;
     created_at: string;
-    deleted_at: string | null;
+    deleted_at: string;
     id: string;
     image_ids: string[] | null;
-    prompt_request: PromptRequest | null;
-    prompt_request_id: string | null;
-    prompt_text: string | null;
-    system_message: string | null;
+    prompt_request: PromptRequest;
+    prompt_request_id: string;
+    prompt_text: string;
+    system_message: string;
     type: string;
     updated_at: string;
     user_id: string;
+    suggested_actions: Array<{ id: string, label: string, action: string }>;
 }
 
 /**

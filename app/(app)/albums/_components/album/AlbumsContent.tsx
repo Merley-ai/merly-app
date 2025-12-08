@@ -1,22 +1,17 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import { useUser } from "@/lib/auth0/client";
-import { downloadImage, validateImageDimensions } from "@/lib/utils";
-import { toast } from "@/lib/notifications";
-import type { TimelineEntry, GalleryImage, UploadedFile } from "@/types";
+import { downloadImage } from "@/lib/utils";
+import type { GalleryImage } from "@/types";
 import type { Album } from "@/types/album";
-import type { GeneratedImage } from "@/types/image-generation";
 import {
-    type PreferencesState,
-    DEFAULT_PREFERENCES,
-    resolvePreferences
-} from "@/components/ui/PreferencesPopover";
-import { useImageGeneration } from "@/hooks/useImageGeneration";
-import { useSupabaseUpload } from "@/hooks/useSupabaseUpload";
-import { useAlbumTimeline } from "@/hooks/useAlbumTimeline";
-import { useAlbumGallery } from "@/hooks/useAlbumGallery";
-import { useSubscriptionStatus } from "@/hooks";
+    useAlbumTimeline,
+    useAlbumGallery,
+    useSubscriptionStatus,
+    useAlbumGeneration,
+    useAlbumInput,
+} from "@/hooks";
 import { EmptyTimeline } from "../timeline/EmptyTimeline";
 import { TimelineWithInput } from "../timeline/TimelineWithInput";
 import { EmptyGallery } from "../gallery/EmptyGallery";
@@ -38,24 +33,8 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const { user } = useUser();
     const { subscriptionStatus } = useSubscriptionStatus();
 
-    // Track current generation request ID for updating placeholders
-    const currentGenerationRef = useRef<{ aiEntryId: string; numImages: number } | null>(null);
-
     // Gallery ref for scrolling to bottom when placeholders are added
     const galleryRef = useRef<GalleryRef>(null);
-
-    // Image generation hook with WebSocket support
-    const { create } = useImageGeneration({
-        onComplete: (images) => {
-            handleGenerationComplete(images);
-        },
-        onError: (error) => {
-            handleGenerationError(error);
-        },
-    });
-
-    // Supabase upload hook
-    const { uploadFile } = useSupabaseUpload();
 
     // Timeline hook - auto-fetches when album is selected
     const {
@@ -84,7 +63,6 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         hasMore: galleryHasMore,
         loadMore: loadMoreGallery,
         appendImage: appendGalleryImage,
-        updateImage: updateGalleryImage,
     } = useAlbumGallery({
         albumId: selectedAlbum?.id || null,
         limit: 20,
@@ -94,10 +72,31 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         },
     });
 
-    // Input state
-    const [inputValue, setInputValue] = useState("");
-    const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-    const [preferences, setPreferences] = useState<PreferencesState>(DEFAULT_PREFERENCES);
+    // Unified input management
+    const {
+        inputValue,
+        setInputValue,
+        uploadedFiles,
+        handleFileChange,
+        handleRemoveFile,
+        preferences,
+        setPreferences,
+        clearInput,
+        canSubmit,
+        getInputImageUrls,
+    } = useAlbumInput(user?.sub);
+
+    // Unified generation flow
+    const { generate, isGenerating } = useAlbumGeneration({
+        onTimelineUpdate: appendTimelineEntry,
+        onGalleryUpdate: (image) => {
+            appendGalleryImage(image);
+            // Auto-scroll gallery to bottom to show new placeholders
+            setTimeout(() => {
+                galleryRef.current?.scrollToBottom();
+            }, 100);
+        },
+    });
 
     // Gallery & viewer state
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
@@ -112,251 +111,21 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const disableSendEnv = process.env.NEXT_PUBLIC_SUBSCRIPTION_DISABLE_GENERATE === "true";
     const forceDisableSend = disableSendEnv && shouldDisableSending(subscriptionStatus);
 
-    const handleRemoveFile = (fileId: string) => {
-        setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        if (!user) return;
-
-        // Validate each image's dimensions before processing
-        const validFiles: File[] = [];
-        for (const file of files) {
-            const validation = await validateImageDimensions(file);
-            if (!validation.isValid && validation.message) {
-                toast.error(validation.message, {
-                    context: 'imageUpload',
-                    attributes: {
-                        fileName: file.name,
-                        fileSize: file.size,
-                        dimensions: validation.dimensions,
-                        errorType: validation.error,
-                    },
-                });
-            } else {
-                validFiles.push(file);
-            }
-        }
-
-        // Only proceed with valid files
-        if (validFiles.length === 0) return;
-
-        // Create UploadedFile objects with pending state
-        const newUploadedFiles: UploadedFile[] = validFiles.map(file => ({
-            file,
-            id: `${file.name}-${file.size}-${file.lastModified}`,
-            status: 'pending' as const,
-            progress: 0,
-            previewUrl: URL.createObjectURL(file),
-        }));
-
-        // Add to state immediately
-        setUploadedFiles(prev => [...prev, ...newUploadedFiles]);
-
-        // Upload each file to Supabase
-        for (const uploadedFile of newUploadedFiles) {
-            try {
-                // Update status to uploading
-                setUploadedFiles(prev =>
-                    prev.map(uf =>
-                        uf.id === uploadedFile.id
-                            ? { ...uf, status: 'uploading' as const }
-                            : uf
-                    )
-                );
-
-                // Upload to Supabase
-                const result = await uploadFile(uploadedFile.file, user.sub);
-
-                // Update with signed URL
-                setUploadedFiles(prev =>
-                    prev.map(uf =>
-                        uf.id === uploadedFile.id
-                            ? {
-                                ...uf,
-                                status: 'completed' as const,
-                                progress: 100,
-                                signedUrl: result.url,
-                                storagePath: result.path,
-                            }
-                            : uf
-                    )
-                );
-            } catch (error) {
-                // Update status to error
-                setUploadedFiles(prev =>
-                    prev.map(uf =>
-                        uf.id === uploadedFile.id
-                            ? {
-                                ...uf,
-                                status: 'error' as const,
-                                error: error instanceof Error ? error.message : 'Upload failed',
-                            }
-                            : uf
-                    )
-                );
-            }
-        }
-    };
-
     const handleSubmit = async () => {
-        if (!inputValue.trim() && uploadedFiles.length === 0) return;
+        if (!canSubmit || !selectedAlbum?.id) return;
 
-        // Only allow submission if all files are uploaded successfully
-        const completedFiles = uploadedFiles.filter(f => f.status === 'completed');
-        if (uploadedFiles.length > 0 && completedFiles.length !== uploadedFiles.length) {
-            return;
-        }
+        // Use unified generation flow
+        await generate({
+            prompt: inputValue,
+            inputImages: getInputImageUrls(),
+            preferences,
+            albumId: selectedAlbum.id,
+        });
 
-        const prompt = inputValue;
-        // Use signed URLs from Supabase instead of blob URLs
-        const inputImageUrls = completedFiles
-            .map(f => f.signedUrl)
-            .filter((url): url is string => !!url);
-
-        // Resolve preferences to actual values
-        const resolvedPrefs = resolvePreferences(preferences);
-
-        const userEntry: TimelineEntry = {
-            id: Date.now().toString(),
-            type: "user",
-            content: prompt,
-            inputImages: inputImageUrls,
-            prompt,
-            status: "complete",
-            timestamp: new Date(),
-        };
-
-        appendTimelineEntry(userEntry);
-
-        const numImages = resolvedPrefs.count;
-        const aiEntryId = (Date.now() + 1).toString();
-
-        // Add AI entry with thinking state (NO images in timeline per new design)
-        const aiEntry: TimelineEntry = {
-            id: aiEntryId,
-            type: "ai",
-            content: "",
-            inputImages: [],
-            prompt,
-            status: "thinking",
-            thinkingText: "Creating your masterpiece...",
-            timestamp: new Date(),
-            isGenerating: true,
-            numImages,
-        };
-
-        appendTimelineEntry(aiEntry);
-
-        // Store generation info in ref for later placeholder updates
-        currentGenerationRef.current = { aiEntryId, numImages };
-
-        // Add placeholder images to gallery with 'rendering' status
-        const placeholders: GalleryImage[] = Array.from({ length: numImages }, (_, i) => ({
-            id: `placeholder-${aiEntryId}-${i}`,
-            url: "",
-            name: "",
-            description: prompt,
-            status: "rendering" as const,
-            addedAt: new Date(),
-            requestId: aiEntryId,
-            index: i,
-        }));
-
-        // Append placeholders to the end of the gallery (newest at bottom)
-        placeholders.forEach(placeholder => appendGalleryImage(placeholder));
-
-        // Auto-scroll gallery to bottom to show placeholders
-        setTimeout(() => {
-            galleryRef.current?.scrollToBottom();
-        }, 100);
-
-        // Clear input
-        setInputValue("");
-        setUploadedFiles([]);
-
-        if (!selectedAlbum) {
-            updateTimelineEntry(aiEntryId, {
-                content: "Error: No album selected. Please select or create an album first.",
-                status: "complete",
-                isGenerating: false,
-                thinkingText: undefined,
-            });
-            return;
-        }
-
-        if (!selectedAlbum.id) {
-            updateTimelineEntry(aiEntryId, {
-                content: "Error: Invalid album. Please try again.",
-                status: "complete",
-                isGenerating: false,
-                thinkingText: undefined,
-            });
-            return;
-        }
-
-        try {
-            await create({
-                prompt,
-                input_images: inputImageUrls.length > 0 ? inputImageUrls : undefined,
-                num_images: numImages,
-                aspect_ratio: resolvedPrefs.aspectRatio,
-                album_id: selectedAlbum.id,
-            });
-
-        } catch {
-            // Error handled by onError callback
-        }
+        // Clear input after successful submission
+        clearInput();
     };
 
-    // Handle generation completion
-    const handleGenerationComplete = useCallback((images: GeneratedImage[]) => {
-        const generationInfo = currentGenerationRef.current;
-
-        if (generationInfo) {
-            const { aiEntryId } = generationInfo;
-
-            removeTimelineEntry(aiEntryId);
-
-            // Update placeholder images in gallery using the stored ID
-            const placeholderPrefix = `placeholder-${aiEntryId}-`;
-
-            images.forEach((img, index) => {
-                const placeholderId = `${placeholderPrefix}${index}`;
-                updateGalleryImage(placeholderId, {
-                    url: img.url,
-                    description: "Generated image",
-                    status: "complete",
-                });
-            });
-
-            // Clear the ref after successful update
-            currentGenerationRef.current = null;
-        }
-    }, [removeTimelineEntry, updateGalleryImage]);
-
-    // Handle generation error
-    const handleGenerationError = (error: string) => {
-        const generationInfo = currentGenerationRef.current;
-        if (generationInfo) {
-            const { aiEntryId } = generationInfo;
-
-            // Try to update the timeline entry if it still exists
-            const generatingEntry = timelineEntries.find(e => e.id === aiEntryId);
-            if (generatingEntry) {
-                updateTimelineEntry(aiEntryId, {
-                    content: `Sorry, something went wrong: ${error}`,
-                    status: "complete",
-                    isGenerating: false,
-                    thinkingText: undefined,
-                });
-            }
-
-            // Clear the ref
-            currentGenerationRef.current = null;
-        }
-    };
 
     const handleNavigateImage = (direction: "prev" | "next") => {
         if (selectedImageIndex === null) return;

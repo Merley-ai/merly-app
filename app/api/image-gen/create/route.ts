@@ -38,7 +38,15 @@ export const POST = withAuth(async (request: NextRequest) => {
         num_images = 2,
         output_format = 'png',
         album_id,
+        new_album,
     } = body
+
+    console.log('[API /image-gen/create] Request params:', {
+        hasAlbumId: !!album_id,
+        hasNewAlbum: !!new_album,
+        albumId: album_id,
+        newAlbum: new_album,
+    })
 
     if (!prompt || !prompt.trim()) {
         throw new Error('Prompt is required')
@@ -46,6 +54,11 @@ export const POST = withAuth(async (request: NextRequest) => {
 
     if (num_images < 1 || num_images > 10) {
         throw new Error('num_images must be between 1 and 10')
+    }
+
+    // Validate that either album_id or new_album is provided
+    if (!album_id && !new_album) {
+        throw new Error('Either album_id or new_album flag is required')
     }
 
     // Filter out empty/null images
@@ -87,6 +100,7 @@ export const POST = withAuth(async (request: NextRequest) => {
                     prompt,
                     user_id: user.sub,
                     album_id,
+                    new_album,
                     aspect_ratio,
                     num_images,
                     output_format,
@@ -109,6 +123,7 @@ export const POST = withAuth(async (request: NextRequest) => {
                     prompt,
                     user_id: user.sub,
                     album_id,
+                    new_album,
                     image_url: validImages[0], // Use the single image
                     aspect_ratio,
                     num_images,
@@ -132,6 +147,7 @@ export const POST = withAuth(async (request: NextRequest) => {
                     prompt,
                     user_id: user.sub,
                     album_id,
+                    new_album,
                     image_urls: validImages, // Use all images
                     aspect_ratio,
                     num_images,
@@ -141,6 +157,9 @@ export const POST = withAuth(async (request: NextRequest) => {
             }
         )
     }
+
+    console.log('Generate Image [API response]:', backendResponse)
+
 
     // Add generation type to response for frontend tracking
     return NextResponse.json({

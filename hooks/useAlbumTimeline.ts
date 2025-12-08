@@ -95,8 +95,14 @@ export function useAlbumTimeline({
             }
 
             const data = await response.json()
+
+            console.log("Timeline Events [Client Fetch]:", data)
+
             const events = data.events as TimelineEvent[]
             const entries = transformTimelineEvents(events)
+
+
+            console.log("Transformed Timeline Events [Client Fetch]:", entries)
 
             setTimelineEntries(entries)
             setOffset(entries.length)
