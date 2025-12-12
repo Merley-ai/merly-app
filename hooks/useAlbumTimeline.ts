@@ -12,6 +12,7 @@ interface UseAlbumTimelineOptions {
     albumId: string | null
     limit?: number
     autoFetch?: boolean
+    skipInitialFetch?: boolean
     onError?: (error: string) => void
 }
 
@@ -55,6 +56,7 @@ export function useAlbumTimeline({
     albumId,
     limit = 9,
     autoFetch = true,
+    skipInitialFetch = false,
     onError,
 }: UseAlbumTimelineOptions): UseAlbumTimelineReturn {
     const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([])
@@ -66,6 +68,9 @@ export function useAlbumTimeline({
 
     // Track the current albumId to detect changes
     const currentAlbumId = useRef<string | null>(null)
+
+    // Track if fetch is in progress to prevent double-fetch in Strict Mode
+    const fetchInProgressRef = useRef(false)
 
     // Fetch initial timeline
     const fetchTimeline = useCallback(async () => {
@@ -96,13 +101,8 @@ export function useAlbumTimeline({
 
             const data = await response.json()
 
-            console.log("Timeline Events [Client Fetch]:", data)
-
             const events = data.events as TimelineEvent[]
             const entries = transformTimelineEvents(events)
-
-
-            console.log("Transformed Timeline Events [Client Fetch]:", entries)
 
             setTimelineEntries(entries)
             setOffset(entries.length)
@@ -164,12 +164,28 @@ export function useAlbumTimeline({
 
     // Append new entry (optimistic update for user actions)
     const appendEntry = useCallback((entry: TimelineEntry) => {
-        setTimelineEntries(prev => [...prev, entry])
+        setTimelineEntries(prev => {
+            // Deduplicate by ID
+            const existingIds = new Set(prev.map(e => e.id))
+            if (existingIds.has(entry.id)) {
+                // Update existing entry instead of duplicating
+                return prev.map(e => e.id === entry.id ? entry : e)
+            }
+            return [...prev, entry]
+        })
     }, [])
 
     // Prepend entry (for new events at the top)
     const prependEntry = useCallback((entry: TimelineEntry) => {
-        setTimelineEntries(prev => [entry, ...prev])
+        setTimelineEntries(prev => {
+            // Deduplicate by ID
+            const existingIds = new Set(prev.map(e => e.id))
+            if (existingIds.has(entry.id)) {
+                // Update existing entry instead of duplicating
+                return prev.map(e => e.id === entry.id ? entry : e)
+            }
+            return [entry, ...prev]
+        })
     }, [])
 
     // Update existing entry
@@ -199,14 +215,29 @@ export function useAlbumTimeline({
     // Auto-fetch when albumId changes
     useEffect(() => {
         if (autoFetch && albumId && albumId !== currentAlbumId.current) {
+            // Skip initial fetch if flag is set (preserves timeline after album creation)
+            if (skipInitialFetch && currentAlbumId.current === null) {
+                currentAlbumId.current = albumId
+                return
+            }
+
+            // Prevent double-fetch in React Strict Mode
+            if (fetchInProgressRef.current) {
+                return
+            }
+
+            fetchInProgressRef.current = true
             currentAlbumId.current = albumId
             reset()
-            fetchTimeline()
+
+            fetchTimeline().finally(() => {
+                fetchInProgressRef.current = false
+            })
         } else if (!albumId && currentAlbumId.current !== null) {
             currentAlbumId.current = null
             reset()
         }
-    }, [albumId, autoFetch, fetchTimeline, reset])
+    }, [albumId, autoFetch, skipInitialFetch, fetchTimeline, reset])
 
     return {
         timelineEntries,

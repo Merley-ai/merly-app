@@ -83,6 +83,11 @@ export interface GenerationResponse {
     status?: string // Backend status
     images?: GeneratedImage[] // Present if sync (sync_mode: true)
     error?: string // Error message if failed
+    album_id?: string // Present when new_album=true
+    album_name?: string // Present when new_album=true
+    system_message?: string // System message for timeline
+    timeline_event_id?: string // Timeline event ID
+    prompt_request_id?: string // Prompt request ID
 }
 
 /**
@@ -251,30 +256,54 @@ export const DEFAULT_GENERATION_OPTIONS: GenerationOptions = {
     sync_mode: false,
 }
 
-/**
- * Model options for different generation types
- */
-export const GENERATION_MODELS = {
-    generate: {
-        model: 'fal-ai/reve',
-        sub_path: '/text-to-image',
-    },
-    edit: {
-        model: 'fal-ai/reve',
-        sub_path: '/edit',
-    },
-    remix: {
-        model: 'fal-ai/reve',
-        sub_path: '/remix',
-    },
-} as const
 
 /**
- * Get full model path for a generation type
- * @example getModelPath('generate') // 'fal-ai/reve/text-to-image'
+ * Get model configuration for a specific model and generation type
+ * @param modelId - The model identifier (e.g., 'reve', 'flux-2')
+ * @param generationType - The type of generation ('generate', 'edit', 'remix')
+ * @returns ModelConfig with model and sub_path
+ * @example getModelConfig('flux-2', 'generate') // { model: 'fal-ai/flux-2', sub_path: '' }
  */
-export function getModelPath(type: GenerationType): string {
-    const config = GENERATION_MODELS[type]
+export function getModelConfig(modelId: ModelId, generationType: GenerationType): ModelConfig {
+    const modelDef = MODEL_REGISTRY[modelId]
+    return {
+        model: modelDef.baseModel,
+        sub_path: modelDef.subPaths[generationType],
+    }
+}
+
+/**
+ * Resolve UI model selection to ModelId
+ * Converts user-friendly model names to internal model IDs
+ * @param modelSelection - The model selected in UI (e.g., 'Default', 'Flux 2')
+ * @returns ModelId for use with getModelConfig
+ * @example resolveModelId('Flux 2') // 'flux-2'
+ */
+export function resolveModelId(modelSelection: models): ModelId {
+    switch (modelSelection) {
+        case 'Auto':
+        case 'Reve':
+            return 'reve'
+        case 'Nano-banana':
+            return 'nano-banana'
+        case 'Flux 2':
+            return 'flux-2'
+        case 'Seedream':
+            return 'seedream'
+        default:
+            return 'reve' // Fallback to default
+    }
+}
+
+/**
+ * Get full model path with dynamic model selection
+ * @param modelId - The model identifier
+ * @param generationType - The type of generation
+ * @returns Full model path (e.g., 'fal-ai/flux-2')
+ * @example getFullModelPath('flux-2', 'generate') // 'fal-ai/flux-2'
+ */
+export function getFullModelPath(modelId: ModelId, generationType: GenerationType): string {
+    const config = getModelConfig(modelId, generationType)
     return `${config.model}${config.sub_path}`
 }
 
@@ -306,12 +335,97 @@ export const IMAGE_COUNT_LABELS = [
 ] as const
 
 /**
- * Image count options with display names
+ * Model ID type - maps to backend model identifiers
  */
-export type models = "Default" | "Fast" | "Quality" | "Creative"; // TODO: Add more image generation model options
+export type ModelId = 'reve' | 'nano-banana' | 'flux-2' | 'seedream'
 
+/**
+ * Model selection type for UI
+ */
+export type models = "Auto" | "Reve" | "Nano-banana" | "Flux 2" | "Seedream"
+
+/**
+ * Model configuration for a specific generation type
+ */
+export interface ModelConfig {
+    model: string // Base model path (e.g., 'fal-ai/reve')
+    sub_path: string // Subpath for generation type (e.g., '/text-to-image')
+}
+
+/**
+ * Complete model definition with metadata
+ */
+export interface ModelDefinition {
+    id: ModelId
+    displayName: string
+    description: string
+    baseModel: string // Base model path without subpath
+    subPaths: {
+        generate: string // Text-to-image subpath
+        edit: string // Edit subpath
+        remix: string // Remix subpath
+    }
+}
+
+/**
+ * Model registry - Single source of truth for all available models
+ */
+export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
+    'reve': {
+        id: 'reve',
+        displayName: 'Reve',
+        description: 'Balanced quality and speed',
+        baseModel: 'fal-ai/reve',
+        subPaths: {
+            generate: '/text-to-image',
+            edit: '/edit',
+            remix: '/remix',
+        },
+    },
+    'nano-banana': {
+        id: 'nano-banana',
+        displayName: 'Nano-banana',
+        description: 'Fast generation with good quality',
+        baseModel: 'fal-ai/nano-banana',
+        subPaths: {
+            generate: '', // Text-to-image is the base endpoint
+            edit: '/edit',
+            remix: '/edit', // Uses edit endpoint for remix
+        },
+    },
+    'flux-2': {
+        id: 'flux-2',
+        displayName: 'Flux 2',
+        description: 'High quality, slower generation',
+        baseModel: 'fal-ai/flux-2',
+        subPaths: {
+            generate: '', // Text-to-image is the base endpoint
+            edit: '/edit',
+            remix: '/edit', // Uses edit endpoint for remix
+        },
+    },
+    'seedream': {
+        id: 'seedream',
+        displayName: 'Seedream',
+        description: 'Creative and artistic results',
+        baseModel: 'fal-ai/seedream',
+        subPaths: {
+            generate: '', // Text-to-image is the base endpoint
+            edit: '/edit',
+            remix: '/edit', // Uses edit endpoint for remix
+        },
+    },
+} as const
+
+/**
+ * Model options for UI display
+ */
 export const MODEL_OPTIONS_LABELS = [
-    { value: 'Default', label: 'Default' },
+    { value: 'Auto', label: 'Auto', description: 'Reve - Balanced' },
+    { value: 'Reve', label: 'Reve', description: 'Balanced quality and speed' },
+    { value: 'Nano-banana', label: 'Nano-banana', description: 'Fast generation' },
+    { value: 'Flux 2', label: 'Flux 2', description: 'High quality' },
+    { value: 'Seedream', label: 'Seedream', description: 'Creative results' },
 ] as const
 
 

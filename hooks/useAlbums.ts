@@ -16,12 +16,16 @@ interface UseAlbumsReturn {
     error: string | null
 
     // Actions
-    fetchAlbums: () => Promise<void>
+    fetchAlbums: () => Promise<Album[]>
     createAlbum: (name?: string, description?: string) => Promise<Album>
     updateAlbum: (albumId: string, name: string, description?: string) => Promise<void>
     deleteAlbum: (albumId: string) => Promise<void>
     selectAlbum: (album: Album) => void
     refreshAlbum: (albumId: string) => Promise<void>
+    addOptimisticAlbum: (albumId: string) => void
+    updateOptimisticAlbum: (albumId: string, name: string) => void
+    removeOptimisticAlbum: (albumId: string) => void
+    findNewAlbum: () => Album | null
 }
 
 /**
@@ -58,7 +62,7 @@ export function useAlbums({
     const [error, setError] = useState<string | null>(null)
 
     // Fetch all albums
-    const fetchAlbums = useCallback(async () => {
+    const fetchAlbums = useCallback(async (): Promise<Album[]> => {
         try {
             setIsLoading(true)
             setError(null)
@@ -81,12 +85,14 @@ export function useAlbums({
                 .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
 
             setAlbums(transformedAlbums)
+            return transformedAlbums
 
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Unknown error fetching albums'
             setError(errorMsg)
             onError?.(errorMsg)
             console.error('[useAlbums] Fetch error:', err)
+            return []
         } finally {
             setIsLoading(false)
         }
@@ -321,6 +327,58 @@ export function useAlbums({
         }
     }, [albums]) // Run when albums change, selectedAlbum intentionally excluded to avoid loops
 
+    // Find existing new album (optimistic album with name "New Album")
+    const findNewAlbum = useCallback((): Album | null => {
+        return albums.find(album => album.name === 'New Album') || null
+    }, [albums])
+
+    // Add optimistic album (before API call)
+    // Only adds if no existing "New Album" exists (single new album constraint)
+    const addOptimisticAlbum = useCallback((albumId: string) => {
+        // Check if a "New Album" already exists
+        const existingNewAlbum = albums.find(album => album.name === 'New Album')
+        if (existingNewAlbum) {
+            console.log('[useAlbums] New Album already exists, skipping duplicate creation')
+            return
+        }
+
+        const optimisticAlbum: Album = {
+            id: albumId,
+            user_id: '', // Will be populated by backend
+            name: 'New Album',
+            description: '',
+            thumbnail_url: undefined,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        }
+
+        // Add to beginning of list (most recent)
+        setAlbums(prev => [optimisticAlbum, ...prev])
+        setSelectedAlbum(optimisticAlbum)
+    }, [albums])
+
+    // Update optimistic album with real data from API
+    const updateOptimisticAlbum = useCallback((albumId: string, name: string) => {
+        setAlbums(prev => prev.map(album =>
+            album.id === albumId
+                ? { ...album, name }
+                : album
+        ))
+
+        // Update selected album if it's the one being updated
+        setSelectedAlbum(prev =>
+            prev?.id === albumId ? { ...prev, name } : prev
+        )
+    }, [])
+
+    // Remove optimistic album (used when generation fails for new albums)
+    const removeOptimisticAlbum = useCallback((albumId: string) => {
+        setAlbums(prev => prev.filter(album => album.id !== albumId))
+
+        // Clear selected album if it's the one being removed
+        setSelectedAlbum(prev => prev?.id === albumId ? null : prev)
+    }, [selectedAlbum])
+
     return {
         albums,
         selectedAlbum,
@@ -332,6 +390,10 @@ export function useAlbums({
         deleteAlbum,
         selectAlbum,
         refreshAlbum,
+        addOptimisticAlbum,
+        updateOptimisticAlbum,
+        removeOptimisticAlbum,
+        findNewAlbum,
     }
 }
 

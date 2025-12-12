@@ -11,6 +11,7 @@ type DashboardLayoutChildren = ReactNode | ((selectedAlbum: Album | null) => Rea
 interface DashboardLayoutProps {
     children: DashboardLayoutChildren;
     currentRoute: 'home' | 'albums' | 'accounts';
+    isNewAlbumView?: boolean;
 }
 
 /**
@@ -19,7 +20,7 @@ interface DashboardLayoutProps {
  * Provides consistent sidebar navigation across all dashboard routes.
  * Manages album state and sidebar state from context (persists across routes).
  */
-export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps) {
+export function DashboardLayout({ children, currentRoute, isNewAlbumView = false }: DashboardLayoutProps) {
     const router = useRouter();
 
     // Get albums and sidebar state from context
@@ -29,20 +30,29 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
         isLoading: albumsLoading,
         error: albumsError,
         selectAlbum,
+        findNewAlbum,
         isSidebarCollapsed,
         toggleSidebar,
     } = useAlbumsContext();
 
-    // Handle create album
     const handleCreateAlbum = () => {
-        router.push('/albums/new');
+        const existingNewAlbum = findNewAlbum();
+
+        if (existingNewAlbum) {
+            // Reuse existing new album - navigate to it
+            router.push(`/albums/${existingNewAlbum.id}`);
+        } else {
+            // Create new album UUID and navigate
+            const newAlbumId: string = crypto.randomUUID();
+            router.push(`/albums/${newAlbumId}`);
+        }
     };
 
     // Handle select album
     const handleSelectAlbum = (album: Album) => {
         selectAlbum(album);
-        // Navigate to albums route
-        router.push('/albums');
+        // Navigate to specific album route
+        router.push(`/albums/${album.id}`);
     };
 
     // Handle go to home
@@ -64,6 +74,7 @@ export function DashboardLayout({ children, currentRoute }: DashboardLayoutProps
                 isLoading={albumsLoading}
                 error={albumsError}
                 isHomeView={currentRoute === 'home'}
+                isNewAlbumView={isNewAlbumView}
             />
 
             {typeof children === 'function' ? children(selectedAlbum) : children}

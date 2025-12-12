@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useUser } from "@/lib/auth0/client";
 import { downloadImage } from "@/lib/utils";
-import type { GalleryImage } from "@/types";
 import type { Album } from "@/types/album";
 import {
     useAlbumTimeline,
@@ -44,8 +43,6 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         hasMore: timelineHasMore,
         loadMore: loadMoreTimeline,
         appendEntry: appendTimelineEntry,
-        updateEntry: updateTimelineEntry,
-        removeEntry: removeTimelineEntry,
     } = useAlbumTimeline({
         albumId: selectedAlbum?.id || null,
         limit: 20,
@@ -87,7 +84,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     } = useAlbumInput(user?.sub);
 
     // Unified generation flow
-    const { generate, isGenerating } = useAlbumGeneration({
+    const { generate } = useAlbumGeneration({
         onTimelineUpdate: appendTimelineEntry,
         onGalleryUpdate: (image) => {
             appendGalleryImage(image);

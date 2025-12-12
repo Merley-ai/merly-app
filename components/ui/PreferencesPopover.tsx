@@ -6,6 +6,8 @@ import {
     ASPECT_RATIO_LABELS,
     IMAGE_COUNT_LABELS,
     MODEL_OPTIONS_LABELS,
+    resolveModelId,
+    type ModelId,
 } from "@/types/image-generation";
 
 import * as React from "react";
@@ -35,6 +37,7 @@ export interface PreferencesState {
 interface OptionItem<T> {
     value: T;
     label: string;
+    description?: string;
 }
 
 // Option configurations
@@ -54,32 +57,36 @@ const aspectRatioOptions: OptionItem<aspectRatio>[] = [
     })),
 ];
 
-const modelOptions: OptionItem<models>[] = [
-    ...MODEL_OPTIONS_LABELS.map((model) => ({
-        value: model.value as models,
-        label: model.label,
-    })),
-];
+const modelOptions: OptionItem<models>[] = MODEL_OPTIONS_LABELS.map((model) => ({
+    value: model.value as models,
+    label: model.label,
+    description: model.description,
+}));
 
 export const DEFAULT_PREFERENCES: PreferencesState = {
     count: "Default",
     aspectRatio: "Default",
-    model: "Default",
+    model: "Auto",
 };
 
 // Default values when "Default" is selected
 export const DEFAULT_COUNT = 2;
 export const DEFAULT_ASPECT_RATIO = "3:4";
-export const DEFAULT_MODEL = "fal-ai/reve";
 
 /**
  * Resolves preferences to actual API values
  * Converts "Default" selections to their actual default values
+ * 
+ * @param preferences - User's preference selections from UI
+ * @returns Resolved values ready for API consumption
+ * - count: Number of images to generate
+ * - aspectRatio: Aspect ratio string (e.g., '3:4')
+ * - model: ModelId for dynamic model selection (e.g., 'reve', 'flux-2')
  */
 export function resolvePreferences(preferences: PreferencesState): {
     count: number;
     aspectRatio: string;
-    model: string;
+    model: ModelId;
 } {
     return {
         count: preferences.count === "Default"
@@ -88,9 +95,7 @@ export function resolvePreferences(preferences: PreferencesState): {
         aspectRatio: preferences.aspectRatio === "Default"
             ? DEFAULT_ASPECT_RATIO
             : preferences.aspectRatio,
-        model: preferences.model === "Default"
-            ? DEFAULT_MODEL
-            : preferences.model.toLowerCase(),
+        model: resolveModelId(preferences.model),
     };
 }
 
@@ -187,7 +192,7 @@ function NestedOptionPopover<T extends string>({
             <PopoverContent
                 side="right"
                 align="center"
-                className="w-44 p-2 rounded-2xl"
+                className="w-64 p-2 rounded-2xl"
             >
                 <div className="flex flex-col gap-1">
                     {options.map((option) => (
@@ -198,11 +203,18 @@ function NestedOptionPopover<T extends string>({
                                 onSelect(option.value);
                                 setOpen(false);
                             }}
-                            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm hover:bg-white/10 cursor-pointer"
+                            className="flex w-full items-start justify-between rounded-lg px-3 py-2 text-left hover:bg-white/10 cursor-pointer"
                         >
-                            <span>{option.label}</span>
+                            <div className="flex flex-col gap-0.5 flex-1">
+                                <span className="text-sm font-medium">{option.label}</span>
+                                {option.description && (
+                                    <span className="text-xs text-muted-foreground">
+                                        {option.description}
+                                    </span>
+                                )}
+                            </div>
                             {value === option.value && (
-                                <Check className="h-4 w-4 text-white" />
+                                <Check className="h-4 w-4 text-white flex-shrink-0 mt-0.5" />
                             )}
                         </button>
                     ))}

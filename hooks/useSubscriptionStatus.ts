@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from "react";
 import { clientFetch } from "@/lib/api";
 import type { SubscriptionStatus } from "@/types";

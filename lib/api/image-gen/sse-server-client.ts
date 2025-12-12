@@ -100,6 +100,7 @@ export async function connectToImageGenerationSSE(
         })
 
         console.log(`[SSE Server Client] Response status: ${response.status}`)
+        console.log(`[SSE Server Client] Response content-type:`, response.headers.get('content-type'))
         console.log(`[SSE Server Client] Response headers:`, Object.fromEntries(response.headers.entries()))
 
         clearTimeout(timeoutId)

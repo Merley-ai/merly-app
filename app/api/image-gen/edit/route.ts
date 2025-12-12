@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getUser, getAccessToken } from '@/lib/auth0/server'
 import { apiFetchService, ImageGen as ImageGenEndpoints } from '@/lib/api'
-import { GENERATION_MODELS } from '@/types/image-generation'
-import type { CreateGenerationRequest, GenerationResponse } from '@/types/image-generation'
+import { getModelConfig } from '@/types/image-generation'
+import type { CreateGenerationRequest, GenerationResponse, ModelId } from '@/types/image-generation'
 
 /**
  * POST /api/image-gen/edit
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const body: CreateGenerationRequest = await request.json()
     const {
       prompt,
-      model: _model = 'fal-ai/reve/edit',
+      model,
       input_images = [],
       aspect_ratio = '9:16',
       num_images = 1,
@@ -68,7 +68,10 @@ export async function POST(request: Request) {
       // Get Auth0 access token for backend authentication
       const accessToken = await getAccessToken()
 
-      const modelConfig = GENERATION_MODELS.edit
+      // Resolve model configuration dynamically
+      const modelId: ModelId = (model as ModelId) || 'reve'
+      const modelConfig = getModelConfig(modelId, 'edit')
+
       const backendResponse = await apiFetchService<GenerationResponse>(
         ImageGenEndpoints.edit(),
         {

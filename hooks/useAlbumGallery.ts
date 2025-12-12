@@ -27,6 +27,7 @@ interface UseAlbumGalleryOptions {
     albumId: string | null
     limit?: number
     autoFetch?: boolean
+    skipInitialFetch?: boolean
     onError?: (error: string) => void
 }
 
@@ -46,6 +47,7 @@ interface UseAlbumGalleryReturn {
     loadMore: () => Promise<void>
     appendImage: (image: GalleryImage) => void
     updateImage: (id: string, updates: Partial<GalleryImage>) => void
+    removeImagesByRequestId: (requestId: string) => void
     reset: () => void
 }
 
@@ -73,6 +75,7 @@ export function useAlbumGallery({
     albumId,
     limit = 9,
     autoFetch = true,
+    skipInitialFetch = false,
     onError,
 }: UseAlbumGalleryOptions): UseAlbumGalleryReturn {
     const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([])
@@ -84,6 +87,9 @@ export function useAlbumGallery({
 
     // Track the current albumId to detect changes
     const currentAlbumId = useRef<string | null>(null)
+
+    // Track if fetch is in progress to prevent double-fetch in Strict Mode
+    const fetchInProgressRef = useRef(false)
 
     // Fetch initial gallery (newest images first, reversed for display)
     const fetchGallery = useCallback(async () => {
@@ -178,7 +184,17 @@ export function useAlbumGallery({
 
     // Append new image to bottom (for placeholders and real-time updates)
     const appendImage = useCallback((image: GalleryImage) => {
-        setGalleryImages(prev => [...prev, image])
+        setGalleryImages(prev => {
+            // Deduplicate by ID
+            const existingIndex = prev.findIndex(img => img.id === image.id)
+            if (existingIndex >= 0) {
+                // Update existing image
+                const updated = [...prev]
+                updated[existingIndex] = { ...updated[existingIndex], ...image }
+                return updated
+            }
+            return [...prev, image]
+        })
     }, [])
 
     // Update existing image
@@ -187,6 +203,13 @@ export function useAlbumGallery({
             prev.map(image =>
                 image.id === id ? { ...image, ...updates } : image
             )
+        )
+    }, [])
+
+    // Remove images by requestId (used to clean up placeholders on error)
+    const removeImagesByRequestId = useCallback((requestId: string) => {
+        setGalleryImages(prev =>
+            prev.filter(image => image.requestId !== requestId)
         )
     }, [])
 
@@ -203,14 +226,31 @@ export function useAlbumGallery({
     // Auto-fetch when albumId changes
     useEffect(() => {
         if (autoFetch && albumId && albumId !== currentAlbumId.current) {
+            // Special case: Transitioning from null→actual ID with existing images
+            // This happens during new album creation - preserve placeholders!
+            if (currentAlbumId.current === null && galleryImages.length > 0) {
+                currentAlbumId.current = albumId
+                // Don't fetch - placeholders will be updated by SSE
+                return
+            }
+
+            // Prevent double-fetch in React Strict Mode
+            if (fetchInProgressRef.current) {
+                return
+            }
+
+            fetchInProgressRef.current = true
             currentAlbumId.current = albumId
             reset()
-            fetchGallery()
+
+            fetchGallery().finally(() => {
+                fetchInProgressRef.current = false
+            })
         } else if (!albumId && currentAlbumId.current !== null) {
             currentAlbumId.current = null
             reset()
         }
-    }, [albumId, autoFetch, fetchGallery, reset])
+    }, [albumId, autoFetch, fetchGallery, reset, galleryImages.length])
 
     return {
         galleryImages,
@@ -222,6 +262,7 @@ export function useAlbumGallery({
         loadMore,
         appendImage,
         updateImage,
+        removeImagesByRequestId,
         reset,
     }
 }

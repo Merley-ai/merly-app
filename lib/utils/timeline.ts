@@ -27,12 +27,25 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
     if (event.type === 'prompt_request' && event.prompt_request) {
         const { prompt_request } = event
 
+        // Use prompt_images array if available, otherwise fallback to image_url
+        let inputImages: string[] = []
+
+        if (prompt_request.prompt_images && Array.isArray(prompt_request.prompt_images) && prompt_request.prompt_images.length > 0) {
+            // Filter valid URLs from prompt_images array
+            inputImages = prompt_request.prompt_images.filter(url =>
+                url && (
+                    url.startsWith('http://') ||
+                    url.startsWith('https://') ||
+                    url.startsWith('data:')
+                )
+            )
+        }
         const entries: TimelineEntry[] = [
             {
                 id: event.id,
                 type: 'user',
                 content: prompt_request.prompt,
-                inputImages: prompt_request.image_url ? [prompt_request.image_url] : [],
+                inputImages,
                 prompt: prompt_request.prompt,
                 status: prompt_request.status === 'IN_QUEUE' ? 'thinking' : 'complete',
                 timestamp,

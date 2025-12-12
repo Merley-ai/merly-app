@@ -20,6 +20,7 @@ interface TimelineWithInputProps {
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
+    onRetry?: (prompt: string, inputImages: string[]) => void;
     onLoadMore?: () => void;
     isLoadingMore?: boolean;
     hasMore?: boolean;
@@ -37,6 +38,7 @@ export function TimelineWithInput({
     onFileChange,
     onRemoveFile,
     onSubmit,
+    onRetry,
     onLoadMore,
     isLoadingMore = false,
     hasMore = false,
@@ -118,10 +120,16 @@ export function TimelineWithInput({
                                 {/* Conversation Flow - User on right, AI on left, System/Error left-aligned */}
                                 {entry.type === 'system' ? (
                                     /* System Message - Left-aligned */
-                                    <SystemMessage message={entry.systemMessage || entry.content} />
+                                    <SystemMessage
+                                        message={entry.systemMessage || entry.content}
+                                        suggestedActions={index === entries.length - 1 ? entry.suggested_actions : undefined}
+                                    />
                                 ) : entry.type === 'error' ? (
-                                    /* Error Message - Centered */
-                                    <ErrorMessage message={entry.errorMessage || entry.content} />
+                                    /* Error Message - Centered with retry */
+                                    <ErrorMessage
+                                        message={entry.errorMessage || entry.content}
+                                        onRetry={entry.prompt && onRetry ? () => onRetry(entry.prompt, entry.inputImages) : undefined}
+                                    />
                                 ) : entry.type === 'user' ? (
                                     /* User Message - Right aligned */
                                     <div className="flex flex-col items-end space-y-2">

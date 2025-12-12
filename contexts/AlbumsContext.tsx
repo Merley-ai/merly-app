@@ -11,12 +11,16 @@ interface AlbumsContextType {
     selectedAlbum: Album | null
     isLoading: boolean
     error: string | null
-    fetchAlbums: () => Promise<void>
+    fetchAlbums: () => Promise<Album[]>
     createAlbum: (name?: string, description?: string) => Promise<Album>
     updateAlbum: (albumId: string, name: string, description?: string) => Promise<void>
     deleteAlbum: (albumId: string) => Promise<void>
     selectAlbum: (album: Album) => void
     refreshAlbum: (albumId: string) => Promise<void>
+    addOptimisticAlbum: (albumId: string) => void
+    updateOptimisticAlbum: (albumId: string, name: string) => void
+    removeOptimisticAlbum: (albumId: string) => void
+    findNewAlbum: () => Album | null
     isSidebarCollapsed: boolean
     toggleSidebar: () => void
 }

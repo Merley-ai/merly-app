@@ -49,20 +49,26 @@ export type {
     aspectRatio,
     imageCount,
     models,
+    ModelId,
+    ModelConfig,
+    ModelDefinition,
 } from './image-generation';
 
 export {
     DEFAULT_GENERATION_OPTIONS,
-    GENERATION_MODELS,
     ASPECT_RATIO_LABELS,
     IMAGE_COUNT_LABELS,
     MODEL_OPTIONS_LABELS,
+    MODEL_REGISTRY,
     OUTPUT_FORMATS,
     isGenerationComplete,
     isGenerationFailed,
     isGenerationActive,
     isAsyncResponse,
     isSyncResponse,
+    getModelConfig,
+    resolveModelId,
+    getFullModelPath,
 } from './image-generation';
 
 // Supabase types
@@ -100,4 +106,11 @@ export type {
     SubscriptionPlan,
     UserSubscription,
 } from './subscription';
+
+// Generation tracking types
+export type {
+    PendingGeneration,
+    SSEConnectionState,
+    SSEConnection,
+} from './image-gen-tracking';
 

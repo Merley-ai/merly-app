@@ -1,25 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUser, getAccessToken, withAuth } from '@/lib/auth0'
 import { apiFetchService, ImageGen as ImageGenEndpoints } from '@/lib/api'
-import { GENERATION_MODELS } from '@/types/image-generation'
-import type { CreateGenerationRequest, GenerationResponse } from '@/types/image-generation'
+import { getModelConfig } from '@/types/image-generation'
+import type { CreateGenerationRequest, GenerationResponse, ModelId } from '@/types/image-generation'
 
 /**
  * POST /api/image-gen/create
  * 
- * Intelligent routing endpoint for image generation
- * Automatically determines the correct model based on input:
+ * Intelligent routing endpoint for image generation with dynamic model selection
  * 
+ * **Generation Type Detection:**
  * - Text-to-Image: prompt only (no images)
  * - Edit: prompt + 1 image
  * - Remix: prompt + 2+ images
  * 
- * Flow:
+ * **Model Selection:**
+ * - Accepts ModelId from preferences (e.g., 'reve', 'flux-2', 'nano-banana', 'seedream')
+ * - Dynamically resolves model + subpath based on generation type
+ * - Falls back to 'reve' if no model specified
+ * 
+ * **Flow:**
  * 1. Authenticate user via Auth0
  * 2. Validate request body
- * 3. Determine generation type from input
- * 4. Route to appropriate backend endpoint
- * 5. Return response to client
+ * 3. Determine generation type from input images
+ * 4. Resolve model configuration using getModelConfig()
+ * 5. Route to appropriate backend endpoint with correct model + subpath
+ * 6. Return response to client
  */
 export const POST = withAuth(async (request: NextRequest) => {
     const user = await getUser()
@@ -39,6 +45,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         output_format = 'png',
         album_id,
         new_album,
+        model, // ModelId from preferences (e.g., 'reve', 'flux-2')
     } = body
 
     console.log('[API /image-gen/create] Request params:', {
@@ -66,21 +73,30 @@ export const POST = withAuth(async (request: NextRequest) => {
 
     // Determine generation type based on input
     let generationType: 'generate' | 'edit' | 'remix'
-    let modelConfig: typeof GENERATION_MODELS[keyof typeof GENERATION_MODELS]
 
     if (validImages.length === 0) {
         // No images → Text-to-Image
         generationType = 'generate'
-        modelConfig = GENERATION_MODELS.generate
     } else if (validImages.length === 1) {
         // 1 image → Edit
         generationType = 'edit'
-        modelConfig = GENERATION_MODELS.edit
     } else {
         // 2+ images → Remix
         generationType = 'remix'
-        modelConfig = GENERATION_MODELS.remix
     }
+
+    // Resolve model configuration dynamically
+    // If model is provided as ModelId (e.g., 'flux-2'), use it
+    // Otherwise fallback to 'reve' for backward compatibility
+    const modelId: ModelId = (model as ModelId) || 'reve'
+    const modelConfig = getModelConfig(modelId, generationType)
+
+    console.log('[API /image-gen/create] Model selection:', {
+        requestedModel: model,
+        resolvedModelId: modelId,
+        generationType,
+        modelConfig,
+    })
 
     // Call Backend API directly based on type
     let backendResponse: GenerationResponse

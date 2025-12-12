@@ -23,6 +23,7 @@ interface SidebarProps {
     isLoading?: boolean;
     error?: string | null;
     isHomeView?: boolean;
+    isNewAlbumView?: boolean;
 }
 
 export function Sidebar({
@@ -37,6 +38,7 @@ export function Sidebar({
     isLoading = false,
     error = null,
     isHomeView = false,
+    isNewAlbumView = false,
 }: SidebarProps) {
     const { user } = useUser();
 
@@ -95,7 +97,7 @@ export function Sidebar({
                         <Tooltip text="Home" position="right">
                             <button
                                 onClick={onGoToHome}
-                                className={`p-2 hover:bg-white/5 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
+                                className={`p-2 hover:bg-white/20 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/20' : ''
                                     }`}
                             >
                                 <svg className="size-[27px]" fill="none" viewBox="0 0 14 14">
@@ -109,7 +111,7 @@ export function Sidebar({
                             <button
                                 onClick={onCreateAlbum}
                                 disabled={isLoading}
-                                className="p-2 hover:bg-white/5 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`p-2 hover:bg-white/20 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isNewAlbumView ? 'bg-white/20' : ''}`}
                             >
                                 <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
                                     <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
@@ -124,7 +126,7 @@ export function Sidebar({
                             <Tooltip key={album.id || `album-${index}`} text={album.name} position="right">
                                 <button
                                     onClick={() => onSelectAlbum(album)}
-                                    className={`size-[37px] rounded-4xl overflow-hidden flex-shrink-0 relative transition-all cursor-pointer ${!isHomeView && selectedAlbum?.id === album.id
+                                    className={`size-[37px] rounded-4xl overflow-hidden flex-shrink-0 relative transition-all cursor-pointer ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id
                                         ? "ring-2 ring-white/40"
                                         : "hover:ring-2 hover:ring-white/60"
                                         }`}
@@ -178,7 +180,7 @@ export function Sidebar({
                     {/* Home Button */}
                     <button
                         onClick={onGoToHome}
-                        className={`mx-3 mt-4 p-2 flex items-center gap-2 hover:bg-white/5 rounded-xl transition-colors cursor-pointer ${isHomeView ? 'bg-white/10' : ''
+                        className={`mx-3 mt-4 p-2 flex items-center gap-2 hover:bg-white/20 rounded-xl transition-colors cursor-pointer ${isHomeView ? 'bg-white/20' : ''
                             }`}
                     >
                         <div className="size-[37px] flex items-center justify-center flex-shrink-0">
@@ -198,7 +200,7 @@ export function Sidebar({
                     <button
                         onClick={onCreateAlbum}
                         disabled={isLoading}
-                        className="mx-3 mb-4 p-2 flex items-center gap-2 hover:bg-white/5 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`mx-3 mb-4 p-2 flex items-center gap-2 hover:bg-white/20 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isNewAlbumView ? 'bg-white/20' : ''}`}
                     >
                         <div className="size-[37px] flex items-center justify-center flex-shrink-0">
                             <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
@@ -256,7 +258,7 @@ export function Sidebar({
                             <button
                                 key={album.id || `album-${index}`}
                                 onClick={() => onSelectAlbum(album)}
-                                className={`w-full flex items-center gap-2 p-2 rounded-xl transition-colors cursor-pointer ${!isHomeView && selectedAlbum?.id === album.id ? "bg-white/20" : "hover:bg-white/20"
+                                className={`w-full flex items-center gap-2 p-2 rounded-xl transition-colors cursor-pointer ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id ? "bg-white/20" : "hover:bg-white/20"
                                     }`}
                             >
                                 <div className="size-[37px] bg-[#2e2e2e] rounded-4xl overflow-hidden flex-shrink-0 relative">
@@ -279,7 +281,7 @@ export function Sidebar({
                                     )}
                                 </div>
                                 <p
-                                    className={`p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px] text-left truncate ${!isHomeView && selectedAlbum?.id === album.id ? 'font-semibold' : ''}`}
+                                    className={`p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px] text-left truncate ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id ? 'font-semibold' : ''}`}
                                     style={{ fontVariationSettings: "'wdth' 100" }}
                                 >
                                     {album.name}

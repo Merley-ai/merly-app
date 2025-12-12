@@ -40,6 +40,7 @@ interface BackendCompletedEventData {
     height?: number
     seed?: number
   }>
+  image_urls: string[]
   seed?: number
 }
 
@@ -154,7 +155,10 @@ async function* parseSSEStream(reader: ReadableStreamDefaultReader<Uint8Array>):
         break
       }
 
-      buffer += decoder.decode(value, { stream: true })
+      const chunk = decoder.decode(value, { stream: true })
+      buffer += chunk
+
+      console.log('[SSE Proxy] Raw chunk received from backend:', chunk)
 
       // Split by double newline (SSE message boundary)
       const messages = buffer.split('\n\n')
@@ -276,14 +280,20 @@ export async function GET(request: NextRequest) {
           // Parse and proxy backend SSE events
           for await (const { event, data } of parseSSEStream(reader)) {
             try {
+              console.log('[SSE Proxy] Parsed event from backend:', { event, data })
+
               // Parse backend event data (wrapped structure)
               const eventWrapper: BackendEventWrapper = JSON.parse(data)
+
+              console.log('[SSE Proxy] Event wrapper:', eventWrapper)
 
               // Track SSE event
               sseTracker.event(event, eventWrapper)
 
               // Transform to frontend format
               const frontendEvent = transformBackendEvent(event, eventWrapper)
+
+              console.log('[SSE Proxy] Transformed frontend event:', frontendEvent)
 
               // Send to client
               controller.enqueue(

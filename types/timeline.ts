@@ -49,6 +49,7 @@ export interface PromptRequest {
     created_at: string;
     image_url: string;
     num_images: number;
+    prompt_images: string[] | null;
     prompt: string;
     request_id: string;
     status: string;
@@ -62,7 +63,6 @@ export interface TimelineEvent {
     created_at: string;
     deleted_at: string;
     id: string;
-    image_ids: string[] | null;
     prompt_request: PromptRequest;
     prompt_request_id: string;
     prompt_text: string;
