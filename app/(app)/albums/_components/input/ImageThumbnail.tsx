@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { UploadedFile } from "@/types";
 
 interface ImageThumbnailProps {
@@ -32,19 +33,21 @@ export function ImageThumbnail({ uploadedFile, index, onRemove }: ImageThumbnail
     return (
         <div className="relative group">
             {/* Image container */}
-            <div className="w-[71px] h-[71px] bg-black rounded-lg overflow-hidden">
-                <img
+            <div className="w-[71px] h-[71px] bg-black rounded-lg overflow-hidden relative">
+                <Image
                     src={previewUrl}
                     alt={`Upload ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    unoptimized
                 />
             </div>
 
             {/* Status badge - floats at corner */}
             {showBadge && (
                 <div className={`${BADGE_CLASSES} ${hideOnHover ? 'group-hover:opacity-0' : ''} ${status === 'uploading' ? 'bg-black/70' :
-                        status === 'error' ? 'bg-red-500' :
-                            'bg-[#D9D9D9]'
+                    status === 'error' ? 'bg-red-500' :
+                        'bg-[#D9D9D9]'
                     }`}>
                     {status === 'uploading' && (
                         <div className="w-[14px] h-[14px] border-2 border-white/30 border-t-white rounded-full animate-spin" />

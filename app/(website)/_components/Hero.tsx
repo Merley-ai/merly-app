@@ -1,6 +1,3 @@
-import { Paperclip } from "lucide-react";
-import svgPaths from "@/lib/constants/website-svg-paths";
-
 export function Hero() {
     return (
         <section className="px-4 pt-16 md:pt-24 pb-8">
@@ -14,7 +11,7 @@ export function Hero() {
 
             <h3 className="max-w-[775px] mx-auto mt-12 text-center text-white/65 leading-[45px]">
                 <span className="font-['Circular_Std:Medium',_sans-serif'] italic text-[16px] md:text-[24px]" style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}>
-                    Produce stunning fashion editorials, campaign shots, and model imagery.
+                    Produce stunning fashion editorials, campaign shots and model imagery.
                 </span>
             </h3>
 

@@ -36,14 +36,16 @@ function GalleryImageItem({
   index: number;
   onImageClick: (index: number) => void;
 }) {
-  // Use image URL as part of the key to reset state when URL changes
-  // This avoids setState in effects by letting React handle state reset through remounting
+  // Track image loaded state, keyed by URL to reset when URL changes
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [prevUrl, setPrevUrl] = useState(image.url);
 
   // Reset imageLoaded state when URL changes (placeholder -> real image transition)
-  useEffect(() => {
+  // Using state comparison pattern to avoid setState in effect
+  if (image.url !== prevUrl) {
+    setPrevUrl(image.url);
     setImageLoaded(false);
-  }, [image.url]);
+  }
 
   // Derive placeholder visibility from image status
   const shouldShowPlaceholder = image.status === 'rendering' || (image.status === 'complete' && image.url && !imageLoaded);

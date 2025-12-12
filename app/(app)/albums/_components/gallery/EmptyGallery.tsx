@@ -39,10 +39,18 @@ export function EmptyGallery({ onFileChange }: EmptyGalleryProps) {
     return (
         <section className="bg-black flex-1 border-l-[0.5px] border-white/20 flex items-center justify-center">
             <div
+                role="button"
+                tabIndex={0}
                 className="border-2 border-dashed border-white/20 rounded-lg p-12 flex flex-col items-center justify-center gap-4 hover:border-white/40 transition-colors cursor-pointer"
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => document.getElementById('gallery-file-input')?.click()}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        document.getElementById('gallery-file-input')?.click();
+                    }
+                }}
             >
                 <Upload className="size-12 text-white/40" />
                 <p className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[14px] text-center">

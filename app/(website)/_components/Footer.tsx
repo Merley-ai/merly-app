@@ -15,13 +15,13 @@ export function Footer() {
                             Create stunning fashion editorials with AI-powered technology. Bring your creative vision to life.
                         </p>
                         <div className="flex items-center gap-4">
-                            <a href="#" aria-label="Facebook" className="text-white/60 hover:text-white transition-colors">
+                            <a href="https://facebook.com" aria-label="Facebook" className="text-white/60 hover:text-white transition-colors">
                                 <Facebook className="size-5" />
                             </a>
-                            <a href="#" aria-label="Instagram" className="text-white/60 hover:text-white transition-colors">
+                            <a href="https://instagram.com" aria-label="Instagram" className="text-white/60 hover:text-white transition-colors">
                                 <Instagram className="size-5" />
                             </a>
-                            <a href="#" aria-label="Twitter" className="text-white/60 hover:text-white transition-colors">
+                            <a href="https://twitter.com" aria-label="Twitter" className="text-white/60 hover:text-white transition-colors">
                                 <Twitter className="size-5" />
                             </a>
                         </div>
@@ -33,10 +33,10 @@ export function Footer() {
                             <p className="font-['Roboto:Medium',_sans-serif] text-white text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Product
                             </p>
-                            <a href="#" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
+                            <a href="/pricing" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Pricing
                             </a>
-                            <a href="#" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
+                            <a href="/blog" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Blog
                             </a>
                         </div>
@@ -44,10 +44,10 @@ export function Footer() {
                             <p className="font-['Roboto:Medium',_sans-serif] text-white text-[14px]" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Legal
                             </p>
-                            <a href="#" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
+                            <a href="/terms" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Terms & Conditions
                             </a>
-                            <a href="#" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
+                            <a href="/privacy" className="font-['Roboto:Regular',_sans-serif] text-white/60 hover:text-white text-[14px] transition-colors" style={{ fontVariationSettings: "'wdth' 100" }}>
                                 Privacy Policy
                             </a>
                         </div>

@@ -169,15 +169,13 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
         setTimeout(() => {
             galleryRef.current?.scrollToBottom();
         }, 100);
-    }, [gallery.appendImage]);
+    }, [gallery]);
 
     const handleSSEComplete = useCallback(() => {
-        console.log('[AlbumPageClient] Generation complete');
         setPendingGeneration(null);
     }, []);
 
-    const handleSSEError = useCallback((error: string) => {
-        console.error('[AlbumPageClient] Generation error:', error);
+    const handleSSEError = useCallback((_error: string) => {
         setPendingGeneration(null);
     }, []);
 

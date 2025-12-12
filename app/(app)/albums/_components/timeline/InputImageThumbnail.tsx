@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface InputImageThumbnailProps {
     src: string;
     index: number;
@@ -12,10 +14,12 @@ interface InputImageThumbnailProps {
 export function InputImageThumbnail({ src, index, alt }: InputImageThumbnailProps) {
     return (
         <div className="w-[120px] h-[120px] bg-[#2e2e2e] rounded overflow-hidden relative flex-shrink-0">
-            <img
+            <Image
                 src={src}
                 alt={alt || `Input ${index + 1}`}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
             />
             <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">
                 <p

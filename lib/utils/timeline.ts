@@ -89,7 +89,7 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
         return [{
             id: event.id,
             type: 'ai',
-            content: 'Images generated successfully',
+            content: '',
             inputImages: [],
             prompt: '',
             status: 'complete',
@@ -103,7 +103,7 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
         return [{
             id: event.id,
             type: 'ai',
-            content: 'Video generated successfully',
+            content: '',
             inputImages: [],
             prompt: '',
             status: 'complete',
@@ -116,7 +116,7 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
     return [{
         id: event.id,
         type: 'ai',
-        content: 'Unknown event',
+        content: '',
         inputImages: [],
         prompt: '',
         status: 'complete',

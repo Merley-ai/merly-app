@@ -73,7 +73,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         setTimeout(() => {
             galleryRef.current?.scrollToBottom();
         }, 100);
-    }, [gallery.appendImage]);
+    }, [gallery]);
 
     const handleSSEComplete = useCallback(() => {
         setPendingGeneration(null);
