@@ -40,6 +40,11 @@ function GalleryImageItem({
   // This avoids setState in effects by letting React handle state reset through remounting
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Reset imageLoaded state when URL changes (placeholder -> real image transition)
+  useEffect(() => {
+    setImageLoaded(false);
+  }, [image.url]);
+
   // Derive placeholder visibility from image status
   const shouldShowPlaceholder = image.status === 'rendering' || (image.status === 'complete' && image.url && !imageLoaded);
 
@@ -236,7 +241,7 @@ export const Gallery = forwardRef<GalleryRef, GalleryProps>(function Gallery({
       <div className="grid grid-cols-3 gap-0.5">
         {images.map((image, index) => (
           <GalleryImageItem
-            key={`${image.id}-${image.url || 'no-url'}`}
+            key={image.id}
             image={image}
             index={index}
             onImageClick={onImageClick}

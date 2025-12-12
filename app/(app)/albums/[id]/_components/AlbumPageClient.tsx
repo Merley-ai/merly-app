@@ -13,7 +13,7 @@ import {
 } from "@/hooks";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
 import { consumePendingGeneration } from "@/lib/storage/generation-storage";
-import type { GalleryImage } from "@/types";
+import type { GalleryImage, PendingGeneration } from "@/types";
 import { EmptyTimeline } from "../../_components/timeline/EmptyTimeline";
 import { TimelineWithInput } from "../../_components/timeline/TimelineWithInput";
 import { EmptyGallery } from "../../_components/gallery/EmptyGallery";
@@ -98,9 +98,6 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
 
     const galleryRef = useRef<GalleryRef>(null);
 
-    // Track current request ID for placeholder cleanup on error
-    const currentRequestIdRef = useRef<string | null>(null);
-
     // Check for pending generation on mount (from redirect)
     const [pendingGeneration, setPendingGeneration] = useState(() => {
         const pending = consumePendingGeneration();
@@ -164,7 +161,7 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
         }
     }, []); // Run once on mount
 
-    // Stable callbacks for SSE (prevent reconnections)
+    // Stable callback for SSE gallery updates
     const handleSSEGalleryUpdate = useCallback((image: GalleryImage) => {
         gallery.appendImage(image);
 
@@ -172,7 +169,7 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
         setTimeout(() => {
             galleryRef.current?.scrollToBottom();
         }, 100);
-    }, [gallery]);
+    }, [gallery.appendImage]);
 
     const handleSSEComplete = useCallback(() => {
         console.log('[AlbumPageClient] Generation complete');
@@ -219,14 +216,6 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
         onTimelineUpdate: (entry) => {
             timeline.appendEntry(entry);
         },
-        onGalleryUpdate: (image) => {
-            gallery.appendImage(image);
-
-            // Auto-scroll gallery to show new placeholders
-            setTimeout(() => {
-                galleryRef.current?.scrollToBottom();
-            }, 100);
-        },
         onAlbumCreated: async (newAlbumId, createdAlbumName) => {
             // Album created in backend - update optimistic album with real name
             updateOptimisticAlbum(newAlbumId, createdAlbumName);
@@ -238,47 +227,11 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
                 selectAlbum(newAlbum);
             }
         },
-        onGenerationError: (requestId) => {
-            // Remove placeholder images when generation fails
-            // Use requestId from hook (existing albums) or currentRequestIdRef (new albums)
-            const idToRemove = requestId || currentRequestIdRef.current;
-            if (idToRemove) {
-                gallery.removeImagesByRequestId(idToRemove);
-                currentRequestIdRef.current = null; // Clear after use
-            }
-
+        onGenerationError: () => {
             // For new albums, remove from sidebar since generation failed
             if (isNewAlbum) {
                 removeOptimisticAlbum(albumId);
-                // Navigate back to home or albums list
                 router.push('/albums');
-            }
-        },
-        onRequestIdReceived: (requestId) => {
-            // For new albums, update placeholder IDs and requestIds to match SSE expectations
-            // SSE will look for placeholders with ID: `placeholder-${requestId}-${index}`
-            if (isNewAlbum && currentRequestIdRef.current) {
-                const tempRequestId = currentRequestIdRef.current;
-
-                // Update all placeholders: change both ID and requestId
-                gallery.galleryImages.forEach((image, index) => {
-                    if (image.requestId === tempRequestId && image.id.startsWith('placeholder-')) {
-                        // Extract index from old ID: placeholder-temp-123-0 -> 0
-                        const parts = image.id.split('-');
-                        const imageIndex = parseInt(parts[parts.length - 1], 10);
-
-                        // Create new ID that SSE will recognize
-                        const newId = `placeholder-${requestId}-${imageIndex}`;
-
-                        // Remove old placeholder and add updated one
-                        gallery.updateImage(image.id, {
-                            id: newId,
-                            requestId,
-                        });
-                    }
-                });
-
-                currentRequestIdRef.current = requestId; // Update ref to real requestId
             }
         },
     });
@@ -289,52 +242,108 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     const handleSubmit = async () => {
         if (!canSubmit) return;
 
-        // Add optimistic album to sidebar when generation request is sent
+        const promptValue = inputValue;
+        const inputImagesUrls = getInputImageUrls();
+
+        clearInput();
+
+        // Add optimistic album to sidebar when generation request is sent (for new albums)
         if (isNewAlbum) {
             addOptimisticAlbum(albumId);
-
-            const tempRequestId = `temp-${Date.now()}`;
-            currentRequestIdRef.current = tempRequestId; // Track for error cleanup
-            const numImages = Number(preferences.count) || 2;
-
-            // Add temporary placeholders
-            for (let i = 0; i < numImages; i++) {
-                gallery.appendImage({
-                    id: `placeholder-${tempRequestId}-${i}`,
-                    url: '',
-                    name: '',
-                    description: inputValue,
-                    status: 'rendering',
-                    addedAt: new Date(),
-                    requestId: tempRequestId,
-                });
-            }
         }
 
-        // Use unified generation flow - always pass albumId (pre-generated UUID for new albums)
-        await generate({
-            prompt: inputValue,
-            inputImages: getInputImageUrls(),
+        // Call API and get generation result
+        const result = await generate({
+            prompt: promptValue,
+            inputImages: inputImagesUrls,
             preferences,
             albumId,
-            isNewAlbum, // Explicitly indicate if this is a new album
+            isNewAlbum,
         });
 
-        // Clear input after successful submission
-        clearInput();
+        // If generation started successfully, create placeholders and connect SSE
+        if (result) {
+            const { requestId, numImages, prompt, inputImages } = result;
+
+            // Add placeholders with correct requestId (SSE will find these)
+            for (let i = 0; i < numImages; i++) {
+                gallery.appendImage({
+                    id: `placeholder-${requestId}-${i}`,
+                    url: '',
+                    name: '',
+                    description: prompt,
+                    status: 'rendering',
+                    addedAt: new Date(),
+                    requestId,
+                    index: i,
+                });
+            }
+
+            // Auto-scroll to show placeholders
+            setTimeout(() => {
+                galleryRef.current?.scrollToBottom();
+            }, 100);
+
+            // Set pending generation to trigger SSE connection
+            const newPendingGeneration: PendingGeneration = {
+                requestId,
+                numImages,
+                prompt,
+                inputImages,
+                albumId,
+                albumName: result.albumName,
+                systemMessage: result.systemMessage,
+            };
+            setPendingGeneration(newPendingGeneration);
+        }
     };
 
     // Handle retry for failed generation requests
     const handleRetry = async (prompt: string, inputImages: string[]) => {
-
-        // Retry with the stored prompt and input images
-        await generate({
+        // Call API and get generation result
+        const result = await generate({
             prompt,
             inputImages,
             preferences,
             albumId,
-            isNewAlbum, // Preserve new album flag on retry
+            isNewAlbum: false, // Retry is always on existing album
         });
+
+        // If generation started successfully, create placeholders and connect SSE
+        if (result) {
+            const { requestId, numImages } = result;
+
+            // Add placeholders with correct requestId
+            for (let i = 0; i < numImages; i++) {
+                gallery.appendImage({
+                    id: `placeholder-${requestId}-${i}`,
+                    url: '',
+                    name: '',
+                    description: prompt,
+                    status: 'rendering',
+                    addedAt: new Date(),
+                    requestId,
+                    index: i,
+                });
+            }
+
+            // Auto-scroll to show placeholders
+            setTimeout(() => {
+                galleryRef.current?.scrollToBottom();
+            }, 100);
+
+            // Set pending generation to trigger SSE connection
+            const newPendingGeneration: PendingGeneration = {
+                requestId,
+                numImages,
+                prompt,
+                inputImages,
+                albumId,
+                albumName: result.albumName,
+                systemMessage: result.systemMessage,
+            };
+            setPendingGeneration(newPendingGeneration);
+        }
     };
 
     // Gallery & viewer state

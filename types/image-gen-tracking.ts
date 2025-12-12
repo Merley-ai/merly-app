@@ -5,14 +5,17 @@
  */
 
 /**
- * Pending generation metadata (stored during redirect)
+ * Pending generation metadata (stored during redirect or in-page generation)
  */
 export interface PendingGeneration {
     requestId: string
     albumId: string
     numImages: number
     prompt: string
-    type: 'generate' | 'edit' | 'remix'
+    inputImages?: string[]
+    albumName?: string
+    systemMessage?: string
+    timelineEventId?: string
 }
 
 /**

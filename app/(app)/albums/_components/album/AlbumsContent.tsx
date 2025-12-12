@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useUser } from "@/lib/auth0/client";
 import { downloadImage } from "@/lib/utils";
 import type { Album } from "@/types/album";
+import type { GalleryImage, PendingGeneration } from "@/types";
 import {
     useAlbumTimeline,
     useAlbumGallery,
     useSubscriptionStatus,
     useAlbumGeneration,
     useAlbumInput,
+    useGenerationSSE,
 } from "@/hooks";
 import { EmptyTimeline } from "../timeline/EmptyTimeline";
 import { TimelineWithInput } from "../timeline/TimelineWithInput";
@@ -53,20 +55,40 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     });
 
     // Gallery hook - auto-fetches when album is selected
-    const {
-        galleryImages,
-        isLoading: galleryLoading,
-        isLoadingMore: galleryLoadingMore,
-        hasMore: galleryHasMore,
-        loadMore: loadMoreGallery,
-        appendImage: appendGalleryImage,
-    } = useAlbumGallery({
+    const gallery = useAlbumGallery({
         albumId: selectedAlbum?.id || null,
         limit: 20,
         autoFetch: true,
         onError: () => {
             // Error handled by hook
         },
+    });
+
+    // Pending generation state for SSE connection
+    const [pendingGeneration, setPendingGeneration] = useState<PendingGeneration | null>(null);
+
+    // Stable callback for SSE gallery updates
+    const handleSSEGalleryUpdate = useCallback((image: GalleryImage) => {
+        gallery.appendImage(image);
+        setTimeout(() => {
+            galleryRef.current?.scrollToBottom();
+        }, 100);
+    }, [gallery.appendImage]);
+
+    const handleSSEComplete = useCallback(() => {
+        setPendingGeneration(null);
+    }, []);
+
+    const handleSSEError = useCallback(() => {
+        setPendingGeneration(null);
+    }, []);
+
+    // Connect SSE for pending generation
+    useGenerationSSE({
+        pendingGeneration,
+        onGalleryUpdate: handleSSEGalleryUpdate,
+        onComplete: handleSSEComplete,
+        onError: handleSSEError,
     });
 
     // Unified input management
@@ -84,15 +106,8 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     } = useAlbumInput(user?.sub);
 
     // Unified generation flow
-    const { generate } = useAlbumGeneration({
+    const { generate, isGenerating } = useAlbumGeneration({
         onTimelineUpdate: appendTimelineEntry,
-        onGalleryUpdate: (image) => {
-            appendGalleryImage(image);
-            // Auto-scroll gallery to bottom to show new placeholders
-            setTimeout(() => {
-                galleryRef.current?.scrollToBottom();
-            }, 100);
-        },
     });
 
     // Gallery & viewer state
@@ -101,7 +116,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     );
 
     // Filter complete images for navigation
-    const completeImages = galleryImages.filter(
+    const completeImages = gallery.galleryImages.filter(
         (img) => img.status === "complete"
     );
 
@@ -111,16 +126,54 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
     const handleSubmit = async () => {
         if (!canSubmit || !selectedAlbum?.id) return;
 
-        // Use unified generation flow
-        await generate({
-            prompt: inputValue,
-            inputImages: getInputImageUrls(),
+        const promptValue = inputValue;
+        const inputImagesUrls = getInputImageUrls();
+
+        clearInput();
+
+        // Call API and get generation result
+        const result = await generate({
+            prompt: promptValue,
+            inputImages: inputImagesUrls,
             preferences,
             albumId: selectedAlbum.id,
         });
 
-        // Clear input after successful submission
-        clearInput();
+        // If generation started successfully, create placeholders and connect SSE
+        if (result) {
+            const { requestId, numImages, prompt, inputImages } = result;
+
+            // Add placeholders with correct requestId
+            for (let i = 0; i < numImages; i++) {
+                gallery.appendImage({
+                    id: `placeholder-${requestId}-${i}`,
+                    url: '',
+                    name: '',
+                    description: prompt,
+                    status: 'rendering',
+                    addedAt: new Date(),
+                    requestId,
+                    index: i,
+                });
+            }
+
+            // Auto-scroll to show placeholders
+            setTimeout(() => {
+                galleryRef.current?.scrollToBottom();
+            }, 100);
+
+            // Set pending generation to trigger SSE connection
+            const newPendingGeneration: PendingGeneration = {
+                requestId,
+                numImages,
+                prompt,
+                inputImages,
+                albumId: selectedAlbum.id,
+                albumName: result.albumName,
+                systemMessage: result.systemMessage,
+            };
+            setPendingGeneration(newPendingGeneration);
+        }
     };
 
 
@@ -132,15 +185,15 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
         if (direction === "prev") {
             // Search backwards for the previous complete image
             for (let i = selectedImageIndex - 1; i >= 0; i--) {
-                if (galleryImages[i].status === "complete") {
+                if (gallery.galleryImages[i].status === "complete") {
                     newIndex = i;
                     break;
                 }
             }
         } else if (direction === "next") {
             // Search forwards for the next complete image
-            for (let i = selectedImageIndex + 1; i < galleryImages.length; i++) {
-                if (galleryImages[i].status === "complete") {
+            for (let i = selectedImageIndex + 1; i < gallery.galleryImages.length; i++) {
+                if (gallery.galleryImages[i].status === "complete") {
                     newIndex = i;
                     break;
                 }
@@ -155,7 +208,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
     const handleDownloadImage = async (url: string) => {
         // Get the current image to use its description as filename
-        const currentImage = selectedImageIndex !== null ? galleryImages[selectedImageIndex] : null;
+        const currentImage = selectedImageIndex !== null ? gallery.galleryImages[selectedImageIndex] : null;
         await downloadImage(url, currentImage?.description);
     };
 
@@ -165,10 +218,10 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
 
     // Check if navigation is possible by looking for complete images before/after current index
     const canNavigatePrev = selectedImageIndex !== null && selectedImageIndex > 0 &&
-        galleryImages.slice(0, selectedImageIndex).some(img => img.status === "complete");
+        gallery.galleryImages.slice(0, selectedImageIndex).some(img => img.status === "complete");
 
-    const canNavigateNext = selectedImageIndex !== null && selectedImageIndex < galleryImages.length - 1 &&
-        galleryImages.slice(selectedImageIndex + 1).some(img => img.status === "complete");
+    const canNavigateNext = selectedImageIndex !== null && selectedImageIndex < gallery.galleryImages.length - 1 &&
+        gallery.galleryImages.slice(selectedImageIndex + 1).some(img => img.status === "complete");
 
     // Determine which view to show
     const showNoAlbumSelected = !selectedAlbum;
@@ -200,7 +253,7 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             onRemoveFile={handleRemoveFile}
                             onSubmit={handleSubmit}
                             subscriptionStatus={subscriptionStatus}
-                            forceDisableSend={forceDisableSend}
+                            forceDisableSend={forceDisableSend || isGenerating}
                             onPreferencesChange={setPreferences}
                         />
                     ) : (
@@ -217,28 +270,28 @@ export function AlbumsContent({ selectedAlbum }: AlbumsContentProps) {
                             isLoadingMore={timelineLoadingMore}
                             hasMore={timelineHasMore}
                             subscriptionStatus={subscriptionStatus}
-                            forceDisableSend={forceDisableSend}
+                            forceDisableSend={forceDisableSend || isGenerating}
                             onPreferencesChange={setPreferences}
                         />
                     )}
 
                     {/* Show EmptyGallery only if confirmed empty after loading */}
-                    {!galleryLoading && galleryImages.length === 0 ? (
+                    {!gallery.isLoading && gallery.galleryImages.length === 0 ? (
                         <EmptyGallery onFileChange={handleFileChange} />
                     ) : (
                         <Gallery
                             ref={galleryRef}
-                            images={galleryImages}
+                            images={gallery.galleryImages}
                             onImageClick={setSelectedImageIndex}
-                            onLoadMore={loadMoreGallery}
-                            isLoadingMore={galleryLoadingMore}
-                            hasMore={galleryHasMore}
+                            onLoadMore={gallery.loadMore}
+                            isLoadingMore={gallery.isLoadingMore}
+                            hasMore={gallery.hasMore}
                         />
                     )}
 
-                    {selectedImageIndex !== null && galleryImages[selectedImageIndex] && (
+                    {selectedImageIndex !== null && gallery.galleryImages[selectedImageIndex] && (
                         <ImageViewer
-                            image={galleryImages[selectedImageIndex]}
+                            image={gallery.galleryImages[selectedImageIndex]}
                             imageIndex={selectedImageIndex}
                             totalImages={completeImages.length}
                             albumName={selectedAlbum.name}

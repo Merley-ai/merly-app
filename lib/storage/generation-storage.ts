@@ -11,17 +11,9 @@
  * 4. Metadata deleted (one-time use)
  */
 
-export interface PendingGeneration {
-    requestId: string
-    albumId: string
-    numImages: number
-    prompt: string
-    type: 'generate' | 'edit' | 'remix'
-    albumName?: string
-    systemMessage?: string
-    timelineEventId?: string
-    inputImages?: string[] // Input image URLs for timeline display
-}
+import type { PendingGeneration } from '@/types'
+
+export type { PendingGeneration }
 
 const PENDING_KEY = 'merley:pending-generation'
 
