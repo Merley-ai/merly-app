@@ -50,11 +50,6 @@ export function useGenerationSSE({
 
         const { requestId, numImages, prompt } = pendingGeneration
 
-        console.log('[useGenerationSSE] Connecting to SSE:', {
-            requestId,
-            numImages,
-        })
-
         // Mark as processed (prevent re-connection in Strict Mode)
         processedRef.current = true
 
@@ -66,25 +61,11 @@ export function useGenerationSSE({
             // Handle SSE messages
             eventSource.onmessage = (event) => {
                 try {
-                    console.log('[useGenerationSSE] Raw SSE event received:', event.data)
-
                     const data: ImageSSEStatus = JSON.parse(event.data)
-
-                    console.log('[useGenerationSSE] Parsed SSE event body:', {
-                        status: data.status,
-                        progress: data.progress,
-                        message: data.message,
-                        images: data.images,
-                        fullData: data,
-                    })
 
                     if (data.status === 'complete') {
                         // Extract images
                         const images: GeneratedImage[] = data.images || []
-
-                        console.log('[useGenerationSSE] Generation complete:', {
-                            imageCount: images.length,
-                        })
 
                         // Update gallery with completed images
                         images.forEach((img, index) => {
@@ -106,30 +87,27 @@ export function useGenerationSSE({
                         eventSourceRef.current = null
 
                     } else if (data.status === 'error') {
-                        console.error('[useGenerationSSE] Generation error:', data.message)
                         onError?.(data.message || 'Unknown error')
                         eventSource.close()
                         eventSourceRef.current = null
                     }
                 } catch (error) {
-                    console.error('[useGenerationSSE] SSE parse error:', error)
+                    onError?.(error instanceof Error ? error.message : 'Failed to connect')
                 }
             }
 
             eventSource.onerror = (error) => {
-                console.error('[useGenerationSSE] SSE connection error:', error)
+                onError?.(error instanceof Error ? error.message : 'Failed to connect')
                 // EventSource will auto-reconnect, but we can handle errors if needed
             }
 
         } catch (error) {
-            console.error('[useGenerationSSE] Failed to connect:', error)
             onError?.(error instanceof Error ? error.message : 'Failed to connect')
         }
 
         // Cleanup on unmount
         return () => {
             if (eventSourceRef.current) {
-                console.log('[useGenerationSSE] Closing SSE connection')
                 eventSourceRef.current.close()
                 eventSourceRef.current = null
             }

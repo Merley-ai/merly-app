@@ -91,17 +91,13 @@ export const POST = withAuth(async (request: NextRequest) => {
     const modelId: ModelId = (model as ModelId) || 'reve'
     const modelConfig = getModelConfig(modelId, generationType)
 
-    console.log('[API /image-gen/create] Model selection:', {
-        requestedModel: model,
-        resolvedModelId: modelId,
-        generationType,
-        modelConfig,
-    })
+    // Use resolvedType for routing - handles models that don't support edit
+    const routingType = modelConfig.resolvedType
 
-    // Call Backend API directly based on type
+    // Call Backend API directly based on resolved type
     let backendResponse: GenerationResponse
 
-    if (generationType === 'generate') {
+    if (routingType === 'generate') {
         // Text-to-Image Generation
         backendResponse = await apiFetchService<GenerationResponse>(
             ImageGenEndpoints.generate(),
@@ -124,8 +120,8 @@ export const POST = withAuth(async (request: NextRequest) => {
                 }),
             }
         )
-    } else if (generationType === 'edit') {
-        // Image Editing
+    } else if (routingType === 'edit') {
+        // Image Editing (only for models that support it)
         backendResponse = await apiFetchService<GenerationResponse>(
             ImageGenEndpoints.edit(),
             {
@@ -140,7 +136,7 @@ export const POST = withAuth(async (request: NextRequest) => {
                     user_id: user.sub,
                     album_id,
                     new_album,
-                    image_url: validImages[0], // Use the single image
+                    image_url: validImages[0],
                     aspect_ratio,
                     num_images,
                     output_format,
@@ -174,13 +170,11 @@ export const POST = withAuth(async (request: NextRequest) => {
         )
     }
 
-    console.log('Generate Image [API response]:', backendResponse)
-
-
     // Add generation type to response for frontend tracking
     return NextResponse.json({
         ...backendResponse,
         generation_type: generationType,
+        routing_type: routingType,
         input_image_count: validImages.length,
     })
 })

@@ -259,16 +259,28 @@ export const DEFAULT_GENERATION_OPTIONS: GenerationOptions = {
 
 /**
  * Get model configuration for a specific model and generation type
+ * Automatically falls back to remix if edit is not supported
  * @param modelId - The model identifier (e.g., 'reve', 'flux-2')
  * @param generationType - The type of generation ('generate', 'edit', 'remix')
- * @returns ModelConfig with model and sub_path
+ * @returns ModelConfig with model and sub_path, and the resolved generation type
  * @example getModelConfig('flux-2', 'generate') // { model: 'fal-ai/flux-2', sub_path: '' }
  */
-export function getModelConfig(modelId: ModelId, generationType: GenerationType): ModelConfig {
+export function getModelConfig(modelId: ModelId, generationType: GenerationType): ModelConfig & { resolvedType: GenerationType } {
     const modelDef = MODEL_REGISTRY[modelId]
+
+    // Determine the actual generation type based on model capabilities
+    let resolvedType = generationType
+    if (generationType === 'edit' && !modelDef.capabilities.edit) {
+        // Model doesn't support edit, fall back to remix
+        resolvedType = 'remix'
+    }
+
+    const subPath = modelDef.subPaths[resolvedType]
+
     return {
         model: modelDef.baseModel,
-        sub_path: modelDef.subPaths[generationType],
+        sub_path: subPath ?? '',
+        resolvedType,
     }
 }
 
@@ -353,18 +365,27 @@ export interface ModelConfig {
 }
 
 /**
- * Complete model definition with metadata
+ * Model capabilities - defines what operations a model supports
+ * - generate: text-to-image (no input images)
+ * - edit: single image editing (exactly 1 input image)
+ * - remix: multi-image remix (1+ input images)
+ */
+export interface ModelCapabilities {
+    generate: boolean
+    edit: boolean
+    remix: boolean
+}
+
+/**
+ * Complete model definition with metadata and capabilities
  */
 export interface ModelDefinition {
     id: ModelId
     displayName: string
     description: string
-    baseModel: string // Base model path without subpath
-    subPaths: {
-        generate: string // Text-to-image subpath
-        edit: string // Edit subpath
-        remix: string // Remix subpath
-    }
+    baseModel: string
+    capabilities: ModelCapabilities
+    subPaths: Partial<Record<GenerationType, string>>
 }
 
 /**
@@ -376,6 +397,7 @@ export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
         displayName: 'Reve',
         description: 'Balanced quality and speed',
         baseModel: 'fal-ai/reve',
+        capabilities: { generate: true, edit: true, remix: true },
         subPaths: {
             generate: '/text-to-image',
             edit: '/edit',
@@ -387,10 +409,10 @@ export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
         displayName: 'Nano-banana',
         description: 'Fast generation with good quality',
         baseModel: 'fal-ai/nano-banana',
+        capabilities: { generate: true, edit: false, remix: true },
         subPaths: {
-            generate: '', // Text-to-image is the base endpoint
-            edit: '/edit',
-            remix: '/edit', // Uses edit endpoint for remix
+            generate: '',
+            remix: '/edit',
         },
     },
     'flux-2': {
@@ -398,21 +420,21 @@ export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
         displayName: 'Flux 2',
         description: 'High quality, slower generation',
         baseModel: 'fal-ai/flux-2',
+        capabilities: { generate: true, edit: false, remix: true },
         subPaths: {
-            generate: '', // Text-to-image is the base endpoint
-            edit: '/edit',
-            remix: '/edit', // Uses edit endpoint for remix
+            generate: '',
+            remix: '/edit',
         },
     },
     'seedream': {
         id: 'seedream',
         displayName: 'Seedream',
         description: 'Creative and artistic results',
-        baseModel: 'fal-ai/seedream',
+        baseModel: 'fal-ai/bytedance/seedream/v4.5/',
+        capabilities: { generate: true, edit: false, remix: true },
         subPaths: {
-            generate: '', // Text-to-image is the base endpoint
-            edit: '/edit',
-            remix: '/edit', // Uses edit endpoint for remix
+            generate: 'text-to-image',
+            remix: '/edit',
         },
     },
 } as const
