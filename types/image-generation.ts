@@ -296,14 +296,14 @@ export function resolveModelId(modelSelection: models): ModelId {
         case 'Auto':
         case 'Reve':
             return 'reve'
-        case 'Nano-banana':
-            return 'nano-banana'
-        case 'Flux 2':
-            return 'flux-2'
-        case 'Seedream':
-            return 'seedream'
+        case 'Nano-banana Pro':
+            return 'nano-banana-pro'
+        case 'Flux 2 Pro':
+            return 'flux-2-pro'
+        case 'Seedream 4.5':
+            return 'seedream-4.5'
         default:
-            return 'reve' // Fallback to default
+            return 'nano-banana-pro' // Fallback to default
     }
 }
 
@@ -349,12 +349,12 @@ export const IMAGE_COUNT_LABELS = [
 /**
  * Model ID type - maps to backend model identifiers
  */
-export type ModelId = 'reve' | 'nano-banana' | 'flux-2' | 'seedream'
+export type ModelId = 'reve' | 'nano-banana-pro' | 'flux-2-pro' | 'seedream-4.5'
 
 /**
  * Model selection type for UI
  */
-export type models = "Auto" | "Reve" | "Nano-banana" | "Flux 2" | "Seedream"
+export type models = "Auto" | "Reve" | "Nano-banana Pro" | "Flux 2 Pro" | "Seedream 4.5"
 
 /**
  * Model configuration for a specific generation type
@@ -392,6 +392,28 @@ export interface ModelDefinition {
  * Model registry - Single source of truth for all available models
  */
 export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
+    'nano-banana-pro': {
+        id: 'nano-banana-pro',
+        displayName: 'Nano-banana Pro',
+        description: 'Fast generation with good quality',
+        baseModel: 'fal-ai/nano-banana-pro',
+        capabilities: { generate: true, edit: false, remix: true },
+        subPaths: {
+            generate: '',
+            remix: '/edit',
+        },
+    },
+    'flux-2-pro': {
+        id: 'flux-2-pro',
+        displayName: 'Flux 2 pro`',
+        description: 'High quality, slower generation',
+        baseModel: 'fal-ai/flux-2-pro',
+        capabilities: { generate: true, edit: false, remix: true },
+        subPaths: {
+            generate: '',
+            remix: '/edit',
+        },
+    },
     'reve': {
         id: 'reve',
         displayName: 'Reve',
@@ -404,31 +426,9 @@ export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
             remix: '/remix',
         },
     },
-    'nano-banana': {
-        id: 'nano-banana',
-        displayName: 'Nano-banana',
-        description: 'Fast generation with good quality',
-        baseModel: 'fal-ai/nano-banana',
-        capabilities: { generate: true, edit: false, remix: true },
-        subPaths: {
-            generate: '',
-            remix: '/edit',
-        },
-    },
-    'flux-2': {
-        id: 'flux-2',
-        displayName: 'Flux 2',
-        description: 'High quality, slower generation',
-        baseModel: 'fal-ai/flux-2',
-        capabilities: { generate: true, edit: false, remix: true },
-        subPaths: {
-            generate: '',
-            remix: '/edit',
-        },
-    },
-    'seedream': {
-        id: 'seedream',
-        displayName: 'Seedream',
+    'seedream-4.5': {
+        id: 'seedream-4.5',
+        displayName: 'Seedream 4.5',
         description: 'Creative and artistic results',
         baseModel: 'fal-ai/bytedance/seedream/v4.5/',
         capabilities: { generate: true, edit: false, remix: true },
@@ -443,11 +443,11 @@ export const MODEL_REGISTRY: Record<ModelId, ModelDefinition> = {
  * Model options for UI display
  */
 export const MODEL_OPTIONS_LABELS = [
-    { value: 'Auto', label: 'Auto', description: 'Reve - Balanced' },
+    { value: 'Auto', label: 'Auto', description: 'Nano-banana Pro' },
     { value: 'Reve', label: 'Reve', description: 'Balanced quality and speed' },
-    { value: 'Nano-banana', label: 'Nano-banana', description: 'Fast generation' },
-    { value: 'Flux 2', label: 'Flux 2', description: 'High quality' },
-    { value: 'Seedream', label: 'Seedream', description: 'Creative results' },
+    { value: 'Nano-banana Pro', label: 'Nano-banana Pro', description: 'Fast generation' },
+    { value: 'Flux 2 Pro', label: 'Flux 2 Pro', description: 'High quality' },
+    { value: 'Seedream 4.5', label: 'Seedream 4.5', description: 'Creative results' },
 ] as const
 
 
