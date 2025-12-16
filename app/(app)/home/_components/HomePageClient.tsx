@@ -1,17 +1,175 @@
 "use client";
 
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAlbumsContext } from "@/contexts/AlbumsContext";
+import type { StyleTemplate, LookbookPreset } from "@/types";
+
+import { HeroBanner } from "./HeroBanner";
+import { StyleTemplateCards } from "./StyleTemplateCards";
+import { LookbookPresetCards } from "./LookbookPresetCards";
+import { AlbumsGrid } from "./AlbumsGrid";
+import { TemplateDetailModal } from "./TemplateDetailModal";
+import { LookbookCreationModal } from "./LookbookCreationModal";
+import { ContextualBanner } from "./ContextualBanner";
+import {
+    heroCarouselItems,
+    styleTemplates,
+    lookbookPresets,
+} from "./homepage-data";
+
 /**
  * Dashboard Home Page
+ * 
+ * Main homepage component that composes all sections:
+ * 1. Hero Banner (Carousel)
+ * 2. Style Templates (Horizontal Scroll)
+ * 3. Lookbook Presets (Grid)
+ * 4. User Albums (Grid)
  */
-
 export function HomePageClient() {
-    return (
-        <div className="flex-1 bg-black flex items-center justify-center">
-            <div className="text-white/60 text-center">
-                <p className="text-lg">Welcome to your Dashboard</p>
-                <p className="text-sm mt-2">Select an album or create a new one to get started</p>
+    const router = useRouter();
+    const {
+        albums,
+        selectedAlbum,
+        isLoading: albumsLoading,
+    } = useAlbumsContext();
 
-            </div>
+    // Modal states
+    const [selectedTemplate, setSelectedTemplate] = useState<StyleTemplate | null>(null);
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [selectedLookbookPreset, setSelectedLookbookPreset] = useState<LookbookPreset | null>(null);
+    const [isLookbookModalOpen, setIsLookbookModalOpen] = useState(false);
+
+    // Contextual banner state (for generation progress)
+    // TODO: Connect to actual generation state from context/API
+    const [showContextualBanner, setShowContextualBanner] = useState(false);
+
+    // Template modal handlers
+    const handleTemplateClick = useCallback((template: StyleTemplate) => {
+        setSelectedTemplate(template);
+        setIsTemplateModalOpen(true);
+    }, []);
+
+    const handleTemplateModalClose = useCallback(() => {
+        setIsTemplateModalOpen(false);
+        setSelectedTemplate(null);
+    }, []);
+
+    const handleCreateNewAlbum = useCallback(() => {
+        const newAlbumId = crypto.randomUUID();
+        router.push(`/albums/${newAlbumId}`);
+    }, [router]);
+
+    const handleApplyStyle = useCallback(
+        (template: StyleTemplate, albumId: string | null) => {
+            // TODO: Complete the journey - navigate to album with style applied
+            if (albumId) {
+                router.push(`/albums/${albumId}`);
+            } else {
+                // Create new album and navigate
+                const newAlbumId = crypto.randomUUID();
+                router.push(`/albums/${newAlbumId}`);
+            }
+        },
+        [router]
+    );
+
+    // Lookbook modal handlers
+    const handleLookbookClick = useCallback((preset: LookbookPreset) => {
+        setSelectedLookbookPreset(preset);
+        setIsLookbookModalOpen(true);
+    }, []);
+
+    const handleLookbookModalClose = useCallback(() => {
+        setIsLookbookModalOpen(false);
+        setSelectedLookbookPreset(null);
+    }, []);
+
+    const handleCreateLookbook = useCallback(
+        (name: string, selectedStyles: StyleTemplate[]) => {
+            // TODO: Complete the journey - create lookbook with selected styles
+            console.log("Creating lookbook:", { name, selectedStyles });
+            // For now, just close the modal
+        },
+        []
+    );
+
+    // Album click handler
+    const handleAlbumClick = useCallback(
+        (album: { id: string }) => {
+            router.push(`/albums/${album.id}`);
+        },
+        [router]
+    );
+
+    // Contextual banner handlers
+    const handleContinueGeneration = useCallback(() => {
+        // TODO: Navigate to the album with active generation
+        setShowContextualBanner(false);
+    }, []);
+
+    const handleDismissBanner = useCallback(() => {
+        setShowContextualBanner(false);
+    }, []);
+
+    return (
+        <div className="flex-1 bg-black overflow-y-auto">
+            {/* Hero Section */}
+            <HeroBanner
+                items={heroCarouselItems}
+                onTemplateClick={handleTemplateClick}
+                onLookbookClick={handleLookbookClick}
+            />
+
+            {/* Style Templates Section */}
+            <StyleTemplateCards
+                templates={styleTemplates}
+                onTemplateClick={handleTemplateClick}
+            />
+
+            {/* Lookbook Presets Section */}
+            <LookbookPresetCards
+                presets={lookbookPresets}
+                onPresetClick={handleLookbookClick}
+            />
+
+            {/* User Albums Section */}
+            <AlbumsGrid
+                albums={albums}
+                isLoading={albumsLoading}
+                onAlbumClick={handleAlbumClick}
+            />
+
+            {/* Template Detail Modal */}
+            <TemplateDetailModal
+                template={selectedTemplate}
+                isOpen={isTemplateModalOpen}
+                onClose={handleTemplateModalClose}
+                albums={albums}
+                selectedAlbum={selectedAlbum}
+                onCreateNewAlbum={handleCreateNewAlbum}
+                onApplyStyle={handleApplyStyle}
+            />
+
+            {/* Lookbook Creation Modal */}
+            <LookbookCreationModal
+                preset={selectedLookbookPreset}
+                isOpen={isLookbookModalOpen}
+                onClose={handleLookbookModalClose}
+                styleTemplates={styleTemplates}
+                onCreateLookbook={handleCreateLookbook}
+            />
+
+            {/* Contextual Banner for Generation Progress */}
+            <ContextualBanner
+                albumName="Fashion Fusion"
+                albumThumbnail={undefined}
+                imagesGenerating={3}
+                isVisible={showContextualBanner}
+                onContinue={handleContinueGeneration}
+                onDismiss={handleDismissBanner}
+            />
         </div>
     );
 }

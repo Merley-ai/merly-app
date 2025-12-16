@@ -1,0 +1,396 @@
+{
+    "hero_arousel_items": [
+        {
+            "id": "hero-1",
+            "type": "lookbook",
+            "title": "Create your fashion story",
+            "subtitle": "Generate editorial imagery for your brand with AI-powered style templates",
+            "cta_text": "Start a Lookbook",
+            "background_image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1920&q=80",
+            "linked_item": {
+                "id": "lookbook-editorial",
+                "name": "Studio Editorial",
+                "preview_image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80",
+                "description": "Professional studio editorial lookbook with clean, minimal aesthetic",
+                "tags": [
+                    "Editorial",
+                    "Studio",
+                    "Minimal"
+                ]
+            }
+        },
+        {
+            "id": "hero-2",
+            "type": "template",
+            "title": "Elevate your visual identity",
+            "subtitle": "Transform your products with professional styling and composition",
+            "cta_text": "Explore Styles",
+            "background_image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1920&q=80",
+            "linked_item": {
+                "id": "template-editorial",
+                "name": "Editorial",
+                "preview_image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80",
+                "description": "High-fashion editorial style with dramatic lighting and bold compositions",
+                "tags": [
+                    "Editorial",
+                    "High-Fashion",
+                    "Dramatic"
+                ]
+            }
+        },
+        {
+            "id": "hero-3",
+            "type": "lookbook",
+            "title": "Campaign-ready collections",
+            "subtitle": "Build cohesive brand narratives with multi-page lookbooks",
+            "cta_text": "Create Campaign",
+            "background_image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=1920&q=80",
+            "linked_item": {
+                "id": "lookbook-campaign",
+                "name": "Brand Campaign",
+                "preview_image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
+                "description": "Full-scale brand campaign with lifestyle and product shots",
+                "tags": [
+                    "Campaign",
+                    "Lifestyle",
+                    "Brand"
+                ]
+            }
+        },
+        {
+            "id": "hero-4",
+            "type": "template",
+            "title": "Street style aesthetics",
+            "subtitle": "Capture authentic urban fashion with contemporary edge",
+            "cta_text": "Use This Style",
+            "background_image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1920&q=80",
+            "linked_item": {
+                "id": "template-street",
+                "name": "Street Style",
+                "preview_image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=80",
+                "description": "Urban street photography aesthetic with natural lighting and authentic moments",
+                "tags": [
+                    "Street",
+                    "Urban",
+                    "Casual"
+                ]
+            }
+        }
+    ],
+    "style_templates": [
+        {
+            "id": "template-editorial",
+            "name": "Editorial",
+            "preview_image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80",
+            "description": "High-fashion editorial style with dramatic lighting and bold compositions",
+            "tags": [
+                "Editorial",
+                "High-Fashion",
+                "Dramatic"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&q=80",
+                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80",
+                "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-minimal",
+            "name": "Minimal Studio",
+            "preview_image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80",
+            "description": "Clean, minimal studio photography with neutral backgrounds and soft lighting",
+            "tags": [
+                "Minimal",
+                "Studio",
+                "Clean"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&q=80",
+                "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-street",
+            "name": "Street Style",
+            "preview_image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=80",
+            "description": "Urban street photography aesthetic with natural lighting and authentic moments",
+            "tags": [
+                "Street",
+                "Urban",
+                "Casual"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&q=80",
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80",
+                "https://images.unsplash.com/photo-1558769132-cb1aea6c0a9a?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-campaign",
+            "name": "Brand Campaign",
+            "preview_image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80",
+            "description": "Professional brand campaign style with lifestyle integration and storytelling",
+            "tags": [
+                "Campaign",
+                "Lifestyle",
+                "Professional"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&q=80",
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80",
+                "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-luxury",
+            "name": "Luxury",
+            "preview_image": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80",
+            "description": "High-end luxury aesthetic with refined elegance and sophisticated styling",
+            "tags": [
+                "Luxury",
+                "Elegant",
+                "Sophisticated"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400&q=80",
+                "https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=80",
+                "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-vintage",
+            "name": "Vintage Film",
+            "preview_image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80",
+            "description": "Nostalgic vintage photography with film grain and retro color grading",
+            "tags": [
+                "Vintage",
+                "Film",
+                "Retro"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&q=80",
+                "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=400&q=80",
+                "https://images.unsplash.com/photo-1492447166138-50c3889fccb1?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-outdoor",
+            "name": "Outdoor Natural",
+            "preview_image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80",
+            "description": "Natural outdoor photography with golden hour lighting and environmental context",
+            "tags": [
+                "Outdoor",
+                "Natural",
+                "Environmental"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80",
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
+                "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-monochrome",
+            "name": "Monochrome",
+            "preview_image": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80",
+            "description": "Black and white photography with high contrast and timeless appeal",
+            "tags": [
+                "Monochrome",
+                "B&W",
+                "Timeless"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&q=80",
+                "https://images.unsplash.com/photo-1488161628813-04466f872be2?w=400&q=80",
+                "https://images.unsplash.com/photo-1504198070170-4ca53bb1c1fa?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-avant-garde",
+            "name": "Avant-Garde",
+            "preview_image": "https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=80",
+            "description": "Experimental and artistic approach with unconventional compositions",
+            "tags": [
+                "Avant-Garde",
+                "Artistic",
+                "Experimental"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1495385794356-15371f348c31?w=400&q=80",
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
+                "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-commercial",
+            "name": "Commercial Product",
+            "preview_image": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
+            "description": "Professional product photography with emphasis on details and features",
+            "tags": [
+                "Commercial",
+                "Product",
+                "Professional"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&q=80",
+                "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80",
+                "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-casual",
+            "name": "Casual Lifestyle",
+            "preview_image": "https://images.unsplash.com/photo-1558769132-cb1aea6c0a9a?w=400&q=80",
+            "description": "Relaxed, everyday lifestyle photography with authentic moments",
+            "tags": [
+                "Casual",
+                "Lifestyle",
+                "Authentic"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1558769132-cb1aea6c0a9a?w=400&q=80",
+                "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&q=80",
+                "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=400&q=80"
+            ],
+            "is_user_created": false
+        },
+        {
+            "id": "template-dramatic",
+            "name": "Dramatic Noir",
+            "preview_image": "https://images.unsplash.com/photo-1488161628813-04466f872be2?w=400&q=80",
+            "description": "High-contrast noir aesthetic with dramatic shadows and mood lighting",
+            "tags": [
+                "Dramatic",
+                "Noir",
+                "Moody"
+            ],
+            "example_images": [
+                "https://images.unsplash.com/photo-1488161628813-04466f872be2?w=400&q=80",
+                "https://images.unsplash.com/photo-1504198070170-4ca53bb1c1fa?w=400&q=80",
+                "https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&q=80"
+            ],
+            "is_user_created": false
+        }
+    ],
+    "lookbook_presets": [
+        {
+            "id": "lookbook-editorial",
+            "name": "Studio Editorial",
+            "preview_image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80",
+            "description": "Professional studio editorial lookbook with clean, minimal aesthetic perfect for showcasing new collections",
+            "tags": [
+                "Editorial",
+                "Studio",
+                "Minimal"
+            ],
+            "page_count": 12
+        },
+        {
+            "id": "lookbook-campaign",
+            "name": "Brand Campaign",
+            "preview_image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
+            "description": "Full-scale brand campaign with lifestyle and product shots that tell a complete brand story",
+            "tags": [
+                "Campaign",
+                "Lifestyle",
+                "Brand"
+            ],
+            "page_count": 20
+        },
+        {
+            "id": "lookbook-seasonal",
+            "name": "Seasonal Collection",
+            "preview_image": "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=800&q=80",
+            "description": "Seasonal collection showcase with cohesive styling and thematic consistency",
+            "tags": [
+                "Seasonal",
+                "Collection",
+                "Thematic"
+            ],
+            "page_count": 16
+        },
+        {
+            "id": "lookbook-streetwear",
+            "name": "Streetwear Drop",
+            "preview_image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&q=80",
+            "description": "Urban streetwear collection with authentic street photography and lifestyle integration",
+            "tags": [
+                "Streetwear",
+                "Urban",
+                "Lifestyle"
+            ],
+            "page_count": 10
+        },
+        {
+            "id": "lookbook-luxury",
+            "name": "Luxury Line",
+            "preview_image": "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&q=80",
+            "description": "High-end luxury collection with elegant, sophisticated presentation",
+            "tags": [
+                "Luxury",
+                "High-End",
+                "Elegant"
+            ],
+            "page_count": 18
+        },
+        {
+            "id": "lookbook-resort",
+            "name": "Resort Collection",
+            "preview_image": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80",
+            "description": "Resort and vacation wear collection with natural outdoor settings",
+            "tags": [
+                "Resort",
+                "Vacation",
+                "Outdoor"
+            ],
+            "page_count": 14
+        },
+        {
+            "id": "lookbook-accessories",
+            "name": "Accessories Focus",
+            "preview_image": "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80",
+            "description": "Dedicated accessories and details lookbook with close-up product photography",
+            "tags": [
+                "Accessories",
+                "Product",
+                "Details"
+            ],
+            "page_count": 8
+        },
+        {
+            "id": "lookbook-avantgarde",
+            "name": "Avant-Garde Editorial",
+            "preview_image": "https://images.unsplash.com/photo-1495385794356-15371f348c31?w=800&q=80",
+            "description": "Experimental and artistic collection with bold, unconventional presentations",
+            "tags": [
+                "Avant-Garde",
+                "Artistic",
+                "Experimental"
+            ],
+            "page_count": 15
+        },
+        {
+            "id": "lookbook-casual",
+            "name": "Everyday Essentials",
+            "preview_image": "https://images.unsplash.com/photo-1558769132-cb1aea6c0a9a?w=800&q=80",
+            "description": "Casual, everyday wear collection with relatable lifestyle photography",
+            "tags": [
+                "Casual",
+                "Everyday",
+                "Lifestyle"
+            ],
+            "page_count": 12
+        }
+    ]
+}
