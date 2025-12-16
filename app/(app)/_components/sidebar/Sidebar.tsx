@@ -1,15 +1,114 @@
 "use client";
 
 import { useEffect } from "react";
-import { ChevronLeft, Menu } from "lucide-react";
+import { ChevronLeft, Menu, Home, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { UserMenu } from "@/components/auth";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useUser } from "@/lib/auth0/client";
 import { toast } from "@/lib/notifications";
 import type { Album } from "@/types";
+import type { LucideIcon } from "lucide-react";
+
+interface NavButtonProps {
+    icon: LucideIcon;
+    label: string;
+    isActive: boolean;
+    isCollapsed: boolean;
+    onClick: () => void;
+    disabled?: boolean;
+}
+
+function NavButton({ icon: Icon, label, isActive, isCollapsed, onClick, disabled = false }: NavButtonProps) {
+    const baseStyles = "flex items-center w-full px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer";
+    const stateStyles = isActive
+        ? "bg-neutral-800 text-white"
+        : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white";
+    const disabledStyles = disabled ? "disabled:opacity-50 disabled:cursor-not-allowed" : "";
+
+    const button = (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className={`${baseStyles} ${stateStyles} ${disabledStyles} ${isCollapsed ? "justify-center" : "gap-3"}`}
+        >
+            <Icon className="w-5 h-5" />
+            {!isCollapsed && <span>{label}</span>}
+        </button>
+    );
+
+    if (isCollapsed) {
+        return (
+            <Tooltip text={label} position="right">
+                {button}
+            </Tooltip>
+        );
+    }
+
+    return button;
+}
+
+interface AlbumThumbnailProps {
+    thumbnailUrl?: string;
+    name: string;
+}
+
+function AlbumThumbnail({ thumbnailUrl, name }: AlbumThumbnailProps) {
+    return (
+        <div className="w-6 h-6 bg-neutral-800 rounded-full overflow-hidden flex-shrink-0 relative">
+            {thumbnailUrl ? (
+                <Image
+                    src={thumbnailUrl}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                    sizes="24px"
+                    quality={75}
+                    unoptimized={thumbnailUrl.includes('fal.media') || thumbnailUrl.includes('fal.ai')}
+                />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                    <Plus className="w-3 h-3" />
+                </div>
+            )}
+        </div>
+    );
+}
+
+interface AlbumButtonProps {
+    album: Album;
+    isActive: boolean;
+    isCollapsed: boolean;
+    onClick: () => void;
+}
+
+function AlbumButton({ album, isActive, isCollapsed, onClick }: AlbumButtonProps) {
+    const baseStyles = "flex items-center w-full px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer";
+    const stateStyles = isActive
+        ? "bg-neutral-800 text-white"
+        : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white";
+
+    const button = (
+        <button
+            onClick={onClick}
+            className={`${baseStyles} ${stateStyles} ${isCollapsed ? "justify-center" : "gap-3"}`}
+        >
+            <AlbumThumbnail thumbnailUrl={album.thumbnail_url} name={album.name} />
+            {!isCollapsed && <span className="truncate">{album.name}</span>}
+        </button>
+    );
+
+    if (isCollapsed) {
+        return (
+            <Tooltip text={album.name} position="right">
+                {button}
+            </Tooltip>
+        );
+    }
+
+    return button;
+}
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -53,38 +152,35 @@ export function Sidebar({
 
     return (
         <aside
-            className={`bg-black flex-shrink-0 border-r-[0.5px] border-white/20 flex flex-col transition-all duration-300 overflow-visible ${isCollapsed ? 'w-[66px]' : 'w-[260px]'
+            className={`bg-black flex-shrink-0 border-r border-neutral-800/50 flex flex-col h-full transition-all duration-200 ease-out font-['Roboto',_sans-serif] ${isCollapsed ? 'w-[66px] overflow-hidden' : 'w-[240px]'
                 }`}
         >
             {/* Header with collapse button */}
-            <div className={`px-3 py-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+            <div className={`p-4 pb-2 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                 {!isCollapsed && (
                     <>
                         {onBackToWebsite ? (
                             <Link href="/" className="block hover:opacity-80 transition-opacity cursor-pointer">
-                                <p className="font-['Roboto_Serif'] text-white text-[20px]">
+                                <span className="font-['Roboto_Serif'] text-[20px] tracking-tight text-white">
                                     Merley
-                                </p>
+                                </span>
                             </Link>
                         ) : (
-                            <p
-                                className="font-['Roboto_Serif'] text-white text-[20px]"
-                                style={{ fontVariationSettings: "'GRAD' 0, 'wdth' 100" }}
-                            >
+                            <span className="font-['Roboto_Serif'] text-[20px] tracking-tight text-white">
                                 Merley
-                            </p>
+                            </span>
                         )}
                     </>
                 )}
                 <button
                     onClick={onToggleCollapse}
-                    className={`text-white/60 hover:text-white transition-colors cursor-pointer ${!isCollapsed ? 'ml-auto' : ''}`}
+                    className="p-1 rounded text-neutral-400 hover:bg-neutral-800 hover:text-white transition-colors cursor-pointer"
                     aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {isCollapsed ? (
-                        <Menu className="size-6" />
+                        <Menu className="w-5 h-5" />
                     ) : (
-                        <ChevronLeft className="size-6" />
+                        <ChevronLeft className="w-5 h-5" />
                     )}
                 </button>
             </div>
@@ -92,64 +188,34 @@ export function Sidebar({
             {isCollapsed ? (
                 <>
                     {/* Collapsed View - Icons with Tooltips */}
-                    <div className="flex flex-col items-center gap-3 px-3 mt-4 mb-4">
-                        {/* Home Button */}
-                        <Tooltip text="Home" position="right">
-                            <button
-                                onClick={onGoToHome}
-                                className={`p-2 hover:bg-white/20 rounded transition-colors cursor-pointer ${isHomeView ? 'bg-white/20' : ''
-                                    }`}
-                            >
-                                <svg className="size-[27px]" fill="none" viewBox="0 0 14 14">
-                                    <path d="M7 1.5L1.5 6v6.5h4V9h3v3.5h4V6L7 1.5z" fill="#ddddddff" />
-                                </svg>
-                            </button>
-                        </Tooltip>
-
-                        {/* Create New Album Button */}
-                        <Tooltip text="Create New Album" position="right">
-                            <button
-                                onClick={onCreateAlbum}
-                                disabled={isLoading}
-                                className={`p-2 hover:bg-white/20 rounded transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isNewAlbumView ? 'bg-white/20' : ''}`}
-                            >
-                                <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
-                                    <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
-                                </svg>
-                            </button>
-                        </Tooltip>
-                    </div>
+                    <nav className="flex flex-col items-center px-2 py-4">
+                        <NavButton
+                            icon={Home}
+                            label="Home"
+                            isActive={isHomeView}
+                            isCollapsed={true}
+                            onClick={onGoToHome}
+                        />
+                        <NavButton
+                            icon={Plus}
+                            label="Create New Album"
+                            isActive={isNewAlbumView}
+                            isCollapsed={true}
+                            onClick={onCreateAlbum}
+                            disabled={isLoading}
+                        />
+                    </nav>
 
                     {/* Albums List - Collapsed */}
-                    <div className="flex-1 overflow-y-auto flex flex-col items-center gap-3 px-2 pt-2">
+                    <div className="mt-0.5 space-y-1.5 flex-1 overflow-y-auto px-2">
                         {albums.map((album, index) => (
-                            <Tooltip key={album.id || `album-${index}`} text={album.name} position="right">
-                                <button
-                                    onClick={() => onSelectAlbum(album)}
-                                    className={`size-[37px] rounded-4xl overflow-hidden flex-shrink-0 relative transition-all cursor-pointer ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id
-                                        ? "ring-2 ring-white/40"
-                                        : "hover:ring-2 hover:ring-white/60"
-                                        }`}
-                                >
-                                    {album.thumbnail_url ? (
-                                        <Image
-                                            src={album.thumbnail_url}
-                                            alt={album.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="37px"
-                                            quality={75}
-                                            unoptimized={album.thumbnail_url.includes('fal.media') || album.thumbnail_url.includes('fal.ai')}
-                                        />
-                                    ) : (
-                                        <div className="size-full bg-[#666666] flex items-center justify-center">
-                                            <svg className="size-[16px] " fill="none" viewBox="0 0 14 14">
-                                                {/* <path d={dashboardSvgPaths.p2d909600} fill="#666666" /> */}
-                                            </svg>
-                                        </div>
-                                    )}
-                                </button>
-                            </Tooltip>
+                            <AlbumButton
+                                key={album.id || `album-${index}`}
+                                album={album}
+                                isActive={!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id}
+                                isCollapsed={true}
+                                onClick={() => onSelectAlbum(album)}
+                            />
                         ))}
                     </div>
 
@@ -177,53 +243,34 @@ export function Sidebar({
             ) : (
                 <>
                     {/* Expanded View */}
-                    {/* Home Button */}
-                    <button
-                        onClick={onGoToHome}
-                        className={`mx-3 mt-4 p-2 flex items-center gap-2 hover:bg-white/20 rounded-xl transition-colors cursor-pointer ${isHomeView ? 'bg-white/20' : ''
-                            }`}
-                    >
-                        <div className="size-[37px] flex items-center justify-center flex-shrink-0">
-                            <svg className="size-[27px]" fill="none" viewBox="0 0 14 14">
-                                <path d="M7 1.5L1.5 6v6.5h4V9h3v3.5h4V6L7 1.5z" fill="#ddddddff" />
-                            </svg>
-                        </div>
-                        <p
-                            className="p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                            style={{ fontVariationSettings: "'wdth' 100" }}
-                        >
-                            Home
-                        </p>
-                    </button>
-
-                    {/* Create New Album Button */}
-                    <button
-                        onClick={onCreateAlbum}
-                        disabled={isLoading}
-                        className={`mx-3 mb-4 p-2 flex items-center gap-2 hover:bg-white/20 rounded-xl transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${isNewAlbumView ? 'bg-white/20' : ''}`}
-                    >
-                        <div className="size-[37px] flex items-center justify-center flex-shrink-0">
-                            <svg className="size-[17px]" fill="none" viewBox="0 0 14 14">
-                                <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
-                            </svg>
-                        </div>
-                        <p
-                            className="p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px]"
-                            style={{ fontVariationSettings: "'wdth' 100" }}
-                        >
-                            Create New Album
-                        </p>
-                    </button>
+                    {/* Navigation Menu */}
+                    <nav className="px-2 py-4">
+                        <NavButton
+                            icon={Home}
+                            label="Home"
+                            isActive={isHomeView}
+                            isCollapsed={false}
+                            onClick={onGoToHome}
+                        />
+                        <NavButton
+                            icon={Plus}
+                            label="Create New Album"
+                            isActive={isNewAlbumView}
+                            isCollapsed={false}
+                            onClick={onCreateAlbum}
+                            disabled={isLoading}
+                        />
+                    </nav>
 
                     {/* Albums List */}
-                    <div className="flex-1 overflow-y-auto px-3 space-y-3">
+                    <div className="mt-0.5 space-y-1.5 flex-1 overflow-y-auto px-2">
                         {/* Loading State - Skeleton Loaders */}
                         {isLoading && albums.length === 0 && (
                             <>
                                 {[1, 2, 3].map((i) => (
-                                    <div key={i} className="w-full flex items-center gap-2 p-2 rounded-xl bg-white/5 animate-pulse">
-                                        <div className="size-[37px] bg-white/7 rounded-4xl flex-shrink-0" />
-                                        <div className="flex-1 h-4 bg-white/7 rounded" />
+                                    <div key={i} className="flex items-center gap-3 w-full px-3 py-2 rounded-lg bg-neutral-800/30 animate-pulse">
+                                        <div className="w-6 h-6 bg-neutral-800 rounded-full flex-shrink-0" />
+                                        <div className="flex-1 h-4 bg-neutral-800 rounded" />
                                     </div>
                                 ))}
                             </>
@@ -232,10 +279,10 @@ export function Sidebar({
                         {/* Error State */}
                         {error && albums.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-8 px-4 space-y-2">
-                                <p className="font-['Roboto:Regular',_sans-serif] text-red-400 text-[12px] text-center">
+                                <p className="text-red-400 text-xs text-center">
                                     Failed to load albums
                                 </p>
-                                <p className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[11px] text-center">
+                                <p className="text-neutral-500 text-xs text-center">
                                     {error}
                                 </p>
                             </div>
@@ -244,10 +291,10 @@ export function Sidebar({
                         {/* Empty State */}
                         {!isLoading && !error && albums.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-8 px-4 space-y-2">
-                                <p className="font-['Roboto:Regular',_sans-serif] text-white/60 text-[12px] text-center">
+                                <p className="text-neutral-400 text-xs text-center">
                                     No albums yet
                                 </p>
-                                <p className="font-['Roboto:Regular',_sans-serif] text-white/40 text-[11px] text-center">
+                                <p className="text-neutral-500 text-xs text-center">
                                     Create your first album to get started
                                 </p>
                             </div>
@@ -255,43 +302,18 @@ export function Sidebar({
 
                         {/* Albums */}
                         {albums.map((album, index) => (
-                            <button
+                            <AlbumButton
                                 key={album.id || `album-${index}`}
+                                album={album}
+                                isActive={!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id}
+                                isCollapsed={false}
                                 onClick={() => onSelectAlbum(album)}
-                                className={`w-full flex items-center gap-2 p-2 rounded-xl transition-colors cursor-pointer ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id ? "bg-white/20" : "hover:bg-white/20"
-                                    }`}
-                            >
-                                <div className="size-[37px] bg-[#2e2e2e] rounded-4xl overflow-hidden flex-shrink-0 relative">
-                                    {album.thumbnail_url ? (
-                                        <Image
-                                            src={album.thumbnail_url}
-                                            alt={album.name}
-                                            fill
-                                            className="object-cover"
-                                            sizes="37px"
-                                            quality={75}
-                                            unoptimized={album.thumbnail_url.includes('fal.media') || album.thumbnail_url.includes('fal.ai')}
-                                        />
-                                    ) : (
-                                        <div className="size-full flex items-center justify-center">
-                                            <svg className="size-[16px]" fill="none" viewBox="0 0 14 14">
-                                                <path d={dashboardSvgPaths.p2d909600} fill="#ddddddff" />
-                                            </svg>
-                                        </div>
-                                    )}
-                                </div>
-                                <p
-                                    className={`p-1 font-['Roboto:Regular',_sans-serif] text-white text-[14px] text-left truncate ${!isHomeView && !isNewAlbumView && selectedAlbum?.id === album.id ? 'font-semibold' : ''}`}
-                                    style={{ fontVariationSettings: "'wdth' 100" }}
-                                >
-                                    {album.name}
-                                </p>
-                            </button>
+                            />
                         ))}
                     </div>
 
                     {/* User Info */}
-                    <div className="p-7">
+                    <div className="p-4">
                         <UserMenu isCollapsed={false} />
                     </div>
                 </>

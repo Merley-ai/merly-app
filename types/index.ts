@@ -114,3 +114,10 @@ export type {
     SSEConnection,
 } from './image-gen-tracking';
 
+// Homepage types
+export type {
+    StyleTemplate,
+    LookbookPreset,
+    HeroCarouselItem,
+    HomepageData,
+} from './homepage';

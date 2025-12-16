@@ -53,8 +53,6 @@ export const GET = withAuthParams<
 
     const events = response.data || []
 
-    console.log("Timeline events :", events)
-
     return NextResponse.json({
         events,
         count: events.length,
