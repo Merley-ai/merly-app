@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { DEFAULT_PREFERENCES, type PreferencesState } from '@/components/ui/PreferencesPopover'
-import { useFileUpload } from './useFileUpload'
+import { DEFAULT_PREFERENCES, type PreferencesState } from '@/components/ui/Menus/PreferencesPopover'
+import { useFileUpload } from '@/hooks/files/useFileUpload'
 import type { UploadedFile } from '@/types'
 
 /**

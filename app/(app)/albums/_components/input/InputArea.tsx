@@ -4,7 +4,7 @@ import { useRef, useEffect } from "react";
 import { InputButtons } from "./InputButtons";
 import { ImageThumbnail } from "./ImageThumbnail";
 import type { UploadedFile } from "@/types";
-import type { PreferencesState } from "@/components/ui/PreferencesPopover";
+import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
 
 interface InputAreaProps {
   inputValue: string;

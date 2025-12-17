@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils/tw-merge";
+import { useImageLoad } from "@/hooks";
+import { Section } from "./Section";
 import type { LookbookPreset } from "@/types";
 
 interface LookbookPresetCardsProps {
@@ -16,7 +17,7 @@ interface LookbookPresetCardProps {
 }
 
 function LookbookPresetCard({ preset, onClick }: LookbookPresetCardProps) {
-    const [imageLoaded, setImageLoaded] = useState(false);
+    const { imageLoaded, handleLoad } = useImageLoad();
 
     return (
         <button
@@ -38,7 +39,7 @@ function LookbookPresetCard({ preset, onClick }: LookbookPresetCardProps) {
                     "object-cover transition-transform duration-300 group-hover:scale-105",
                     imageLoaded ? "opacity-100" : "opacity-0"
                 )}
-                onLoad={() => setImageLoaded(true)}
+                onLoad={handleLoad}
                 sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 quality={85}
             />
@@ -73,7 +74,7 @@ function LookbookPresetCard({ preset, onClick }: LookbookPresetCardProps) {
     );
 }
 
-function LookbookPresetCardSkeleton() {
+export function LookbookPresetCardSkeleton() {
     return (
         <div className="w-full aspect-video rounded-xl overflow-hidden bg-neutral-900 animate-pulse">
             <div className="absolute top-3 right-3 flex gap-1.5">
@@ -92,7 +93,7 @@ export function LookbookPresetCards({ presets, onPresetClick }: LookbookPresetCa
     // Empty state
     if (presets.length === 0) {
         return (
-            <section className="py-12 px-8 md:px-12 lg:px-16">
+            <Section>
                 <div className="mb-6">
                     <h2 className="text-2xl font-semibold text-white mb-1">Lookbooks</h2>
                     <p className="text-neutral-500 text-sm">Multi-page collections and campaigns</p>
@@ -100,12 +101,12 @@ export function LookbookPresetCards({ presets, onPresetClick }: LookbookPresetCa
                 <div className="flex items-center justify-center h-48 text-neutral-400 text-sm">
                     No lookbook presets available
                 </div>
-            </section>
+            </Section>
         );
     }
 
     return (
-        <section className="py-12 px-8 md:px-12 lg:px-16">
+        <Section>
             {/* Section Header */}
             <div className="mb-6">
                 <h2 className="text-2xl font-semibold text-white mb-1">Lookbooks</h2>
@@ -126,8 +127,7 @@ export function LookbookPresetCards({ presets, onPresetClick }: LookbookPresetCa
                     />
                 ))}
             </div>
-        </section>
+        </Section>
     );
 }
 
-export { LookbookPresetCardSkeleton };

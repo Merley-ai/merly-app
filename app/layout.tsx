@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { UserProvider } from "@/components/auth";
 import { FacebookPixel } from "@/components/meta-pixel";
 import { NewRelicScript } from "@/components/new-relic/NewRelicScript";
-import { Toast } from "@/components/ui/Toast";
+import { Toast } from "@/components/ui/Toast/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {

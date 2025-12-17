@@ -4,6 +4,8 @@ import { useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
+import { useImageLoad } from "@/hooks";
+import { Section } from "./Section";
 import type { StyleTemplate } from "@/types";
 
 interface StyleTemplateCardsProps {
@@ -17,7 +19,7 @@ interface StyleTemplateCardProps {
 }
 
 function StyleTemplateCard({ template, onClick }: StyleTemplateCardProps) {
-    const [imageLoaded, setImageLoaded] = useState(false);
+    const { imageLoaded, handleLoad } = useImageLoad();
 
     return (
         <button
@@ -39,7 +41,7 @@ function StyleTemplateCard({ template, onClick }: StyleTemplateCardProps) {
                     "object-cover transition-transform duration-300 group-hover:scale-105",
                     imageLoaded ? "opacity-100" : "opacity-0"
                 )}
-                onLoad={() => setImageLoaded(true)}
+                onLoad={handleLoad}
                 sizes="256px"
                 quality={85}
             />
@@ -62,7 +64,7 @@ function StyleTemplateCard({ template, onClick }: StyleTemplateCardProps) {
     );
 }
 
-function StyleTemplateCardSkeleton() {
+export function StyleTemplateCardSkeleton() {
     return (
         <div className="w-64 flex-shrink-0 aspect-[3/4] rounded-xl overflow-hidden bg-neutral-900 animate-pulse">
             <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -105,7 +107,7 @@ export function StyleTemplateCards({ templates, onTemplateClick }: StyleTemplate
     // Empty state
     if (templates.length === 0) {
         return (
-            <section className="py-12 px-8 md:px-12 lg:px-16">
+            <Section>
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h2 className="text-2xl font-semibold text-white mb-1">Styles</h2>
@@ -115,12 +117,12 @@ export function StyleTemplateCards({ templates, onTemplateClick }: StyleTemplate
                 <div className="flex items-center justify-center h-64 text-neutral-400 text-sm">
                     No templates found
                 </div>
-            </section>
+            </Section>
         );
     }
 
     return (
-        <section className="py-12 px-8 md:px-12 lg:px-16">
+        <Section>
             {/* Section Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
@@ -177,8 +179,7 @@ export function StyleTemplateCards({ templates, onTemplateClick }: StyleTemplate
                     />
                 ))}
             </div>
-        </section>
+        </Section>
     );
 }
 
-export { StyleTemplateCardSkeleton };

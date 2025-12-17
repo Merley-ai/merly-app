@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils/tw-merge";
 import { humanizeDate } from "@/lib/utils";
+import { useImageLoad } from "@/hooks";
+import { ImagePlaceholderIcon } from "@/components/ui";
+import { Section } from "./Section";
 import type { Album } from "@/types";
 
 interface AlbumsGridProps {
@@ -18,8 +20,7 @@ interface AlbumCardProps {
 }
 
 function AlbumCard({ album, onClick }: AlbumCardProps) {
-    const [imageLoaded, setImageLoaded] = useState(false);
-    const [imageError, setImageError] = useState(false);
+    const { imageLoaded, imageError, handleLoad, handleError } = useImageLoad();
 
     return (
         <button
@@ -37,19 +38,7 @@ function AlbumCard({ album, onClick }: AlbumCardProps) {
                 {/* Placeholder for albums without thumbnail */}
                 {(!album.thumbnail_url || imageError) && (
                     <div className="absolute inset-0 bg-neutral-800 flex items-center justify-center">
-                        <svg
-                            className="w-12 h-12 text-neutral-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={1.5}
-                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                        </svg>
+                        <ImagePlaceholderIcon className="w-12 h-12" />
                     </div>
                 )}
 
@@ -63,8 +52,8 @@ function AlbumCard({ album, onClick }: AlbumCardProps) {
                             "object-cover transition-all duration-300 group-hover:scale-105",
                             imageLoaded ? "opacity-100" : "opacity-0"
                         )}
-                        onLoad={() => setImageLoaded(true)}
-                        onError={() => setImageError(true)}
+                        onLoad={handleLoad}
+                        onError={handleError}
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                         quality={85}
                     />
@@ -84,7 +73,7 @@ function AlbumCard({ album, onClick }: AlbumCardProps) {
     );
 }
 
-function AlbumCardSkeleton() {
+export function AlbumCardSkeleton() {
     return (
         <div className="w-full">
             <div className="aspect-[4/5] rounded-xl bg-neutral-800 animate-pulse" />
@@ -100,21 +89,21 @@ export function AlbumsGrid({ albums, isLoading = false, onAlbumClick }: AlbumsGr
     // Loading state
     if (isLoading) {
         return (
-            <section className="py-12 px-8 md:px-12 lg:px-16">
+            <Section>
                 <h2 className="text-2xl font-semibold text-white mb-6">Your Albums</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
                     {Array.from({ length: 10 }).map((_, i) => (
                         <AlbumCardSkeleton key={i} />
                     ))}
                 </div>
-            </section>
+            </Section>
         );
     }
 
     // Empty state
     if (albums.length === 0) {
         return (
-            <section className="py-12 px-8 md:px-12 lg:px-16">
+            <Section>
                 <h2 className="text-2xl font-semibold text-white mb-6">Your Albums</h2>
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                     <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mb-4">
@@ -137,12 +126,12 @@ export function AlbumsGrid({ albums, isLoading = false, onAlbumClick }: AlbumsGr
                         Create your first album to get started
                     </p>
                 </div>
-            </section>
+            </Section>
         );
     }
 
     return (
-        <section className="py-12 px-8 md:px-12 lg:px-16">
+        <Section>
             <h2 className="text-2xl font-semibold text-white mb-6">Your Albums</h2>
             <div
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
@@ -157,8 +146,7 @@ export function AlbumsGrid({ albums, isLoading = false, onAlbumClick }: AlbumsGr
                     />
                 ))}
             </div>
-        </section>
+        </Section>
     );
 }
 
-export { AlbumCardSkeleton };

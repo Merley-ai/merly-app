@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
+import { useHomepageData } from "@/hooks/home/useHomepageData";
 import type { StyleTemplate, LookbookPreset } from "@/types";
 
 import { HeroBanner } from "./HeroBanner";
@@ -11,12 +12,8 @@ import { LookbookPresetCards } from "./LookbookPresetCards";
 import { AlbumsGrid } from "./AlbumsGrid";
 import { TemplateDetailModal } from "./TemplateDetailModal";
 import { LookbookCreationModal } from "./LookbookCreationModal";
-import { ContextualBanner } from "./ContextualBanner";
-import {
-    heroCarouselItems,
-    styleTemplates,
-    lookbookPresets,
-} from "./homepage-data";
+// import { ContextualBanner } from "./ContextualBanner";
+import { HomePageSkeleton } from "../../../../components/ui/Skeletons/HomePageSkeleton";
 
 /**
  * Dashboard Home Page
@@ -35,6 +32,8 @@ export function HomePageClient() {
         isLoading: albumsLoading,
     } = useAlbumsContext();
 
+    const { data: homepageData, isLoading: homepageLoading } = useHomepageData();
+
     // Modal states
     const [selectedTemplate, setSelectedTemplate] = useState<StyleTemplate | null>(null);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -43,7 +42,7 @@ export function HomePageClient() {
 
     // Contextual banner state (for generation progress)
     // TODO: Connect to actual generation state from context/API
-    const [showContextualBanner, setShowContextualBanner] = useState(false);
+    // const [showContextualBanner, setShowContextualBanner] = useState(false);
 
     // Template modal handlers
     const handleTemplateClick = useCallback((template: StyleTemplate) => {
@@ -56,23 +55,24 @@ export function HomePageClient() {
         setSelectedTemplate(null);
     }, []);
 
+    const navigateToAlbum = useCallback(
+        (albumId?: string | null) => {
+            const targetAlbumId = albumId || crypto.randomUUID();
+            router.push(`/albums/${targetAlbumId}`);
+        },
+        [router]
+    );
+
     const handleCreateNewAlbum = useCallback(() => {
-        const newAlbumId = crypto.randomUUID();
-        router.push(`/albums/${newAlbumId}`);
-    }, [router]);
+        navigateToAlbum();
+    }, [navigateToAlbum]);
 
     const handleApplyStyle = useCallback(
         (template: StyleTemplate, albumId: string | null) => {
             // TODO: Complete the journey - navigate to album with style applied
-            if (albumId) {
-                router.push(`/albums/${albumId}`);
-            } else {
-                // Create new album and navigate
-                const newAlbumId = crypto.randomUUID();
-                router.push(`/albums/${newAlbumId}`);
-            }
+            navigateToAlbum(albumId);
         },
-        [router]
+        [navigateToAlbum]
     );
 
     // Lookbook modal handlers
@@ -103,15 +103,22 @@ export function HomePageClient() {
         [router]
     );
 
-    // Contextual banner handlers
-    const handleContinueGeneration = useCallback(() => {
-        // TODO: Navigate to the album with active generation
-        setShowContextualBanner(false);
-    }, []);
+    // // Contextual banner handlers
+    // const handleContinueGeneration = useCallback(() => {
+    //     // TODO: Navigate to the album with active generation
+    //     setShowContextualBanner(false);
+    // }, []);
 
-    const handleDismissBanner = useCallback(() => {
-        setShowContextualBanner(false);
-    }, []);
+    // const handleDismissBanner = useCallback(() => {
+    //     setShowContextualBanner(false);
+    // }, []);
+
+    // Show skeleton while loading homepage data
+    if (homepageLoading || !homepageData) {
+        return <HomePageSkeleton />;
+    }
+
+    const { heroCarouselItems, styleTemplates, lookbookPresets } = homepageData;
 
     return (
         <div className="flex-1 bg-black overflow-y-auto">
@@ -162,14 +169,14 @@ export function HomePageClient() {
             />
 
             {/* Contextual Banner for Generation Progress */}
-            <ContextualBanner
+            {/* <ContextualBanner
                 albumName="Fashion Fusion"
                 albumThumbnail={undefined}
                 imagesGenerating={3}
                 isVisible={showContextualBanner}
                 onContinue={handleContinueGeneration}
                 onDismiss={handleDismissBanner}
-            />
+            /> */}
         </div>
     );
 }
