@@ -21,6 +21,7 @@ pnpm-debug.log*
 .vscode/
 .idea/
 .env.local
+AGENTS.md
 
 # TypeScript
 *.tsbuildinfo

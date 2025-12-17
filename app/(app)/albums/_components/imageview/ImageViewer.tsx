@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Download, Trash2 } from "lucide-react";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { Tooltip } from "@/components/ui/ToolTip/Tooltip";
 import type { GalleryImage } from "@/types";
 
 function hasValidImageExtension(url: string): boolean {

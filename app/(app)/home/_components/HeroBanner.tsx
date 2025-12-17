@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
@@ -15,6 +15,7 @@ interface HeroBannerProps {
 export function HeroBanner({ items, onTemplateClick, onLookbookClick }: HeroBannerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const goToSlide = useCallback((index: number) => {
         setCurrentIndex(index);
@@ -42,9 +43,21 @@ export function HeroBanner({ items, onTemplateClick, onLookbookClick }: HeroBann
     // Pause auto-play on user interaction
     const handleUserInteraction = useCallback(() => {
         setIsAutoPlaying(false);
+        // Clear any existing timeout to prevent memory leaks
+        if (resumeTimeoutRef.current) {
+            clearTimeout(resumeTimeoutRef.current);
+        }
         // Resume auto-play after 10 seconds of no interaction
-        const timeout = setTimeout(() => setIsAutoPlaying(true), 10000);
-        return () => clearTimeout(timeout);
+        resumeTimeoutRef.current = setTimeout(() => setIsAutoPlaying(true), 10000);
+    }, []);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (resumeTimeoutRef.current) {
+                clearTimeout(resumeTimeoutRef.current);
+            }
+        };
     }, []);
 
     const handlePrevious = () => {

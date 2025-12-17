@@ -2,11 +2,11 @@
 
 import { useRef } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { Tooltip } from "@/components/ui/ToolTip/Tooltip";
 import {
     PreferencesPopover,
     type PreferencesState
-} from "@/components/ui/PreferencesPopover";
+} from "@/components/ui/Menus/PreferencesPopover";
 
 interface InputButtonsProps {
     onAttachClick: () => void;

@@ -5,7 +5,7 @@ import { ChevronLeft, Menu, Home, Plus } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { UserMenu } from "@/components/auth";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { Tooltip } from "@/components/ui/ToolTip/Tooltip";
 import { useUser } from "@/lib/auth0/client";
 import { toast } from "@/lib/notifications";
 import type { Album } from "@/types";

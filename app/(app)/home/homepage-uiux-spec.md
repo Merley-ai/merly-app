@@ -524,8 +524,8 @@ Opens when user clicks a lookbook preset card
 ## 13. Future TODOs
 
 ### API Integration
-- [ ] Replace mock JSON data with API endpoint that fetches homepage data
-- [ ] Implement `/api/homepage` endpoint returning `HomepageData` type
+- [x] Replace mock JSON data with API endpoint that fetches homepage data
+- [x] Implement `/api/home` endpoint returning `HomepageData` type
 
 ### Apply Style Journey
 - [ ] Navigate to album with style pre-applied after "Apply Style" click
@@ -545,12 +545,13 @@ Opens when user clicks a lookbook preset card
 ### Additional Enhancements
 - [ ] Add keyboard navigation for carousel (arrow keys)
 - [ ] Implement swipe gestures for mobile carousel
-- [ ] Add loading states for homepage data fetch
+- [x] Add loading states for homepage data fetch
 - [ ] Implement error boundary for failed data loads
 
 ### Code Organization
-- [ ] Move `homepage-data.ts` to `lib/data/homepage.ts` when implementing API
-- [ ] Create `hooks/useHomepageData.ts` hook for async data fetching
+- [x] Deleted `homepage-data.ts` (replaced by API)
+- [x] Created `hooks/useHomepageData.ts` hook for async data fetching
+- [x] Created `HomePageSkeleton.tsx` for loading state
 
 ---
 

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
+import { useModal } from "@/hooks";
+import { ImagePlaceholderIcon } from "@/components/ui";
 import type { StyleTemplate, Album } from "@/types";
 
 interface TemplateDetailModalProps {
@@ -31,6 +33,8 @@ export function TemplateDetailModal({
     const [isAlbumDropdownOpen, setIsAlbumDropdownOpen] = useState(false);
     const [previewImageLoaded, setPreviewImageLoaded] = useState(false);
 
+    const { handleBackdropClick } = useModal({ isOpen, onClose });
+
     // Sync selected album when prop changes
     useEffect(() => {
         setSelectedAlbumId(selectedAlbum?.id ?? null);
@@ -43,39 +47,6 @@ export function TemplateDetailModal({
             setIsAlbumDropdownOpen(false);
         }
     }, [isOpen, template?.id]);
-
-    // Handle escape key
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && isOpen) {
-                onClose();
-            }
-        };
-
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
-    }, [isOpen, onClose]);
-
-    // Prevent body scroll when modal is open
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [isOpen]);
-
-    const handleBackdropClick = useCallback(
-        (e: React.MouseEvent) => {
-            if (e.target === e.currentTarget) {
-                onClose();
-            }
-        },
-        [onClose]
-    );
 
     const handleApplyStyle = () => {
         if (template) {
@@ -118,19 +89,7 @@ export function TemplateDetailModal({
                         {!previewImageLoaded && (
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="w-16 h-16 rounded-full border-2 border-neutral-700 flex items-center justify-center">
-                                    <svg
-                                        className="w-8 h-8 text-neutral-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={1.5}
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                        />
-                                    </svg>
+                                    <ImagePlaceholderIcon className="w-8 h-8" />
                                 </div>
                             </div>
                         )}

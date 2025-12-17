@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, Check, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
+import { useModal } from "@/hooks";
 import type { LookbookPreset, StyleTemplate } from "@/types";
 
 interface LookbookCreationModalProps {
@@ -30,6 +31,8 @@ export function LookbookCreationModal({
     );
     const [nameError, setNameError] = useState<string | null>(null);
 
+    const { handleBackdropClick } = useModal({ isOpen, onClose });
+
     // Reset state when modal opens with new preset
     useEffect(() => {
         if (isOpen && preset) {
@@ -39,39 +42,6 @@ export function LookbookCreationModal({
             setNameError(null);
         }
     }, [isOpen, preset?.id]);
-
-    // Handle escape key
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && isOpen) {
-                onClose();
-            }
-        };
-
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
-    }, [isOpen, onClose]);
-
-    // Prevent body scroll when modal is open
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
-        return () => {
-            document.body.style.overflow = "";
-        };
-    }, [isOpen]);
-
-    const handleBackdropClick = useCallback(
-        (e: React.MouseEvent) => {
-            if (e.target === e.currentTarget) {
-                onClose();
-            }
-        },
-        [onClose]
-    );
 
     const handleContinue = () => {
         if (step === 1) {

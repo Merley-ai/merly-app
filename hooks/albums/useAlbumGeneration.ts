@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { clientFetch } from '@/lib/api'
-import { resolvePreferences, type PreferencesState } from '@/components/ui/PreferencesPopover'
+import { resolvePreferences, type PreferencesState } from '@/components/ui/Menus/PreferencesPopover'
 import type { TimelineEntry, GalleryImage } from '@/types'
 
 /**

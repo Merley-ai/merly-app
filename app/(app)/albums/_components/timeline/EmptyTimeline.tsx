@@ -2,10 +2,10 @@
 
 import { InputArea } from "../input/InputArea";
 import { SubscriptionBanner } from "@/components/subscription";
-import { TypedMessage } from "@/components/ui/TypedMessage";
+import { TypedMessage } from "@/components/ui/Messages/TypedMessage";
 import { TimelineLayout } from "./TimelineLayout";
 import type { SubscriptionStatus, UploadedFile } from "@/types";
-import type { PreferencesState } from "@/components/ui/PreferencesPopover";
+import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
 
 interface EmptyTimelineProps {
     albumName: string;

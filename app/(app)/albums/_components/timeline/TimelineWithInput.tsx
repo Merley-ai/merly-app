@@ -9,7 +9,7 @@ import { SystemMessage } from "./SystemMessage";
 import { humanizeDate, isSameDay } from "@/lib/utils";
 import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
-import type { PreferencesState } from "@/components/ui/PreferencesPopover";
+import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
 
 interface TimelineWithInputProps {
     albumName: string;

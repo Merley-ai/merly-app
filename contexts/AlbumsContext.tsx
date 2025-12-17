@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react'
-import { useAlbums } from '@/hooks/useAlbums'
+import { useAlbums } from '@/hooks/albums/useAlbums'
 import type { Album } from '@/types'
 
 const SIDEBAR_STORAGE_KEY = 'sidebar-collapsed'

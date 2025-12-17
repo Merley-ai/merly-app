@@ -18,13 +18,13 @@ import {
     Check,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Buttons/Button";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/Popover";
-import { Separator } from "@/components/ui/Separator";
+} from "@/components/ui/Menus/Popover";
+import { Separator } from "@/components/ui/Menus/Separator";
 import { cn } from "@/lib/utils/tw-merge";
 
 
