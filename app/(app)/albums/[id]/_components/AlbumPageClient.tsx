@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@/lib/auth0/client";
 import {
     useSubscriptionStatus,
@@ -10,6 +10,8 @@ import {
     useAlbumTimeline,
     useAlbumGallery,
     useGenerationSSE,
+    useStyleTemplates,
+    useConsumeNavigationState,
 } from "@/hooks";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
 import { consumePendingGeneration } from "@/lib/storage/generation-storage";
@@ -54,9 +56,25 @@ interface AlbumPageClientProps {
  */
 export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     const router = useRouter();
+    const navigationState = useConsumeNavigationState();
     const { user } = useUser();
     const { subscriptionStatus } = useSubscriptionStatus();
     const { fetchAlbums, albums, selectAlbum, addOptimisticAlbum, updateOptimisticAlbum, removeOptimisticAlbum } = useAlbumsContext();
+
+    // Style templates management
+    const {
+        styles: availableStyles,
+        selectedStyle,
+        setSelectedStyle,
+        selectStyleById,
+    } = useStyleTemplates();
+
+    // Read styleId from navigation state on mount (passed from homepage)
+    useEffect(() => {
+        if (navigationState?.styleId && availableStyles.length > 0) {
+            selectStyleById(navigationState.styleId);
+        }
+    }, [navigationState, availableStyles, selectStyleById]);
 
     // Get album from context
     const currentAlbum = albums.find(a => a.id === albumId);
@@ -401,6 +419,22 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     // Determine which view to show based on content
     const hasContent = timeline.timelineEntries.length > 0 || gallery.galleryImages.length > 0;
 
+    // Style banner handlers
+    const handleChangeStyle = useCallback((style: typeof selectedStyle) => {
+        if (style) {
+            setSelectedStyle(style);
+        }
+    }, [setSelectedStyle]);
+
+    const handleViewStyleDetails = useCallback(() => {
+        // TODO: Open style detail modal if needed
+        console.log('View style details:', selectedStyle);
+    }, [selectedStyle]);
+
+    const handleRemoveStyle = useCallback(() => {
+        setSelectedStyle(null);
+    }, [setSelectedStyle]);
+
     return (
         <DashboardLayout currentRoute="albums" isNewAlbumView={isNewAlbum}>
             {!hasContent ? (
@@ -418,6 +452,11 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
                         forceDisableSend={forceDisableSend || isGenerating}
                         onPreferencesChange={setPreferences}
                         isLoading={!isNewAlbum && timeline.isLoading}
+                        selectedStyle={selectedStyle}
+                        availableStyles={availableStyles}
+                        onChangeStyle={handleChangeStyle}
+                        onViewStyleDetails={handleViewStyleDetails}
+                        onRemoveStyle={handleRemoveStyle}
                     />
                     <EmptyGallery onFileChange={handleFileChange} />
                 </>
@@ -440,6 +479,11 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
                         subscriptionStatus={subscriptionStatus}
                         forceDisableSend={forceDisableSend || isGenerating}
                         onPreferencesChange={setPreferences}
+                        selectedStyle={selectedStyle}
+                        availableStyles={availableStyles}
+                        onChangeStyle={handleChangeStyle}
+                        onViewStyleDetails={handleViewStyleDetails}
+                        onRemoveStyle={handleRemoveStyle}
                     />
                     <Gallery
                         ref={galleryRef}

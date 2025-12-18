@@ -4,8 +4,9 @@ import { InputArea } from "../input/InputArea";
 import { SubscriptionBanner } from "@/components/subscription";
 import { TypedMessage } from "@/components/ui/Messages/TypedMessage";
 import { TimelineLayout } from "./TimelineLayout";
-import type { SubscriptionStatus, UploadedFile } from "@/types";
+import type { SubscriptionStatus, UploadedFile, StyleTemplate } from "@/types";
 import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
+import { SelectedStyleBanner } from "@/components/template-style";
 
 interface EmptyTimelineProps {
     albumName: string;
@@ -19,6 +20,11 @@ interface EmptyTimelineProps {
     forceDisableSend?: boolean;
     onPreferencesChange?: (preferences: PreferencesState) => void;
     isLoading?: boolean;
+    selectedStyle?: StyleTemplate | null;
+    availableStyles?: StyleTemplate[];
+    onChangeStyle?: (style: StyleTemplate) => void;
+    onViewStyleDetails?: () => void;
+    onRemoveStyle?: () => void;
 }
 
 /**
@@ -39,6 +45,11 @@ export function EmptyTimeline({
     forceDisableSend = false,
     onPreferencesChange,
     isLoading = false,
+    selectedStyle,
+    availableStyles = [],
+    onChangeStyle,
+    onViewStyleDetails,
+    onRemoveStyle,
 }: EmptyTimelineProps) {
     return (
         <TimelineLayout albumName={albumName}>
@@ -62,6 +73,16 @@ export function EmptyTimeline({
             </div>
 
             <SubscriptionBanner subscriptionStatus={subscriptionStatus} />
+
+            {selectedStyle && (
+                <SelectedStyleBanner
+                    selectedStyle={selectedStyle}
+                    availableStyles={availableStyles}
+                    onChangeStyle={onChangeStyle}
+                    onViewDetails={onViewStyleDetails ? () => onViewStyleDetails() : undefined}
+                    onRemoveStyle={onRemoveStyle}
+                />
+            )}
 
             <InputArea
                 inputValue={inputValue}

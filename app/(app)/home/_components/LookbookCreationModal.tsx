@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { X, Check, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
@@ -25,23 +25,13 @@ export function LookbookCreationModal({
     onCreateLookbook,
 }: LookbookCreationModalProps) {
     const [step, setStep] = useState<Step>(1);
-    const [lookbookName, setLookbookName] = useState("");
+    const [lookbookName, setLookbookName] = useState(preset?.name ?? "");
     const [selectedStyleIds, setSelectedStyleIds] = useState<Set<string>>(
         new Set()
     );
     const [nameError, setNameError] = useState<string | null>(null);
 
     const { handleBackdropClick } = useModal({ isOpen, onClose });
-
-    // Reset state when modal opens with new preset
-    useEffect(() => {
-        if (isOpen && preset) {
-            setStep(1);
-            setLookbookName(preset.name);
-            setSelectedStyleIds(new Set());
-            setNameError(null);
-        }
-    }, [isOpen, preset?.id]);
 
     const handleContinue = () => {
         if (step === 1) {

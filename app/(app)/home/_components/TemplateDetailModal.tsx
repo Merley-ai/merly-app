@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { X, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
@@ -35,30 +35,11 @@ export function TemplateDetailModal({
 
     const { handleBackdropClick } = useModal({ isOpen, onClose });
 
-    // Sync selected album when prop changes
-    useEffect(() => {
-        setSelectedAlbumId(selectedAlbum?.id ?? null);
-    }, [selectedAlbum]);
-
-    // Reset state when modal opens with new template
-    useEffect(() => {
-        if (isOpen && template) {
-            setPreviewImageLoaded(false);
-            setIsAlbumDropdownOpen(false);
-        }
-    }, [isOpen, template?.id]);
-
     const handleApplyStyle = () => {
         if (template) {
-            // TODO: Complete the journey - navigate to album with style applied
-            onApplyStyle(template, selectedAlbumId);
+            onApplyStyle(template, null);
             onClose();
         }
-    };
-
-    const handleCreateNewAlbum = () => {
-        onCreateNewAlbum();
-        onClose();
     };
 
     const selectedAlbumForDropdown = albums.find((a) => a.id === selectedAlbumId);
@@ -169,16 +150,16 @@ export function TemplateDetailModal({
                         {/* Actions */}
                         <div className="space-y-3">
                             {/* Create New Album Button */}
-                            <button
+                            {/* <button
                                 onClick={handleCreateNewAlbum}
                                 className="w-full py-3 px-4 rounded-lg border border-neutral-700 text-white text-sm font-medium hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
                             >
                                 Create New Album
-                            </button>
+                            </button> */}
 
                             {/* Album Selector Dropdown */}
-                            <div className="relative">
-                                <button
+                            {/* <div className="relative"> */}
+                            {/* <button
                                     onClick={() => setIsAlbumDropdownOpen(!isAlbumDropdownOpen)}
                                     className="w-full py-3 px-4 rounded-lg border border-neutral-700 text-white text-sm font-medium hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 flex items-center justify-between"
                                     aria-expanded={isAlbumDropdownOpen}
@@ -212,10 +193,10 @@ export function TemplateDetailModal({
                                             isAlbumDropdownOpen && "rotate-180"
                                         )}
                                     />
-                                </button>
+                                </button> */}
 
-                                {/* Dropdown Menu */}
-                                {isAlbumDropdownOpen && (
+                            {/* Dropdown Menu */}
+                            {/* {isAlbumDropdownOpen && (
                                     <div className="absolute bottom-full left-0 right-0 mb-1 max-h-48 overflow-y-auto bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-10">
                                         {albums.length === 0 ? (
                                             <div className="px-4 py-3 text-sm text-neutral-400">
@@ -257,15 +238,15 @@ export function TemplateDetailModal({
                                             </ul>
                                         )}
                                     </div>
-                                )}
-                            </div>
+                                )} */}
+                            {/* </div> */}
 
                             {/* Apply Style Button */}
                             <button
                                 onClick={handleApplyStyle}
                                 className="w-full py-3 px-4 rounded-lg bg-white text-black text-sm font-medium hover:bg-neutral-200 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
                             >
-                                Apply Style
+                                Create
                             </button>
                         </div>
                     </div>
