@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
 import { useHomepageData } from "@/hooks/home/useHomepageData";
+import { useNavigateWithState } from "@/hooks";
 import type { StyleTemplate, LookbookPreset } from "@/types";
 
 import { HeroBanner } from "./HeroBanner";
@@ -26,6 +27,7 @@ import { HomePageSkeleton } from "../../../../components/ui/Skeletons/HomePageSk
  */
 export function HomePageClient() {
     const router = useRouter();
+    const { navigateWithState } = useNavigateWithState();
     const {
         albums,
         selectedAlbum,
@@ -69,10 +71,12 @@ export function HomePageClient() {
 
     const handleApplyStyle = useCallback(
         (template: StyleTemplate, albumId: string | null) => {
-            // TODO: Complete the journey - navigate to album with style applied
-            navigateToAlbum(albumId);
+            const targetAlbumId = albumId || crypto.randomUUID();
+            console.log(`Navigating to /albums/${targetAlbumId} with style ${template.id}`);
+            // Navigate to album with style state via History API
+            navigateWithState(`/albums/${targetAlbumId}`, { styleId: template.id });
         },
-        [navigateToAlbum]
+        [navigateWithState]
     );
 
     // Lookbook modal handlers
@@ -150,6 +154,7 @@ export function HomePageClient() {
 
             {/* Template Detail Modal */}
             <TemplateDetailModal
+                key={selectedTemplate?.id ?? 'no-template'}
                 template={selectedTemplate}
                 isOpen={isTemplateModalOpen}
                 onClose={handleTemplateModalClose}
@@ -161,6 +166,7 @@ export function HomePageClient() {
 
             {/* Lookbook Creation Modal */}
             <LookbookCreationModal
+                key={selectedLookbookPreset?.id ?? 'no-preset'}
                 preset={selectedLookbookPreset}
                 isOpen={isLookbookModalOpen}
                 onClose={handleLookbookModalClose}

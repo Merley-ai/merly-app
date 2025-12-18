@@ -56,7 +56,7 @@ export const Album = {
     create: () => buildUrl('sauron', '/v1/album/create'),
     update: () => buildUrl('sauron', '/v1/album/update'),
     delete: () => buildUrl('sauron', '/v1/album/delete'),
-    getHomeTemplateStyles: () => buildUrl('sauron', `/v1/album/template-styles`),
+    getHomeTemplateStyles: () => buildUrl('sauron', `/v1/album/quick-start-library`),
 } as const;
 
 /**

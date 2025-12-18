@@ -7,9 +7,10 @@ import { UserPromptBubble } from "./UserMessage";
 import { ErrorMessage } from "./ErrorMessage";
 import { SystemMessage } from "./SystemMessage";
 import { humanizeDate, isSameDay } from "@/lib/utils";
-import type { SubscriptionStatus, TimelineEntry, UploadedFile } from "@/types";
+import type { SubscriptionStatus, TimelineEntry, UploadedFile, StyleTemplate } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
 import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
+import { SelectedStyleBanner } from "@/components/template-style";
 
 interface TimelineWithInputProps {
     albumName: string;
@@ -27,6 +28,11 @@ interface TimelineWithInputProps {
     subscriptionStatus: SubscriptionStatus | null;
     forceDisableSend?: boolean;
     onPreferencesChange?: (preferences: PreferencesState) => void;
+    selectedStyle?: StyleTemplate | null;
+    availableStyles?: StyleTemplate[];
+    onChangeStyle?: (style: StyleTemplate) => void;
+    onViewStyleDetails?: () => void;
+    onRemoveStyle?: () => void;
 }
 
 export function TimelineWithInput({
@@ -45,6 +51,11 @@ export function TimelineWithInput({
     subscriptionStatus,
     forceDisableSend = false,
     onPreferencesChange,
+    selectedStyle,
+    availableStyles = [],
+    onChangeStyle,
+    onViewStyleDetails,
+    onRemoveStyle,
 }: TimelineWithInputProps) {
     const timelineRef = useRef<HTMLDivElement>(null);
     const scrollPositionRef = useRef<number>(0);
@@ -175,6 +186,17 @@ export function TimelineWithInput({
                     })}
                 </div>
             </div>
+
+            {/* Selected Style Banner - Above subscription banner */}
+            {selectedStyle && (
+                <SelectedStyleBanner
+                    selectedStyle={selectedStyle}
+                    availableStyles={availableStyles}
+                    onChangeStyle={onChangeStyle}
+                    onViewDetails={onViewStyleDetails ? () => onViewStyleDetails() : undefined}
+                    onRemoveStyle={onRemoveStyle}
+                />
+            )}
 
             {/* Subscription Status */}
             <SubscriptionBanner subscriptionStatus={subscriptionStatus} />
