@@ -10,8 +10,7 @@ const APP_ID = process.env.NEXT_PUBLIC_INTERCOM_APP_ID;
 // Routes that should hide the Intercom launcher
 // TODO: Add more routes as needed
 const HIDDEN_ROUTES = [
-    '/onboarding',
-    '/checkout',
+    '/mobile-view'
 ];
 
 export function IntercomProvider() {

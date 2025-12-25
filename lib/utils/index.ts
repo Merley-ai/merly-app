@@ -19,4 +19,5 @@ export {
     type ImageValidationResult,
     type ImageDimensionLimits,
 } from './imageValidation';
+export { isMobileUserAgent } from './device';
 

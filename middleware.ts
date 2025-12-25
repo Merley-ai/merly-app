@@ -1,5 +1,8 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { auth0 } from "./lib/auth0/Auth0";
+import { isMobileUserAgent } from "./lib/utils/device";
+
+const APP_ROUTES = ['/home', '/albums', '/accounts'];
 
 /**
  * Auth0 Middleware
@@ -13,8 +16,28 @@ import { auth0 } from "./lib/auth0/Auth0";
  * - /auth/access-token - Returns access token
  * 
  * No additional route handlers are needed for these endpoints.
+ * 
+ * Mobile Detection:
+ * Redirects mobile users accessing app routes to /mobile-view page.
+ * Remove this block when mobile view is fully implemented.
  */
+
+// TODO: Remove this block when mobile view is fully implemented
 export async function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
+    // Skip mobile redirect if already on mobile-view page
+    if (pathname !== '/mobile-view') {
+        const isAppRoute = APP_ROUTES.some(route => pathname.startsWith(route));
+
+        if (isAppRoute) {
+            const userAgent = request.headers.get('user-agent');
+            if (isMobileUserAgent(userAgent)) {
+                return NextResponse.redirect(new URL('/mobile-view', request.url));
+            }
+        }
+    }
+
     return await auth0.middleware(request);
 }
 
