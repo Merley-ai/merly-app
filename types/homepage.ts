@@ -15,6 +15,7 @@ export interface StyleTemplate {
     description: string;
     tags: string[];
     exampleImages: string[];
+    bestFor: string[];
     isUserCreated: boolean;
 }
 

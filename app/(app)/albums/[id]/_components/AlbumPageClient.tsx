@@ -15,7 +15,7 @@ import {
 } from "@/hooks";
 import { useAlbumsContext } from "@/contexts/AlbumsContext";
 import { consumePendingGeneration } from "@/lib/storage/generation-storage";
-import type { GalleryImage, PendingGeneration } from "@/types";
+import type { GalleryImage, PendingGeneration, TimelineImage } from "@/types";
 import { EmptyTimeline } from "../../_components/timeline/EmptyTimeline";
 import { TimelineWithInput } from "../../_components/timeline/TimelineWithInput";
 import { EmptyGallery } from "../../_components/gallery/EmptyGallery";
@@ -23,6 +23,7 @@ import { Gallery, type GalleryRef } from "../../_components/gallery/Gallery";
 import { ImageViewer } from "../../_components/imageview/ImageViewer";
 import { shouldDisableSending } from "@/components/subscription/subscriptionUtils";
 import { DashboardLayout } from "../../../_components/DashboardLayout";
+import { TemplateDetailModal } from "../../../../../components/ui/Modals/TemplateDetailModal";
 import { downloadImage } from "@/lib/utils";
 
 interface AlbumPageClientProps {
@@ -138,11 +139,19 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
             gallery.reset();
 
             // Add user prompt to timeline immediately (no API fetch needed)
+            // Transform string URLs to TimelineImage objects
+            const timelineInputImages = inputImages.map((url, idx) => ({
+                id: `input-${requestId}-${idx}`,
+                storageUrl: url,
+                name: `Input ${idx + 1}`,
+                description: '',
+            }));
+
             const userEntry = {
                 id: timelineEventId || `user-${requestId}`,
                 type: 'user' as const,
                 content: prompt,
-                inputImages: inputImages, // Show input image thumbnails if present
+                inputImages: timelineInputImages,
                 prompt,
                 status: 'complete' as const,
                 timestamp: new Date(),
@@ -275,6 +284,7 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
             preferences,
             albumId,
             isNewAlbum,
+            styleTemplateId: selectedStyle?.id,
         });
 
         // If generation started successfully, create placeholders and connect SSE
@@ -315,14 +325,18 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     };
 
     // Handle retry for failed generation requests
-    const handleRetry = async (prompt: string, inputImages: string[]) => {
+    const handleRetry = async (prompt: string, inputImages: TimelineImage[]) => {
+        // Extract URLs from TimelineImage objects
+        const inputImageUrls = inputImages.map(img => img.storageUrl);
+
         // Call API and get generation result
         const result = await generate({
             prompt,
-            inputImages,
+            inputImages: inputImageUrls,
             preferences,
             albumId,
             isNewAlbum: false, // Retry is always on existing album
+            styleTemplateId: selectedStyle?.id,
         });
 
         // If generation started successfully, create placeholders and connect SSE
@@ -353,7 +367,7 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
                 requestId,
                 numImages,
                 prompt,
-                inputImages,
+                inputImages: inputImageUrls,
                 albumId,
                 albumName: result.albumName,
                 systemMessage: result.systemMessage,
@@ -419,6 +433,9 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     // Determine which view to show based on content
     const hasContent = timeline.timelineEntries.length > 0 || gallery.galleryImages.length > 0;
 
+    // Style modal state
+    const [isStyleModalOpen, setIsStyleModalOpen] = useState(false);
+
     // Style banner handlers
     const handleChangeStyle = useCallback((style: typeof selectedStyle) => {
         if (style) {
@@ -427,8 +444,9 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
     }, [setSelectedStyle]);
 
     const handleViewStyleDetails = useCallback(() => {
-        // TODO: Open style detail modal if needed
-        console.log('View style details:', selectedStyle);
+        if (selectedStyle) {
+            setIsStyleModalOpen(true);
+        }
     }, [selectedStyle]);
 
     const handleRemoveStyle = useCallback(() => {
@@ -510,6 +528,20 @@ export function AlbumPageClient({ albumId }: AlbumPageClientProps) {
                     )}
                 </>
             )}
+
+            {/* Style Detail Modal */}
+            <TemplateDetailModal
+                template={selectedStyle}
+                isOpen={isStyleModalOpen}
+                onClose={() => setIsStyleModalOpen(false)}
+                albums={albums}
+                selectedAlbum={currentAlbum || null}
+                onCreateNewAlbum={() => { }}
+                onApplyStyle={(template) => {
+                    setSelectedStyle(template);
+                    setIsStyleModalOpen(false);
+                }}
+            />
         </DashboardLayout>
     );
 }

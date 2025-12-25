@@ -93,6 +93,9 @@ export function EmptyTimeline({
                 onSubmit={onSubmit}
                 forceDisableSend={forceDisableSend}
                 onPreferencesChange={onPreferencesChange}
+                availableStyles={availableStyles}
+                selectedStyle={selectedStyle}
+                onStyleSelect={onChangeStyle ? (style) => style && onChangeStyle(style) : undefined}
             />
         </TimelineLayout>
     );

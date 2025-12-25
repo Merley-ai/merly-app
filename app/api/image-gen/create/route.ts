@@ -45,7 +45,8 @@ export const POST = withAuth(async (request: NextRequest) => {
         output_format = 'png',
         album_id,
         new_album,
-        model, // ModelId from preferences (e.g., 'reve', 'flux-2')
+        model,
+        style_template_id,
     } = body
 
     console.log('[API /image-gen/create] Request params:', {
@@ -53,6 +54,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         hasNewAlbum: !!new_album,
         albumId: album_id,
         newAlbum: new_album,
+        styleTemplateId: style_template_id,
     })
 
     if (!prompt || !prompt.trim()) {
@@ -117,6 +119,9 @@ export const POST = withAuth(async (request: NextRequest) => {
                     num_images,
                     output_format,
                     sync_mode: false,
+                    ...(style_template_id && {
+                        style_template_id,
+                    }),
                 }),
             }
         )
@@ -141,6 +146,9 @@ export const POST = withAuth(async (request: NextRequest) => {
                     num_images,
                     output_format,
                     sync_mode: false,
+                    ...(style_template_id && {
+                        style_template_id,
+                    }),
                 }),
             }
         )
@@ -165,6 +173,9 @@ export const POST = withAuth(async (request: NextRequest) => {
                     num_images,
                     output_format,
                     sync_mode: false,
+                    ...(style_template_id && {
+                        style_template_id,
+                    }),
                 }),
             }
         )

@@ -22,7 +22,7 @@ export interface TimelineEntry {
     id: string;
     type: 'user' | 'ai' | 'system' | 'error';
     content: string;
-    inputImages: string[];
+    inputImages: TimelineImage[];
     prompt: string;
     status: 'thinking' | 'complete' | 'error';
     thinkingText?: string;
@@ -36,7 +36,12 @@ export interface TimelineEntry {
     errorMessage?: string; // Error message for type='error'
     suggested_actions?: Array<{ id: string, label: string, action: string }>;
 }
-
+export interface TimelineImage {
+    id: string;
+    storageUrl: string;
+    name: string;
+    description: string;
+}
 /**
  * API Response Types for Timeline Events
  */

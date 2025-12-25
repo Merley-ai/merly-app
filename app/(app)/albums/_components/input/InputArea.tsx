@@ -3,7 +3,7 @@
 import { useRef, useEffect } from "react";
 import { InputButtons } from "./InputButtons";
 import { ImageThumbnail } from "./ImageThumbnail";
-import type { UploadedFile } from "@/types";
+import type { UploadedFile, StyleTemplate } from "@/types";
 import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
 
 interface InputAreaProps {
@@ -16,6 +16,9 @@ interface InputAreaProps {
   hasScrolledContent?: boolean;
   forceDisableSend?: boolean;
   onPreferencesChange?: (preferences: PreferencesState) => void;
+  availableStyles?: StyleTemplate[];
+  selectedStyle?: StyleTemplate | null;
+  onStyleSelect?: (style: StyleTemplate | null) => void;
 }
 
 export function InputArea({
@@ -28,6 +31,9 @@ export function InputArea({
   hasScrolledContent = false,
   forceDisableSend = false,
   onPreferencesChange,
+  availableStyles,
+  selectedStyle,
+  onStyleSelect,
 }: InputAreaProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -103,6 +109,9 @@ export function InputArea({
           isSendDisabled={isSendDisabled}
           onFileChange={onFileChange}
           onPreferencesChange={onPreferencesChange}
+          availableStyles={availableStyles}
+          selectedStyle={selectedStyle}
+          onStyleSelect={onStyleSelect}
         />
       </div>
     </div>

@@ -13,6 +13,7 @@ export type {
 export { transformAlbumResponse } from './album';
 export type {
     TimelineEntry,
+    TimelineImage,
     TimelineEvent,
     PromptRequest,
     GetAlbumTimelineRequest

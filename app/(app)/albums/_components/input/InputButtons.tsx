@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import dashboardSvgPaths from "@/lib/constants/dashboard-svg-paths";
 import { Tooltip } from "@/components/ui/ToolTip/Tooltip";
 import {
     PreferencesPopover,
     type PreferencesState
 } from "@/components/ui/Menus/PreferencesPopover";
+import { StyleSelectModal } from "@/components/ui/Modals/StyleSelectModal";
+import { Settings2 } from "lucide-react";
+import type { StyleTemplate } from "@/types";
 
 interface InputButtonsProps {
     onAttachClick: () => void;
@@ -14,6 +17,9 @@ interface InputButtonsProps {
     isSendDisabled: boolean;
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onPreferencesChange?: (preferences: PreferencesState) => void;
+    availableStyles?: StyleTemplate[];
+    selectedStyle?: StyleTemplate | null;
+    onStyleSelect?: (style: StyleTemplate | null) => void;
 }
 
 /**
@@ -28,8 +34,12 @@ export function InputButtons({
     isSendDisabled,
     onFileChange,
     onPreferencesChange,
+    availableStyles,
+    selectedStyle,
+    onStyleSelect,
 }: InputButtonsProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isStyleModalOpen, setIsStyleModalOpen] = useState(false);
 
     const handleAttachClick = () => {
         // Reset the input value to allow selecting the same file again
@@ -42,8 +52,33 @@ export function InputButtons({
 
     return (
         <div className="flex items-center justify-end gap-3 pt-3">
+            {/* Style Template Modal Trigger */}
+            <Tooltip text="Select Style Template" position="top">
+                <button
+                    type="button"
+                    onClick={() => setIsStyleModalOpen(true)}
+                    className="flex-none transition-all duration-200 hover:scale-110 cursor-pointer relative"
+                    aria-label="Select style"
+                >
+                    <Settings2 className="size-[20px] text-[#dddddd]" />
+                    {selectedStyle && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-teal-200 rounded-full" />
+                    )}
+                </button>
+            </Tooltip>
+
+            {/* Style Select Modal */}
+            <StyleSelectModal
+                isOpen={isStyleModalOpen}
+                onClose={() => setIsStyleModalOpen(false)}
+                styles={availableStyles || []}
+                selectedStyle={selectedStyle}
+                onStyleSelect={onStyleSelect || (() => { })}
+            />
+
             {/* Preferences Popover */}
             <PreferencesPopover onPreferencesChange={onPreferencesChange} />
+
 
             {/* Upload Button with Tooltip */}
             <Tooltip text="Upload image" position="top">

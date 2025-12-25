@@ -42,7 +42,7 @@ export async function clientFetch(
             // If shouldLogout is true, redirect to logout
             if (data.shouldLogout) {
                 console.warn('[Auth] Session expired, redirecting to logout...')
-                window.location.href = '/auth/logout'
+                window.location.href = '/auth/login'
 
                 // Return the original response for proper error handling
                 return response

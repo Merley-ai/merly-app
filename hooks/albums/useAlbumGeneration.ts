@@ -13,7 +13,8 @@ interface GenerationConfig {
     inputImages: string[]
     preferences: PreferencesState
     albumId?: string
-    isNewAlbum?: boolean // Explicitly indicate if this is a new album creation
+    isNewAlbum?: boolean
+    styleTemplateId?: string
 }
 
 /**
@@ -108,7 +109,7 @@ export function useAlbumGeneration(callbacks: GenerationCallbacks = {}): UseAlbu
      * Returns generation result for parent to manage SSE connection
      */
     const generate = useCallback(async (config: GenerationConfig): Promise<GenerationResult | null> => {
-        const { prompt, inputImages, preferences, albumId, isNewAlbum = false } = config
+        const { prompt, inputImages, preferences, albumId, isNewAlbum = false, styleTemplateId } = config
 
         // Validate input
         if (!prompt.trim() && inputImages.length === 0) {
@@ -150,8 +151,9 @@ export function useAlbumGeneration(callbacks: GenerationCallbacks = {}): UseAlbu
                 aspect_ratio: resolvedPrefs.aspectRatio,
                 output_format: 'png',
                 model: resolvedPrefs.model,
-                album_id: albumId, // Always send UUID (pre-generated for new albums)
-                new_album: isNewAlbum, // Flag to indicate if this is a new album creation
+                album_id: albumId,
+                new_album: isNewAlbum,
+                style_template_id: styleTemplateId || undefined,
             }
 
             console.log('[useAlbumGeneration] Sending request:', {

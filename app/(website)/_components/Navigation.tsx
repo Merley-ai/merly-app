@@ -1,8 +1,13 @@
+'use client'
+
 import Link from 'next/link';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { DEFAULT_PATHS } from '@/lib/constants/routes';
 import { LoginButton } from '@/components/auth/LoginButton';
 
 export function Navigation() {
+  const { user } = useUser();
+
   return (
     <nav className="flex items-center justify-between px-4 md:px-8 lg:px-[141px] py-6">
       <div className="flex items-center gap-8 md:gap-16">
@@ -24,9 +29,18 @@ export function Navigation() {
         >
           Login
         </LoginButton>
-        <LoginButton returnTo={DEFAULT_PATHS.AFTER_LOGIN}>
-          Start Creating
-        </LoginButton>
+        {user ? (
+          <Link
+            href={DEFAULT_PATHS.AFTER_LOGIN}
+            className="bg-white rounded-[25px] px-6 py-2 font-['Roboto:Medium',_sans-serif] text-black text-[14px] cursor-pointer hover:opacity-90 transition-opacity"
+          >
+            Go to App
+          </Link>
+        ) : (
+          <LoginButton returnTo={DEFAULT_PATHS.AFTER_LOGIN}>
+            Start Creating
+          </LoginButton>
+        )}
       </div>
     </nav>
   );
