@@ -9,6 +9,30 @@ const nrExternals = require('newrelic/load-externals')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://widget.intercom.io https://js.intercomcdn.com https://js.stripe.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https://*.intercomcdn.com https://*.intercom.io https://*.supabase.co https://*.supabase.in https://fal.media https://*.fal.media https://*.fal.ai https://lh3.googleusercontent.com https://images.unsplash.com",
+              "font-src 'self' https://fonts.gstatic.com https://js.intercomcdn.com",
+              "connect-src 'self' https://*.intercom.io https://*.intercomcdn.com wss://*.intercom.io https://*.supabase.co https://*.supabase.in https://*.fal.ai https://api.stripe.com",
+              "frame-src https://intercom-sheets.com https://*.intercom.io https://js.stripe.com",
+              "media-src 'self' https://js.intercomcdn.com",
+              "worker-src 'self' blob:",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     qualities: [50, 75, 85, 90, 95, 100],

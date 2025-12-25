@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { UserProvider } from "@/components/auth";
 import { FacebookPixel } from "@/components/meta-pixel";
+import { IntercomProvider } from "@/components/intercom";
 import { NewRelicScript } from "@/components/new-relic/NewRelicScript";
 import { Toast } from "@/components/ui/Toast/Toast";
 import "./globals.css";
@@ -41,6 +42,10 @@ export default async function RootLayout({
         {/* Meta Pixel for conversion tracking */}
         <Suspense fallback={null}>
           <FacebookPixel />
+        </Suspense>
+        {/* Intercom Messenger */}
+        <Suspense fallback={null}>
+          <IntercomProvider />
         </Suspense>
         <UserProvider>
           {children}
