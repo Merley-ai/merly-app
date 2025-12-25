@@ -9,7 +9,7 @@ import type { StyleTemplate, LookbookPreset } from "@/types";
 
 import { HeroBanner } from "./HeroBanner";
 import { StyleTemplateCards } from "./StyleTemplateCards";
-import { LookbookPresetCards } from "./LookbookPresetCards";
+// import { LookbookPresetCards } from "./LookbookPresetCards";
 import { AlbumsGrid } from "./AlbumsGrid";
 import { TemplateDetailModal } from "../../../../components/ui/Modals/TemplateDetailModal";
 import { LookbookCreationModal } from "./LookbookCreationModal";
@@ -122,7 +122,7 @@ export function HomePageClient() {
         return <HomePageSkeleton />;
     }
 
-    const { heroCarouselItems, styleTemplates, lookbookPresets } = homepageData;
+    const { heroCarouselItems, styleTemplates, lookbookPresets: _lookbookPresets } = homepageData;
 
     return (
         <div className="flex-1 bg-black overflow-y-auto">
