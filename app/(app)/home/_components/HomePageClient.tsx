@@ -140,10 +140,10 @@ export function HomePageClient() {
             />
 
             {/* Lookbook Presets Section */}
-            <LookbookPresetCards
+            {/* <LookbookPresetCards
                 presets={lookbookPresets}
                 onPresetClick={handleLookbookClick}
-            />
+            /> */}
 
             {/* User Albums Section */}
             <AlbumsGrid
