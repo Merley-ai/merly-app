@@ -125,11 +125,18 @@ export function useAlbumGeneration(callbacks: GenerationCallbacks = {}): UseAlbu
             // === Add user timeline entry IMMEDIATELY for instant UX feedback ===
             // This shows the user's prompt and input images before waiting for API response
             const userTimelineEntryId = `user-${Date.now()}`
+            // Convert string URLs to TimelineImage objects
+            const timelineImages = inputImages.map((url, index) => ({
+                id: `input-${Date.now()}-${index}`,
+                storageUrl: url,
+                name: `Input ${index + 1}`,
+                description: '',
+            }))
             const userEntry: TimelineEntry = {
                 id: userTimelineEntryId,
                 type: 'user',
                 content: prompt,
-                inputImages: inputImages, // Show uploaded images immediately
+                inputImages: timelineImages, // Show uploaded images immediately
                 prompt,
                 status: 'complete',
                 timestamp: new Date(),
@@ -219,11 +226,18 @@ export function useAlbumGeneration(callbacks: GenerationCallbacks = {}): UseAlbu
             const errorMsg = error instanceof Error ? error.message : 'Unknown error'
 
             // Add error to timeline with user-friendly message
+            // Convert string URLs to TimelineImage objects for error entry
+            const errorTimelineImages = inputImages.map((url, index) => ({
+                id: `error-input-${Date.now()}-${index}`,
+                storageUrl: url,
+                name: `Input ${index + 1}`,
+                description: '',
+            }))
             const errorEntry: TimelineEntry = {
                 id: `error-${Date.now()}`,
                 type: 'error',
                 content: 'Sorry, something went wrong',
-                inputImages: inputImages, // Store input images for retry
+                inputImages: errorTimelineImages, // Store input images for retry
                 prompt: prompt, // Store original prompt for retry
                 status: 'complete',
                 timestamp: new Date(),
