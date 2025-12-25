@@ -19,6 +19,9 @@ export function InputImageThumbnail({ src, index, alt }: InputImageThumbnailProp
                 alt={alt || `Input ${index + 1}`}
                 fill
                 className="object-cover"
+                loading="lazy"
+                sizes="(max-width: 768px) 50vw, 120px"
+                quality={85}
                 unoptimized
             />
             <div className="absolute top-1 right-1 w-[12px] h-[12px] bg-[#D9D9D9] rounded-full flex items-center justify-center">

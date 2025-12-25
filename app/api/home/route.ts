@@ -13,6 +13,7 @@ interface RawStyleTemplate {
     description: string;
     tags: string[];
     example_images: string[];
+    best_for: string[];
     is_user_created: boolean;
 }
 
@@ -52,6 +53,7 @@ function transformStyleTemplate(raw: RawStyleTemplate): StyleTemplate {
         description: raw.description,
         tags: raw.tags,
         exampleImages: raw.example_images,
+        bestFor: raw.best_for,
         isUserCreated: raw.is_user_created,
     };
 }

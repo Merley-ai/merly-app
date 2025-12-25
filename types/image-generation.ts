@@ -196,6 +196,7 @@ export interface CreateGenerationRequest {
     output_format?: string
     album_id?: string
     new_album?: boolean
+    style_template_id?: string
 }
 
 /**

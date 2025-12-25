@@ -32,6 +32,7 @@ export function TemplateDetailModal({
     );
     const [isAlbumDropdownOpen, setIsAlbumDropdownOpen] = useState(false);
     const [previewImageLoaded, setPreviewImageLoaded] = useState(false);
+    const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null);
 
     const { handleBackdropClick } = useModal({ isOpen, onClose });
 
@@ -54,7 +55,7 @@ export function TemplateDetailModal({
             aria-modal="true"
             aria-labelledby="template-modal-title"
         >
-            <div className="relative w-full max-w-4xl mx-4 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative w-full max-w-6xl mx-4 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -75,7 +76,7 @@ export function TemplateDetailModal({
                             </div>
                         )}
                         <Image
-                            src={template.previewImage}
+                            src={selectedPreviewImage || template.previewImage}
                             alt={template.name}
                             fill
                             className={cn(
@@ -84,7 +85,7 @@ export function TemplateDetailModal({
                             )}
                             onLoad={() => setPreviewImageLoaded(true)}
                             sizes="(max-width: 768px) 100vw, 50vw"
-                            quality={90}
+                            quality={100}
                             priority
                         />
                     </div>
@@ -120,7 +121,7 @@ export function TemplateDetailModal({
 
                         {/* Example Generations */}
                         {template.exampleImages.length > 0 && (
-                            <div className="mb-6">
+                            <div className="mb-6 mt-6">
                                 <p className="text-xs text-neutral-500 uppercase tracking-wider mb-3">
                                     Example Generations
                                 </p>
@@ -128,15 +129,23 @@ export function TemplateDetailModal({
                                     {template.exampleImages.slice(0, 3).map((img, index) => (
                                         <div
                                             key={index}
-                                            className="relative w-20 h-24 rounded-lg overflow-hidden bg-neutral-800"
+                                            onClick={() => {
+                                                setSelectedPreviewImage(img);
+                                                setPreviewImageLoaded(false);
+                                            }}
+                                            className={cn(
+                                                "relative w-50 h-60 rounded-lg overflow-hidden bg-neutral-800 cursor-pointer transition-all duration-300",
+                                                "hover:scale-103 hover:shadow-lg hover:shadow-black/30",
+                                                selectedPreviewImage === img && "ring-2 ring-white"
+                                            )}
                                         >
                                             <Image
                                                 src={img}
                                                 alt={`Example ${index + 1}`}
                                                 fill
-                                                className="object-cover"
+                                                className="object-cover transition-transform duration-300 hover:scale-110"
                                                 sizes="80px"
-                                                quality={75}
+                                                quality={100}
                                             />
                                         </div>
                                     ))}
@@ -144,8 +153,28 @@ export function TemplateDetailModal({
                             </div>
                         )}
 
+                        {/* Tags */}
+                        {template.bestFor.length > 0 && (
+                            <div className="mb-6 mt-6">
+                                <p className="text-xs text-neutral-500 uppercase tracking-wider mb-3">
+                                    Best For
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    {template.bestFor.map((tag) => (
+                                        <span
+                                            key={tag}
+                                            className="px-3 py-1.5 bg-white/20 text-white/85 text-xs rounded-full"
+                                        >
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Spacer */}
                         <div className="flex-1" />
+
 
                         {/* Actions */}
                         <div className="space-y-3">

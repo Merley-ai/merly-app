@@ -100,9 +100,12 @@ export function useAlbumTimeline({
             }
 
             const data = await response.json()
+            console.log('[useAlbumTimeline] Fetch response:', data)
 
             const events = data.events as TimelineEvent[]
+            console.log('[useAlbumTimeline] Events:', events)
             const entries = transformTimelineEvents(events)
+            console.log('[useAlbumTimeline] Entries:', entries)
 
             setTimelineEntries(entries)
             setOffset(entries.length)

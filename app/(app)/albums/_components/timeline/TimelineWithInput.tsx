@@ -7,7 +7,7 @@ import { UserPromptBubble } from "./UserMessage";
 import { ErrorMessage } from "./ErrorMessage";
 import { SystemMessage } from "./SystemMessage";
 import { humanizeDate, isSameDay } from "@/lib/utils";
-import type { SubscriptionStatus, TimelineEntry, UploadedFile, StyleTemplate } from "@/types";
+import type { SubscriptionStatus, TimelineEntry, TimelineImage, UploadedFile, StyleTemplate } from "@/types";
 import { SubscriptionBanner } from "@/components/subscription";
 import type { PreferencesState } from "@/components/ui/Menus/PreferencesPopover";
 import { SelectedStyleBanner } from "@/components/template-style";
@@ -21,7 +21,7 @@ interface TimelineWithInputProps {
     onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onRemoveFile: (fileId: string) => void;
     onSubmit: () => void;
-    onRetry?: (prompt: string, inputImages: string[]) => void;
+    onRetry?: (prompt: string, inputImages: TimelineImage[]) => void;
     onLoadMore?: () => void;
     isLoadingMore?: boolean;
     hasMore?: boolean;
@@ -150,7 +150,7 @@ export function TimelineWithInput({
                                                 {entry.inputImages.map((img, idx) => (
                                                     <InputImageThumbnail
                                                         key={idx}
-                                                        src={img}
+                                                        src={img.storageUrl}
                                                         index={idx}
                                                     />
                                                 ))}
@@ -212,6 +212,9 @@ export function TimelineWithInput({
                 hasScrolledContent={hasScrolledContent}
                 forceDisableSend={forceDisableSend}
                 onPreferencesChange={onPreferencesChange}
+                availableStyles={availableStyles}
+                selectedStyle={selectedStyle}
+                onStyleSelect={onChangeStyle ? (style) => style && onChangeStyle(style) : undefined}
             />
         </TimelineLayout>
     );

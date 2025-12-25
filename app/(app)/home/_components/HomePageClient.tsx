@@ -11,7 +11,7 @@ import { HeroBanner } from "./HeroBanner";
 import { StyleTemplateCards } from "./StyleTemplateCards";
 import { LookbookPresetCards } from "./LookbookPresetCards";
 import { AlbumsGrid } from "./AlbumsGrid";
-import { TemplateDetailModal } from "./TemplateDetailModal";
+import { TemplateDetailModal } from "../../../../components/ui/Modals/TemplateDetailModal";
 import { LookbookCreationModal } from "./LookbookCreationModal";
 // import { ContextualBanner } from "./ContextualBanner";
 import { HomePageSkeleton } from "../../../../components/ui/Skeletons/HomePageSkeleton";
