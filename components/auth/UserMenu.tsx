@@ -3,6 +3,7 @@
 import { useUser } from '@/lib/auth0/client'
 import { LogOut, User } from 'lucide-react'
 import Image from 'next/image'
+import { shutdown } from '@intercom/messenger-js-sdk'
 
 interface UserMenuProps {
   isCollapsed?: boolean
@@ -81,14 +82,17 @@ export function UserMenu({ isCollapsed = false }: UserMenuProps) {
           </p>
         </div>
       </div>
-      <a
-        href="/auth/logout"
+      <button
+        onClick={() => {
+          shutdown()
+          window.location.href = '/auth/logout'
+        }}
         className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded transition-colors"
         aria-label="Sign out"
         title="Sign out"
       >
         <LogOut className="size-4" />
-      </a>
+      </button>
     </div>
   )
 }
