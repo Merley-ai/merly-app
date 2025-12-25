@@ -28,11 +28,11 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
         const { prompt_request } = event
 
         // Use prompt_images array if available, otherwise fallback to image_url
-        let inputImages: string[] = []
+        let inputImageUrls: string[] = []
 
         if (prompt_request.prompt_images && Array.isArray(prompt_request.prompt_images) && prompt_request.prompt_images.length > 0) {
             // Filter valid URLs from prompt_images array
-            inputImages = prompt_request.prompt_images.filter(url =>
+            inputImageUrls = prompt_request.prompt_images.filter(url =>
                 url && (
                     url.startsWith('http://') ||
                     url.startsWith('https://') ||
@@ -40,6 +40,13 @@ export function transformTimelineEvent(event: TimelineEvent): TimelineEntry[] {
                 )
             )
         }
+        // Convert string URLs to TimelineImage objects
+        const inputImages = inputImageUrls.map((url, index) => ({
+            id: `${event.id}-input-${index}`,
+            storageUrl: url,
+            name: `Input ${index + 1}`,
+            description: '',
+        }))
         const entries: TimelineEntry[] = [
             {
                 id: event.id,

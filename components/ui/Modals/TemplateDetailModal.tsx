@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, ChevronDown, Check } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils/tw-merge";
 import { useModal } from "@/hooks";
 import { ImagePlaceholderIcon } from "@/components/ui";
@@ -24,13 +24,13 @@ export function TemplateDetailModal({
     onClose,
     albums,
     selectedAlbum,
-    onCreateNewAlbum,
+    onCreateNewAlbum: _onCreateNewAlbum,
     onApplyStyle,
 }: TemplateDetailModalProps) {
-    const [selectedAlbumId, setSelectedAlbumId] = useState<string | null>(
+    const [_selectedAlbumId, _setSelectedAlbumId] = useState<string | null>(
         selectedAlbum?.id ?? null
     );
-    const [isAlbumDropdownOpen, setIsAlbumDropdownOpen] = useState(false);
+    const [_isAlbumDropdownOpen, _setIsAlbumDropdownOpen] = useState(false);
     const [previewImageLoaded, setPreviewImageLoaded] = useState(false);
     const [selectedPreviewImage, setSelectedPreviewImage] = useState<string | null>(null);
 
@@ -43,7 +43,7 @@ export function TemplateDetailModal({
         }
     };
 
-    const selectedAlbumForDropdown = albums.find((a) => a.id === selectedAlbumId);
+    const _selectedAlbumForDropdown = albums.find((a) => a.id === _selectedAlbumId);
 
     if (!isOpen || !template) return null;
 
@@ -178,98 +178,6 @@ export function TemplateDetailModal({
 
                         {/* Actions */}
                         <div className="space-y-3">
-                            {/* Create New Album Button */}
-                            {/* <button
-                                onClick={handleCreateNewAlbum}
-                                className="w-full py-3 px-4 rounded-lg border border-neutral-700 text-white text-sm font-medium hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
-                            >
-                                Create New Album
-                            </button> */}
-
-                            {/* Album Selector Dropdown */}
-                            {/* <div className="relative"> */}
-                            {/* <button
-                                    onClick={() => setIsAlbumDropdownOpen(!isAlbumDropdownOpen)}
-                                    className="w-full py-3 px-4 rounded-lg border border-neutral-700 text-white text-sm font-medium hover:bg-neutral-800 transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 flex items-center justify-between"
-                                    aria-expanded={isAlbumDropdownOpen}
-                                    aria-haspopup="listbox"
-                                >
-                                    <span className="flex items-center gap-2 truncate">
-                                        {selectedAlbumForDropdown ? (
-                                            <>
-                                                {selectedAlbumForDropdown.thumbnail_url && (
-                                                    <div className="relative w-5 h-5 rounded overflow-hidden flex-shrink-0">
-                                                        <Image
-                                                            src={selectedAlbumForDropdown.thumbnail_url}
-                                                            alt=""
-                                                            fill
-                                                            className="object-cover"
-                                                            sizes="20px"
-                                                        />
-                                                    </div>
-                                                )}
-                                                <span className="truncate">
-                                                    {selectedAlbumForDropdown.name}
-                                                </span>
-                                            </>
-                                        ) : (
-                                            <span className="text-neutral-400">Select an album</span>
-                                        )}
-                                    </span>
-                                    <ChevronDown
-                                        className={cn(
-                                            "w-4 h-4 text-neutral-400 transition-transform",
-                                            isAlbumDropdownOpen && "rotate-180"
-                                        )}
-                                    />
-                                </button> */}
-
-                            {/* Dropdown Menu */}
-                            {/* {isAlbumDropdownOpen && (
-                                    <div className="absolute bottom-full left-0 right-0 mb-1 max-h-48 overflow-y-auto bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg z-10">
-                                        {albums.length === 0 ? (
-                                            <div className="px-4 py-3 text-sm text-neutral-400">
-                                                No albums available
-                                            </div>
-                                        ) : (
-                                            <ul role="listbox" className="py-1">
-                                                {albums.map((album) => (
-                                                    <li key={album.id}>
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedAlbumId(album.id);
-                                                                setIsAlbumDropdownOpen(false);
-                                                            }}
-                                                            className="w-full px-4 py-2 text-left text-sm text-white hover:bg-neutral-700 flex items-center gap-2"
-                                                            role="option"
-                                                            aria-selected={selectedAlbumId === album.id}
-                                                        >
-                                                            {album.thumbnail_url && (
-                                                                <div className="relative w-6 h-6 rounded overflow-hidden flex-shrink-0">
-                                                                    <Image
-                                                                        src={album.thumbnail_url}
-                                                                        alt=""
-                                                                        fill
-                                                                        className="object-cover"
-                                                                        sizes="24px"
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                            <span className="truncate flex-1">
-                                                                {album.name}
-                                                            </span>
-                                                            {selectedAlbumId === album.id && (
-                                                                <Check className="w-4 h-4 text-white flex-shrink-0" />
-                                                            )}
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
-                                )} */}
-                            {/* </div> */}
-
                             {/* Apply Style Button */}
                             <button
                                 onClick={handleApplyStyle}

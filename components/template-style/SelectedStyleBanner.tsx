@@ -16,8 +16,8 @@ interface SelectedStyleBannerProps {
 
 export function SelectedStyleBanner({
     selectedStyle,
-    availableStyles = [],
-    onChangeStyle,
+    availableStyles: _availableStyles = [],
+    onChangeStyle: _onChangeStyle,
     onViewDetails,
     onRemoveStyle,
 }: SelectedStyleBannerProps) {
